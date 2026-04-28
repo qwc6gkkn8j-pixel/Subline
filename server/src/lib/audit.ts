@@ -3,8 +3,23 @@ import { prisma } from './db.js';
 
 export async function logAudit(opts: {
   userId: string;
-  action: 'created' | 'updated' | 'deleted';
-  entityType: 'user' | 'client' | 'subscription' | 'plan' | 'appointment' | 'ticket';
+  action:
+    | 'created'
+    | 'updated'
+    | 'deleted'
+    | 'registered_cut'
+    | 'cancelled'
+    | 'connected_stripe'
+    | 'disconnected_stripe';
+  entityType:
+    | 'user'
+    | 'client'
+    | 'subscription'
+    | 'plan'
+    | 'appointment'
+    | 'ticket'
+    | 'barber'
+    | 'cut';
   entityId: string;
   details?: Prisma.InputJsonValue;
 }): Promise<void> {

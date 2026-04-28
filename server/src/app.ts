@@ -8,6 +8,8 @@ import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { barberRouter } from './routes/barber.js';
 import { clientRouter, publicRouter } from './routes/client.js';
+import { notificationsRouter } from './routes/notifications.js';
+import { stripePublicRouter, stripeWebhookRouter } from './routes/stripe.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp() {
@@ -20,6 +22,14 @@ export function createApp() {
       credentials: true,
     }),
   );
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Webhook routes — MUST be mounted before express.json() because the
+  // Stripe webhook needs the raw body for signature verification.
+  // The router uses express.raw() internally on its specific path.
+  // ──────────────────────────────────────────────────────────────────────────
+  app.use('/api/webhooks', stripeWebhookRouter);
+
   app.use(express.json({ limit: '1mb' }));
   app.use(morgan(env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
@@ -47,9 +57,11 @@ export function createApp() {
   app.use('/api/auth/login', loginLimiter);
   app.use('/api/auth', authRouter);
   app.use('/api/public', publicRouter);
+  app.use('/api/public', stripePublicRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/barber', barberRouter);
   app.use('/api/client', clientRouter);
+  app.use('/api/notifications', notificationsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

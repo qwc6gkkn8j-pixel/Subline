@@ -6,6 +6,7 @@ import { env } from '../lib/env.js';
 import { BadRequest, Forbidden, NotFound } from '../lib/errors.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error.js';
+import { computeAvailableSlots } from '../lib/calendar.js';
 
 export const clientRouter = Router();
 clientRouter.use(requireAuth, requireRole('client'));
@@ -170,6 +171,380 @@ clientRouter.post(
     if (!sub) throw NotFound('No active subscription found');
     await prisma.subscription.update({ where: { id: sub.id }, data: { status: 'cancelled' } });
     res.json({ message: 'Cancellation requested', cancellationId: sub.id, reason: data.reason });
+  }),
+);
+
+// ════════════════════════════════════════════════════════════════════════════
+// V3 — Plans, Appointments, Calendar, Chat, Tickets, Cuts
+// ════════════════════════════════════════════════════════════════════════════
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/client/plans — list plans available from this client's barber
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/plans',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client?.barberId) {
+      return res.json({ plans: [] });
+    }
+    const plans = await prisma.plan.findMany({
+      where: { barberId: client.barberId, isActive: true },
+      orderBy: { price: 'asc' },
+    });
+    res.json({ plans });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/client/cuts — own cut history (across subscriptions)
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/cuts',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const subs = await prisma.subscription.findMany({
+      where: { clientId },
+      select: { id: true },
+    });
+    const cuts = await prisma.cut.findMany({
+      where: { subscriptionId: { in: subs.map((s) => s.id) } },
+      orderBy: { performedAt: 'desc' },
+      take: 50,
+    });
+    res.json({ cuts });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// APPOINTMENTS
+// ────────────────────────────────────────────────────────────────────────────
+const apptListQuery = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+clientRouter.get(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const params = apptListQuery.parse(req.query);
+    const where: Record<string, unknown> = { clientId };
+    if (params.from || params.to) {
+      where.date = {
+        ...(params.from ? { gte: new Date(params.from) } : {}),
+        ...(params.to ? { lte: new Date(params.to) } : {}),
+      };
+    }
+    const appointments = await prisma.appointment.findMany({
+      where,
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      include: { barber: { select: { id: true, name: true } } },
+    });
+    res.json({ appointments });
+  }),
+);
+
+const bookSchema = z.object({
+  service: z.enum(['haircut', 'beard', 'haircut_beard', 'other']).default('haircut'),
+  date: z.string(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  durationMinutes: z.coerce.number().int().positive().default(30),
+  clientNotes: z.string().optional(),
+});
+
+clientRouter.post(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const data = bookSchema.parse(req.body);
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client?.barberId) throw BadRequest('No barber assigned');
+
+    const [hh, mm] = data.startTime.split(':').map(Number);
+    const endMinutes = hh * 60 + mm + data.durationMinutes;
+    const endTime = `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`;
+
+    const appointment = await prisma.appointment.create({
+      data: {
+        barberId: client.barberId,
+        clientId,
+        service: data.service,
+        date: new Date(data.date),
+        startTime: data.startTime,
+        endTime,
+        durationMinutes: data.durationMinutes,
+        clientNotes: data.clientNotes ?? null,
+        status: 'pending',
+      },
+    });
+
+    // Notify barber
+    const barber = await prisma.barber.findUnique({ where: { id: client.barberId } });
+    if (barber) {
+      await prisma.notification.create({
+        data: {
+          userId: barber.userId,
+          type: 'appointment_request',
+          title: 'Nova marcação pendente',
+          body: `${client.name} pediu marcação para ${data.date} às ${data.startTime}.`,
+          data: { appointmentId: appointment.id },
+        },
+      });
+    }
+    res.status(201).json({ appointment });
+  }),
+);
+
+clientRouter.put(
+  '/appointments/:appointmentId/cancel',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const existing = await prisma.appointment.findFirst({
+      where: { id: req.params.appointmentId, clientId },
+    });
+    if (!existing) throw NotFound('Appointment not found');
+    await prisma.appointment.update({
+      where: { id: existing.id },
+      data: { status: 'cancelled', cancelledBy: 'client', cancelledAt: new Date() },
+    });
+    res.json({ message: 'Appointment cancelled' });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// SLOTS — see barber's free slots for a date
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/calendar/slots',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const dateStr = typeof req.query.date === 'string' ? req.query.date : null;
+    if (!dateStr) throw BadRequest('Missing date query parameter');
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client?.barberId) return res.json({ date: dateStr, slots: [] });
+
+    const date = new Date(dateStr);
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const [rules, appointments, unavailable] = await Promise.all([
+      prisma.barberAvailability.findMany({
+        where: { barberId: client.barberId, isActive: true },
+      }),
+      prisma.appointment.findMany({
+        where: {
+          barberId: client.barberId,
+          date: { gte: dayStart, lte: dayEnd },
+          status: { not: 'cancelled' },
+        },
+        select: { startTime: true, endTime: true },
+      }),
+      prisma.barberUnavailable.findMany({
+        where: { barberId: client.barberId, dateFrom: { lte: dayEnd }, dateTo: { gte: dayStart } },
+      }),
+    ]);
+
+    const slots = computeAvailableSlots({
+      date,
+      rules,
+      booked: appointments,
+      unavailable,
+    });
+    res.json({ date: dateStr, slots });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// CHAT — conversations + messages
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/conversations',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const conversations = await prisma.conversation.findMany({
+      where: { clientId, type: 'barber_client' },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        barber: { select: { id: true, name: true } },
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        _count: {
+          select: {
+            messages: { where: { isRead: false, NOT: { senderRole: 'client' } } },
+          },
+        },
+      },
+    });
+    res.json({ conversations });
+  }),
+);
+
+// Auto-create or fetch the conversation with the client's assigned barber.
+clientRouter.post(
+  '/conversations/with-barber',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client?.barberId) throw BadRequest('No barber assigned');
+    const existing = await prisma.conversation.findFirst({
+      where: { type: 'barber_client', barberId: client.barberId, clientId },
+    });
+    if (existing) return res.json({ conversation: existing });
+    const conversation = await prisma.conversation.create({
+      data: { type: 'barber_client', barberId: client.barberId, clientId },
+    });
+    res.status(201).json({ conversation });
+  }),
+);
+
+clientRouter.get(
+  '/conversations/:id/messages',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const conv = await prisma.conversation.findFirst({
+      where: {
+        id: req.params.id,
+        OR: [{ clientId }, { adminId: req.auth!.userId }],
+      },
+    });
+    if (!conv) throw NotFound('Conversation not found');
+    const messages = await prisma.message.findMany({
+      where: { conversationId: conv.id },
+      orderBy: { createdAt: 'asc' },
+      take: 200,
+      include: { sender: { select: { id: true, fullName: true, role: true, avatarUrl: true } } },
+    });
+    res.json({ messages });
+  }),
+);
+
+const sendMessageSchema = z.object({
+  content: z.string().min(1).max(4000),
+  type: z.enum(['text', 'image']).default('text'),
+  imageUrl: z.string().url().optional(),
+});
+
+clientRouter.post(
+  '/conversations/:id/messages',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const data = sendMessageSchema.parse(req.body);
+    const conv = await prisma.conversation.findFirst({
+      where: { id: req.params.id, clientId },
+    });
+    if (!conv) throw NotFound('Conversation not found');
+    const message = await prisma.message.create({
+      data: {
+        conversationId: conv.id,
+        senderId: req.auth!.userId,
+        senderRole: 'client',
+        content: data.content,
+        type: data.type,
+        imageUrl: data.imageUrl ?? null,
+      },
+    });
+    await prisma.conversation.update({
+      where: { id: conv.id },
+      data: { updatedAt: new Date() },
+    });
+    if (conv.barberId) {
+      const barber = await prisma.barber.findUnique({ where: { id: conv.barberId } });
+      if (barber) {
+        await prisma.notification.create({
+          data: {
+            userId: barber.userId,
+            type: 'message_received',
+            title: 'Nova mensagem',
+            body: data.content.slice(0, 100),
+            data: { conversationId: conv.id },
+          },
+        });
+      }
+    }
+    res.status(201).json({ message });
+  }),
+);
+
+clientRouter.post(
+  '/conversations/:id/read',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const conv = await prisma.conversation.findFirst({
+      where: { id: req.params.id, clientId },
+    });
+    if (!conv) throw NotFound('Conversation not found');
+    await prisma.message.updateMany({
+      where: { conversationId: conv.id, NOT: { senderRole: 'client' } },
+      data: { isRead: true },
+    });
+    res.json({ message: 'Marked as read' });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// SUPPORT TICKETS — client side
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/tickets',
+  asyncHandler(async (req, res) => {
+    const userId = req.auth!.userId;
+    const tickets = await prisma.supportTicket.findMany({
+      where: { requesterId: userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        conversation: {
+          include: {
+            messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+          },
+        },
+      },
+    });
+    res.json({ tickets });
+  }),
+);
+
+const createTicketSchema = z.object({
+  subject: z.string().min(2).max(200),
+  category: z.enum(['payment', 'account', 'booking', 'other']).default('other'),
+  priority: z.enum(['low', 'medium', 'high']).default('medium'),
+  message: z.string().min(2).max(4000),
+});
+
+clientRouter.post(
+  '/tickets',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const userId = req.auth!.userId;
+    const data = createTicketSchema.parse(req.body);
+    const result = await prisma.$transaction(async (tx) => {
+      const conv = await tx.conversation.create({
+        data: { type: 'support', clientId },
+      });
+      const ticket = await tx.supportTicket.create({
+        data: {
+          requesterId: userId,
+          requesterRole: 'client',
+          conversationId: conv.id,
+          subject: data.subject,
+          category: data.category,
+          priority: data.priority,
+        },
+      });
+      await tx.message.create({
+        data: {
+          conversationId: conv.id,
+          senderId: userId,
+          senderRole: 'client',
+          content: data.message,
+          type: 'text',
+        },
+      });
+      return { ticket, conversation: conv };
+    });
+    res.status(201).json(result);
   }),
 );
 

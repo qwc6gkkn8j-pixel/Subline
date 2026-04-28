@@ -20,11 +20,11 @@
  */
 
 import { env } from './env.js';
+import { HttpError } from './errors.js';
 
-export class StripeNotConfigured extends Error {
-  status = 503;
+export class StripeNotConfigured extends HttpError {
   constructor(message = 'Stripe is not configured on this server') {
-    super(message);
+    super(503, message, 'stripe_not_configured');
     this.name = 'StripeNotConfigured';
   }
 }
