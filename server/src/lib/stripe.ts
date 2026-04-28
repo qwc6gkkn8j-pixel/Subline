@@ -33,8 +33,25 @@ export function isStripeConfigured(): boolean {
   return Boolean(env.STRIPE_SECRET_KEY);
 }
 
+export function isStripeConnectConfigured(): boolean {
+  return isStripeConfigured() && Boolean(env.STRIPE_CLIENT_ID);
+}
+
 export function assertStripeConfigured(): void {
   if (!isStripeConfigured()) throw new StripeNotConfigured();
+}
+
+/**
+ * Public-facing Stripe status — safe to expose via API.
+ * Frontend uses this to decide whether to show "Connect Stripe" banners or
+ * gate payment-related UI behind a "configure first" message.
+ */
+export function stripeStatus() {
+  return {
+    configured: isStripeConfigured(),
+    connectConfigured: isStripeConnectConfigured(),
+    publishableKey: env.STRIPE_PUBLISHABLE_KEY ?? null,
+  };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
