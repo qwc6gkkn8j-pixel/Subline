@@ -1,5 +1,5 @@
-// Prisma schema for SUBLINE
-// Run: npx prisma migrate dev --name init
+// Prisma schema for SUBLINE — v3 (Stripe Connect)
+// Run: npx prisma db push
 
 generator client {
   provider = "prisma-client-js"
@@ -9,6 +9,10 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ────────────────────────────────────────────────────────────────────────────
 
 enum Role {
   admin
@@ -21,6 +25,8 @@ enum UserStatus {
   inactive
 }
 
+// Legacy — kept for backwards compatibility with v1 subscriptions.
+// New flow uses Plan FK on Subscription. Don't add to PlanType going forward.
 enum PlanType {
   bronze
   silver
@@ -32,13 +38,70 @@ enum SubscriptionStatus {
   inactive
   pending
   cancelled
+  payment_failed
 }
 
 enum PaymentStatus {
   pending
   paid
   failed
+  refunded
 }
+
+enum AppointmentService {
+  haircut
+  beard
+  haircut_beard
+  other
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  no_show
+}
+
+enum CancelledBy {
+  barber
+  client
+}
+
+enum ConversationType {
+  barber_client
+  support
+}
+
+enum MessageType {
+  text
+  image
+  system
+}
+
+enum TicketCategory {
+  payment
+  account
+  booking
+  other
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CORE — User / Barber / Client (v1 + Stripe additions)
+// ────────────────────────────────────────────────────────────────────────────
 
 model User {
   id           String     @id @default(uuid())
@@ -48,12 +111,17 @@ model User {
   status       UserStatus @default(active)
   fullName     String
   phone        String?
+  avatarUrl    String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  barber    Barber?
-  client    Client?
-  auditLogs AuditLog[]
+  barber               Barber?
+  client               Client?
+  auditLogs            AuditLog[]
+  sentMessages         Message[]      @relation("MessageSender")
+  notifications        Notification[]
+  ticketsRequested     SupportTicket[] @relation("TicketRequester")
+  conversationsAsAdmin Conversation[]  @relation("ConversationAdmin")
 
   @@index([email])
   @@index([role])
@@ -67,11 +135,20 @@ model Barber {
   address   String?
   bio       String?
   rating    Decimal  @default(0) @db.Decimal(2, 1)
+  // Stripe Connect — populated when barber connects their account via OAuth.
+  // Until then, stripeAccountId is null and stripeConnected is false.
+  stripeAccountId  String?
+  stripeConnected  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clients Client[]
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clients        Client[]
+  plans          Plan[]
+  appointments   Appointment[]
+  availability   BarberAvailability[]
+  unavailable    BarberUnavailable[]
+  conversations  Conversation[]        @relation("ConversationBarber")
 }
 
 model Client {
@@ -87,25 +164,67 @@ model Client {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   barber        Barber?        @relation(fields: [barberId], references: [id], onDelete: SetNull)
   subscriptions Subscription[]
+  appointments  Appointment[]
+  conversations Conversation[] @relation("ConversationClient")
 
   @@index([barberId])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// PLANS & SUBSCRIPTIONS (v3 — dynamic plans per barber, Stripe-aware)
+// ────────────────────────────────────────────────────────────────────────────
+
+model Plan {
+  id           String   @id @default(uuid())
+  barberId     String
+  name         String
+  description  String?
+  price        Decimal  @db.Decimal(10, 2)
+  // null = unlimited cuts; otherwise the monthly allowance.
+  cutsPerMonth Int?
+  isActive     Boolean  @default(true)
+  // Stripe — populated once the plan is synced to the barber's connected account.
+  stripeProductId    String?
+  stripePriceId      String?
+  stripePaymentLink  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  barber        Barber         @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([barberId])
+  @@index([isActive])
 }
 
 model Subscription {
   id          String             @id @default(uuid())
   clientId    String
-  planType    PlanType
+  // v3: planId is the canonical reference. planType + price kept for v1 compat.
+  planId      String?
+  planType    PlanType?
   status      SubscriptionStatus @default(active)
   startDate   DateTime           @default(now())
   renewalDate DateTime
   price       Decimal            @db.Decimal(10, 2)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  // Cut tracking
+  cutsUsed   Int @default(0)
+  cutsTotal  Int @default(0)
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  // Stripe references
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   client   Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  plan     Plan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
   payments Payment[]
+  cuts     Cut[]
 
   @@index([clientId])
+  @@index([planId])
   @@index([status])
 }
 
@@ -114,20 +233,192 @@ model Payment {
   subscriptionId String
   amount         Decimal       @db.Decimal(10, 2)
   status         PaymentStatus @default(paid)
+  // Free-form payment method label as reported by Stripe (e.g. "card", "sepa_debit", "ideal")
+  method         String?
   paymentDate    DateTime      @default(now())
+  // Stripe references
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
   createdAt      DateTime      @default(now())
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 
   @@index([subscriptionId])
   @@index([paymentDate])
+  @@index([stripePaymentIntentId])
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// CUT TRACKING (history of haircuts performed)
+// ────────────────────────────────────────────────────────────────────────────
+
+model Cut {
+  id             String   @id @default(uuid())
+  subscriptionId String
+  appointmentId  String?  @unique
+  performedAt    DateTime @default(now())
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([subscriptionId])
+  @@index([performedAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CALENDAR — Appointments + Availability
+// ────────────────────────────────────────────────────────────────────────────
+
+model Appointment {
+  id              String             @id @default(uuid())
+  barberId        String
+  clientId        String
+  service         AppointmentService @default(haircut)
+  date            DateTime           @db.Date
+  startTime       String // "HH:MM" 24h
+  endTime         String // "HH:MM" 24h
+  durationMinutes Int                @default(30)
+  status          AppointmentStatus  @default(pending)
+  notes           String?
+  clientNotes     String?
+  cancelledBy     CancelledBy?
+  cancelledAt     DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  barber Barber  @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  client Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  cut    Cut?
+
+  @@index([barberId, date])
+  @@index([clientId])
+  @@index([status])
+}
+
+model BarberAvailability {
+  id           String   @id @default(uuid())
+  barberId     String
+  dayOfWeek    Int // 0 = Sunday, 6 = Saturday
+  startTime    String // "HH:MM"
+  endTime      String // "HH:MM"
+  slotDuration Int      @default(30) // minutes
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@index([barberId, dayOfWeek])
+}
+
+model BarberUnavailable {
+  id        String   @id @default(uuid())
+  barberId  String
+  dateFrom  DateTime @db.Date
+  dateTo    DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+
+  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@index([barberId, dateFrom])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CHAT — Conversations + Messages + Support Tickets
+// ────────────────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id        String           @id @default(uuid())
+  type      ConversationType
+  // For type=barber_client: barberId + clientId set, adminId null
+  // For type=support:        requester (barber or client) + adminId
+  barberId  String?
+  clientId  String?
+  adminId   String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  barber  Barber?         @relation("ConversationBarber", fields: [barberId], references: [id], onDelete: Cascade)
+  client  Client?         @relation("ConversationClient", fields: [clientId], references: [id], onDelete: Cascade)
+  admin   User?           @relation("ConversationAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+  messages Message[]
+  ticket   SupportTicket?
+
+  @@index([barberId])
+  @@index([clientId])
+  @@index([adminId])
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String
+  senderRole     Role
+  content        String
+  type           MessageType @default(text)
+  imageUrl       String?
+  isRead         Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model SupportTicket {
+  id             String         @id @default(uuid())
+  requesterId    String
+  requesterRole  Role
+  conversationId String         @unique
+  subject        String
+  category       TicketCategory @default(other)
+  priority       TicketPriority @default(medium)
+  status         TicketStatus   @default(open)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  resolvedAt     DateTime?
+
+  requester    User         @relation("TicketRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([priority])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// NOTIFICATIONS
+// ────────────────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String // e.g. "payment_success", "appointment_reminder"
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// AUDIT LOG (existing)
+// ────────────────────────────────────────────────────────────────────────────
 
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String
-  action     String // created | updated | deleted
-  entityType String // user | client | subscription
+  action     String
+  entityType String
   entityId   String
   details    Json?
   createdAt  DateTime @default(now())
