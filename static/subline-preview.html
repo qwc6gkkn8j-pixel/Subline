@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SUBLINE — Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand:   { DEFAULT: '#0080D0', dark: '#003D7A', light: '#E3F2FD' },
+          accent:  '#8B5CF6',
+          success: '#4CAF50',
+          danger:  '#EF4444',
+          warning: '#F59E0B',
+          ink:     '#1A1A1A',
+          muted:   '#9CA3AF',
+          surface: '#F5F5F5',
+          line:    '#E5E7EB',
+        },
+        fontFamily: { sans: ['Inter','Segoe UI','system-ui','sans-serif'] },
+        borderRadius: { card: '12px', button: '8px' },
+        boxShadow: {
+          card:    '0 2px 8px rgba(0,0,0,0.08)',
+          'card-lg':'0 4px 16px rgba(0,0,0,0.10)',
+        },
+        backgroundImage: {
+          'brand-gradient':      'linear-gradient(135deg,#0080D0 0%,#003D7A 100%)',
+          'brand-gradient-soft': 'linear-gradient(135deg,#E3F2FD 0%,#FFFFFF 100%)',
+        },
+      },
+    },
+  };
+</script>
+<style>
+  body { font-family: Inter, 'Segoe UI', system-ui, sans-serif; }
+  .nav-pill button.active { background:#fff; color:#1A1A1A; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+  .nav-pill button { color:#9CA3AF; }
+  .badge { display:inline-flex; align-items:center; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:500; }
+  .b-success { background:rgba(76,175,80,.10); color:#4CAF50; }
+  .b-danger  { background:rgba(239,68,68,.10); color:#EF4444; }
+  .b-warning { background:rgba(245,158,11,.15); color:#F59E0B; }
+  .b-muted   { background:rgba(156,163,175,.15); color:#9CA3AF; }
+  .b-brand   { background:rgba(0,128,208,.10); color:#0080D0; }
+  .b-accent  { background:rgba(139,92,246,.10); color:#8B5CF6; }
+</style>
+</head>
+<body class="bg-surface text-ink antialiased">
+
+<!-- ─────────── Sticky preview nav ─────────── -->
+<header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <svg width="32" height="32" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#0080D0"/><stop offset="100%" stop-color="#003D7A"/></linearGradient></defs><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+      <span class="font-bold tracking-wide">SUBLINE</span>
+      <span class="text-xs text-muted ml-2 hidden sm:inline">Design preview</span>
+    </div>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="#login"  class="px-3 py-1.5 rounded-full hover:bg-surface">Login</a>
+      <a href="#admin"  class="px-3 py-1.5 rounded-full hover:bg-surface">Admin</a>
+      <a href="#barber" class="px-3 py-1.5 rounded-full hover:bg-surface">Barber</a>
+      <a href="#client" class="px-3 py-1.5 rounded-full hover:bg-surface">Client</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ─────────── 1) LOGIN ─────────── -->
+<section id="login" class="bg-brand-gradient-soft py-12 px-4 border-b border-line">
+  <h2 class="max-w-6xl mx-auto text-xs uppercase tracking-wider text-muted mb-6">1 · Login &amp; Register</h2>
+  <div class="max-w-md mx-auto">
+    <div class="flex flex-col items-center mb-6">
+      <svg width="80" height="80" viewBox="0 0 64 64"><defs><linearGradient id="g2" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#0080D0"/><stop offset="100%" stop-color="#003D7A"/></linearGradient></defs><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g2)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+      <p class="font-bold tracking-wide mt-2">SUBLINE</p>
+      <p class="text-sm text-muted">Barbershop management, simplified.</p>
+    </div>
+    <div class="bg-white rounded-card shadow-card p-8">
+      <div class="grid grid-cols-2 bg-surface rounded-button p-1 mb-6 nav-pill">
+        <button class="active h-10 rounded-button text-sm font-medium">Sign In</button>
+        <button class="h-10 rounded-button text-sm font-medium">Create Account</button>
+      </div>
+      <form class="space-y-4">
+        <div>
+          <label class="text-sm font-medium flex items-center gap-2 mb-1.5"><i data-lucide="mail" class="w-4 h-4 text-muted"></i>Email</label>
+          <input type="email" value="admin@subline.local" class="w-full h-10 px-3 border border-line rounded-button focus:outline-none focus:border-brand"/>
+        </div>
+        <div>
+          <label class="text-sm font-medium flex items-center gap-2 mb-1.5"><i data-lucide="lock" class="w-4 h-4 text-muted"></i>Password</label>
+          <div class="relative">
+            <input type="password" value="••••••••" class="w-full h-10 px-3 border border-line rounded-button focus:outline-none focus:border-brand"/>
+            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted"><i data-lucide="eye" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="text-xs text-muted">Forgot password?</button>
+        </div>
+        <button type="button" class="w-full h-12 bg-brand-gradient text-white rounded-button font-medium shadow-card flex items-center justify-center">Sign In</button>
+        <p class="text-center text-sm text-muted">Don't have an account? <a href="#" class="text-brand font-medium">Create one</a></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 2) ADMIN ─────────── -->
+<section id="admin" class="border-b border-line">
+  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">2 · Admin Dashboard</h2>
+  <header class="sticky-not bg-white border-b border-line mt-4">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+        <span class="font-bold tracking-wide">SUBLINE</span>
+      </div>
+      <h1 class="hidden sm:block text-lg font-semibold">Admin Dashboard</h1>
+      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">AD</span>
+        <span class="hidden sm:inline text-sm font-medium">Admin</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <!-- KPI -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-accent">
+        <div class="flex items-center justify-between"><i data-lucide="users" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+12.5%</span></div>
+        <div><p class="text-3xl font-bold">245</p><p class="text-xs opacity-90">Total Users</p></div>
+      </div>
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-success">
+        <div class="flex items-center justify-between"><i data-lucide="check-circle-2" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+8.2%</span></div>
+        <div><p class="text-3xl font-bold">156</p><p class="text-xs opacity-90">Active Subscriptions</p></div>
+      </div>
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-brand">
+        <div class="flex items-center justify-between"><i data-lucide="dollar-sign" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+15.3%</span></div>
+        <div><p class="text-3xl font-bold">$12,450</p><p class="text-xs opacity-90">Monthly Revenue</p></div>
+      </div>
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-muted">
+        <div class="flex items-center justify-between"><i data-lucide="trending-up" class="w-5 h-5 opacity-90"></i></div>
+        <div><p class="text-3xl font-bold">+12.5%</p><p class="text-xs opacity-90">User Growth</p></div>
+      </div>
+    </div>
+    <!-- Quick actions -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <button class="h-12 px-5 bg-brand-gradient text-white rounded-button font-medium shadow-card flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i>Add User</button>
+      <button class="h-12 px-5 bg-white border border-line rounded-button font-medium">View Reports</button>
+      <button class="h-12 px-5 bg-white border border-line rounded-button font-medium">System Settings</button>
+    </div>
+    <!-- Users table -->
+    <div class="bg-white rounded-card shadow-card overflow-hidden">
+      <div class="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center gap-3">
+        <div class="flex items-center gap-2 flex-1"><i data-lucide="search" class="w-4 h-4 text-muted"></i><input placeholder="Search by name or email…" class="flex-1 outline-none"/></div>
+        <div class="flex gap-2">
+          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>All roles</option></select>
+          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>Any status</option></select>
+          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>Newest</option></select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-surface text-muted text-xs uppercase tracking-wide">
+            <tr><th class="text-left px-5 py-3">Name</th><th class="text-left px-5 py-3">Email</th><th class="text-left px-5 py-3">Role</th><th class="text-left px-5 py-3">Status</th><th class="text-left px-5 py-3">Created</th><th class="text-right px-5 py-3">Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-line"><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">JD</span><span class="font-medium">John Doe</span></div></td><td class="px-5 py-3 text-muted">john@email.com</td><td class="px-5 py-3"><span class="badge b-brand">barber</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">May 10, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
+            <tr class="border-b border-line"><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-accent text-white font-semibold flex items-center justify-center text-xs">JS</span><span class="font-medium">Jane Smith</span></div></td><td class="px-5 py-3 text-muted">jane@email.com</td><td class="px-5 py-3"><span class="badge b-muted">client</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">May 8, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
+            <tr><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-success text-white font-semibold flex items-center justify-center text-xs">AU</span><span class="font-medium">Admin User</span></div></td><td class="px-5 py-3 text-muted">admin@subline.local</td><td class="px-5 py-3"><span class="badge b-accent">admin</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">Apr 1, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 border-t border-line flex items-center justify-between text-sm">
+        <p class="text-muted">Showing 3 of 245 · Page 1 of 25</p>
+        <div class="flex gap-2"><button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Previous</button><button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Next</button></div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ─────────── 3) BARBER ─────────── -->
+<section id="barber" class="border-b border-line">
+  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">3 · Barber Dashboard</h2>
+  <header class="bg-white border-b border-line mt-4">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+        <span class="font-bold tracking-wide">SUBLINE</span>
+      </div>
+      <h1 class="hidden sm:block text-lg font-semibold">My Clients</h1>
+      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">JM</span>
+        <span class="hidden sm:inline text-sm font-medium">John Marker</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-brand-gradient">
+        <i data-lucide="users" class="w-5 h-5 opacity-90"></i>
+        <div><p class="text-3xl font-bold">28</p><p class="text-xs opacity-90">Active Clients</p></div>
+      </div>
+      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-accent">
+        <i data-lucide="dollar-sign" class="w-5 h-5 opacity-90"></i>
+        <div><p class="text-3xl font-bold">$2,450.00</p><p class="text-xs opacity-90">Est. Monthly Revenue</p></div>
+      </div>
+      <div class="rounded-card p-6 bg-surface flex flex-col gap-2">
+        <i data-lucide="star" class="w-5 h-5 text-warning fill-warning"></i>
+        <div><p class="text-3xl font-bold">4.8<span class="text-base text-muted">/5</span></p><p class="text-xs text-muted">Client Rating</p></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-card shadow-card overflow-hidden">
+      <div class="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 class="text-lg font-semibold">My Clients</h2>
+        <div class="flex flex-wrap gap-2 items-center">
+          <div class="flex items-center gap-2 px-3 h-9 border border-line rounded-button bg-white"><i data-lucide="search" class="w-4 h-4 text-muted"></i><input placeholder="Search clients…" class="outline-none text-sm w-48"/></div>
+          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>All</option></select>
+          <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium flex items-center gap-1"><i data-lucide="user-plus" class="w-4 h-4"></i>Add Client</button>
+        </div>
+      </div>
+      <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="border border-line rounded-card p-4 flex gap-3">
+          <span class="w-11 h-11 rounded-full bg-brand text-white font-semibold flex items-center justify-center shrink-0">KM</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold">Kate Malone</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> kate@email.com</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> +1-555-0199</p>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="badge b-warning">Gold</span>
+              <span class="badge b-success">active</span>
+              <span class="text-xs text-muted">Renews Jun 15, 2025</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="border border-line rounded-card p-4 flex gap-3">
+          <span class="w-11 h-11 rounded-full bg-accent text-white font-semibold flex items-center justify-center shrink-0">MR</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold">Mark Reeves</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> mark@email.com</p>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="badge b-brand">Bronze</span>
+              <span class="badge b-success">active</span>
+              <span class="text-xs text-muted">Renews May 30, 2025</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="border border-line rounded-card p-4 flex gap-3">
+          <span class="w-11 h-11 rounded-full bg-success text-white font-semibold flex items-center justify-center shrink-0">EL</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold">Emma Lopes</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> emma@email.com</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> +351 912 345 678</p>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="badge b-muted">Silver</span>
+              <span class="badge b-danger">cancelled</span>
+              <span class="text-xs text-muted">Ended Apr 22, 2025</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+        <div class="border border-line rounded-card p-4 flex gap-3">
+          <span class="w-11 h-11 rounded-full bg-warning text-white font-semibold flex items-center justify-center shrink-0">RP</span>
+          <div class="flex-1 min-w-0">
+            <p class="font-semibold">Rui Pereira</p>
+            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> rui@email.com</p>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="badge b-warning">Gold</span>
+              <span class="badge b-success">active</span>
+              <span class="text-xs text-muted">Renews Jun 02, 2025</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ─────────── 4) CLIENT ─────────── -->
+<section id="client" class="border-b border-line">
+  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">4 · Client Dashboard</h2>
+  <header class="bg-white border-b border-line mt-4">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+        <span class="font-bold tracking-wide">SUBLINE</span>
+      </div>
+      <h1 class="hidden sm:block text-lg font-semibold">My Subscription</h1>
+      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">KM</span>
+        <span class="hidden sm:inline text-sm font-medium">Kate Malone</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <!-- Subscription -->
+    <section class="bg-white rounded-card shadow-card p-6 relative overflow-hidden">
+      <div class="absolute inset-x-0 top-0 h-1 bg-brand-gradient"></div>
+      <p class="text-xs uppercase tracking-wide text-muted">Your Subscription</p>
+      <div class="flex items-baseline gap-3 mt-2">
+        <h2 class="text-3xl font-bold">Gold</h2>
+        <span class="text-muted">$49.99/mo</span>
+      </div>
+      <div class="flex items-center gap-2 mt-2">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-success"></i>
+        <span class="text-success font-medium">Active</span>
+        <span class="text-muted text-sm">· Valid until Jun 15, 2025</span>
+      </div>
+      <p class="text-sm text-muted mt-2">With <span class="text-brand font-medium">John's Barber Shop</span></p>
+      <div class="flex flex-wrap gap-3 mt-5">
+        <button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Cancel subscription</button>
+        <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium">Contact Barber</button>
+      </div>
+    </section>
+    <!-- Payment history -->
+    <section class="bg-white rounded-card shadow-card overflow-hidden">
+      <div class="p-5 border-b border-line"><p class="text-xs uppercase tracking-wide text-muted">Payment History</p></div>
+      <div class="divide-y divide-line">
+        <div class="hidden sm:grid grid-cols-4 gap-4 px-5 py-2 text-xs uppercase text-muted bg-surface"><span>Date</span><span>Plan</span><span>Amount</span><span>Status</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>May 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Apr 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Mar 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Feb 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-warning inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span></div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Jan 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
+      </div>
+    </section>
+    <!-- Barber info -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <p class="text-xs uppercase tracking-wide text-muted mb-3">Your Barber</p>
+      <div class="flex items-start gap-4">
+        <span class="w-14 h-14 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-lg">JD</span>
+        <div class="flex-1">
+          <p class="text-lg font-semibold">John Doe</p>
+          <div class="flex items-center gap-1 text-sm text-muted"><i data-lucide="star" class="w-3.5 h-3.5 text-warning fill-warning"></i><span>4.8/5</span></div>
+          <p class="flex items-center gap-1.5 text-sm text-muted mt-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 123 Main St, City</p>
+          <p class="flex items-center gap-1.5 text-sm text-muted"><i data-lucide="phone" class="w-3.5 h-3.5"></i> +1-555-0123</p>
+        </div>
+      </div>
+    </section>
+    <!-- Profile -->
+    <section class="bg-white rounded-card shadow-card p-6">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs uppercase tracking-wide text-muted">Personal Information</p>
+        <button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Edit Profile</button>
+      </div>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+        <div><dt class="text-muted text-xs">Name</dt><dd class="font-medium">Kate Malone</dd></div>
+        <div><dt class="text-muted text-xs">Email</dt><dd class="font-medium">kate@email.com</dd></div>
+        <div><dt class="text-muted text-xs">Phone</dt><dd class="font-medium">+1-555-0199</dd></div>
+        <div><dt class="text-muted text-xs">Joined</dt><dd class="font-medium">Jan 10, 2025</dd></div>
+      </dl>
+    </section>
+  </main>
+</section>
+
+<footer class="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-muted">
+  SUBLINE — Design preview · Tailwind CDN · static mock-up · all data is fake
+</footer>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

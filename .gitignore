@@ -1,0 +1,15 @@
+node_modules
+dist
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+
+# IDE / tooling
+.claude/
+.vscode/
+.idea/
+
+# legacy archive — safe to remove once migration verified
+_old_v1/

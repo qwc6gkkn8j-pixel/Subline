@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Form inputs default styling */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='tel'],
+  input[type='number'],
+  input[type='search'],
+  textarea,
+  select {
+    @apply w-full px-3 py-2 border border-line rounded-button bg-white text-ink text-base
+           focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20
+           placeholder:text-muted/70 transition-colors;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 h-12 px-5 rounded-button
+           font-medium text-base transition-all select-none
+           disabled:opacity-50 disabled:cursor-not-allowed
+           active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-brand-gradient text-white shadow-card hover:shadow-card-lg;
+  }
+  .btn-secondary {
+    @apply btn bg-accent text-white hover:opacity-90;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-ink hover:bg-surface;
+  }
+  .btn-outline {
+    @apply btn bg-white text-ink border border-line hover:bg-surface;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:opacity-90;
+  }
+  .btn-sm {
+    @apply h-9 px-3 text-sm;
+  }
+
+  .card {
+    @apply bg-white rounded-card shadow-card p-6;
+  }
+  .card-tight {
+    @apply bg-white rounded-card shadow-card p-4;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-success {
+    @apply badge bg-success/10 text-success;
+  }
+  .badge-danger {
+    @apply badge bg-danger/10 text-danger;
+  }
+  .badge-warning {
+    @apply badge bg-warning/10 text-warning;
+  }
+  .badge-muted {
+    @apply badge bg-muted/15 text-muted;
+  }
+  .badge-brand {
+    @apply badge bg-brand/10 text-brand;
+  }
+  .badge-accent {
+    @apply badge bg-accent/10 text-accent;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink mb-1.5;
+  }
+  .input-error {
+    @apply text-xs text-danger mt-1;
+  }
+  .stat-card {
+    @apply rounded-card p-6 text-white shadow-card flex flex-col gap-2;
+  }
+  .table-row {
+    @apply border-b border-line last:border-0;
+  }
+}
