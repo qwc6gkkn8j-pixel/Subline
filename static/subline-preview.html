@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SUBLINE — Design Preview</title>
+<title>SUBLINE — Pré-visualização</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -19,6 +19,7 @@
           success: '#4CAF50',
           danger:  '#EF4444',
           warning: '#F59E0B',
+          info:    '#3B82F6',
           ink:     '#1A1A1A',
           muted:   '#9CA3AF',
           surface: '#F5F5F5',
@@ -40,338 +41,713 @@
 </script>
 <style>
   body { font-family: Inter, 'Segoe UI', system-ui, sans-serif; }
-  .nav-pill button.active { background:#fff; color:#1A1A1A; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-  .nav-pill button { color:#9CA3AF; }
-  .badge { display:inline-flex; align-items:center; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:500; }
+  .badge { display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:9999px; font-size:11px; font-weight:500; }
   .b-success { background:rgba(76,175,80,.10); color:#4CAF50; }
   .b-danger  { background:rgba(239,68,68,.10); color:#EF4444; }
   .b-warning { background:rgba(245,158,11,.15); color:#F59E0B; }
   .b-muted   { background:rgba(156,163,175,.15); color:#9CA3AF; }
   .b-brand   { background:rgba(0,128,208,.10); color:#0080D0; }
   .b-accent  { background:rgba(139,92,246,.10); color:#8B5CF6; }
+  .b-info    { background:rgba(59,130,246,.10); color:#3B82F6; }
+  .nav-link { display:flex; align-items:center; gap:.625rem; padding:.55rem .75rem; border-radius:8px; font-size:14px; color:#9CA3AF; }
+  .nav-link.active { background:#E3F2FD; color:#0080D0; font-weight:600; }
+  .nav-link:hover:not(.active) { background:#F5F5F5; color:#1A1A1A; }
 </style>
 </head>
 <body class="bg-surface text-ink antialiased">
 
 <!-- ─────────── Sticky preview nav ─────────── -->
 <header class="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-line">
-  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
     <div class="flex items-center gap-2">
       <svg width="32" height="32" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#0080D0"/><stop offset="100%" stop-color="#003D7A"/></linearGradient></defs><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
       <span class="font-bold tracking-wide">SUBLINE</span>
-      <span class="text-xs text-muted ml-2 hidden sm:inline">Design preview</span>
+      <span class="text-xs text-muted ml-2 hidden sm:inline">v3 · pré-visualização</span>
     </div>
-    <nav class="flex flex-wrap gap-2 text-sm">
+    <nav class="flex flex-wrap gap-1.5 text-sm">
       <a href="#login"  class="px-3 py-1.5 rounded-full hover:bg-surface">Login</a>
       <a href="#admin"  class="px-3 py-1.5 rounded-full hover:bg-surface">Admin</a>
-      <a href="#barber" class="px-3 py-1.5 rounded-full hover:bg-surface">Barber</a>
-      <a href="#client" class="px-3 py-1.5 rounded-full hover:bg-surface">Client</a>
+      <a href="#barber" class="px-3 py-1.5 rounded-full hover:bg-surface">Barbeiro</a>
+      <a href="#client" class="px-3 py-1.5 rounded-full hover:bg-surface">Cliente</a>
     </nav>
   </div>
 </header>
 
 <!-- ─────────── 1) LOGIN ─────────── -->
 <section id="login" class="bg-brand-gradient-soft py-12 px-4 border-b border-line">
-  <h2 class="max-w-6xl mx-auto text-xs uppercase tracking-wider text-muted mb-6">1 · Login &amp; Register</h2>
+  <h2 class="max-w-7xl mx-auto text-xs uppercase tracking-wider text-muted mb-6">1 · Login &amp; Registo</h2>
   <div class="max-w-md mx-auto">
     <div class="flex flex-col items-center mb-6">
       <svg width="80" height="80" viewBox="0 0 64 64"><defs><linearGradient id="g2" x1="0" y1="0" x2="64" y2="64"><stop offset="0%" stop-color="#0080D0"/><stop offset="100%" stop-color="#003D7A"/></linearGradient></defs><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g2)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
       <p class="font-bold tracking-wide mt-2">SUBLINE</p>
-      <p class="text-sm text-muted">Barbershop management, simplified.</p>
+      <p class="text-sm text-muted">Gestão de barbearia, simplificada.</p>
     </div>
-    <div class="bg-white rounded-card shadow-card p-8">
-      <div class="grid grid-cols-2 bg-surface rounded-button p-1 mb-6 nav-pill">
-        <button class="active h-10 rounded-button text-sm font-medium">Sign In</button>
-        <button class="h-10 rounded-button text-sm font-medium">Create Account</button>
+    <div class="bg-white rounded-card shadow-card p-6 space-y-4">
+      <div>
+        <label class="text-xs uppercase tracking-wide text-muted">Email</label>
+        <input class="w-full mt-1 h-10 px-3 border border-line rounded-button" placeholder="tu@email.com" />
       </div>
-      <form class="space-y-4">
-        <div>
-          <label class="text-sm font-medium flex items-center gap-2 mb-1.5"><i data-lucide="mail" class="w-4 h-4 text-muted"></i>Email</label>
-          <input type="email" value="admin@subline.local" class="w-full h-10 px-3 border border-line rounded-button focus:outline-none focus:border-brand"/>
-        </div>
-        <div>
-          <label class="text-sm font-medium flex items-center gap-2 mb-1.5"><i data-lucide="lock" class="w-4 h-4 text-muted"></i>Password</label>
-          <div class="relative">
-            <input type="password" value="••••••••" class="w-full h-10 px-3 border border-line rounded-button focus:outline-none focus:border-brand"/>
-            <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          </div>
-        </div>
-        <div class="flex justify-end">
-          <button type="button" class="text-xs text-muted">Forgot password?</button>
-        </div>
-        <button type="button" class="w-full h-12 bg-brand-gradient text-white rounded-button font-medium shadow-card flex items-center justify-center">Sign In</button>
-        <p class="text-center text-sm text-muted">Don't have an account? <a href="#" class="text-brand font-medium">Create one</a></p>
-      </form>
+      <div>
+        <label class="text-xs uppercase tracking-wide text-muted">Password</label>
+        <input type="password" class="w-full mt-1 h-10 px-3 border border-line rounded-button" placeholder="••••••••" />
+      </div>
+      <button class="w-full h-11 bg-brand-gradient text-white rounded-button font-medium shadow-card">Entrar</button>
+      <div class="text-center text-xs text-muted">
+        <a href="#" class="hover:text-brand">Esqueceste a password?</a>
+        <span class="mx-2">·</span>
+        <a href="#" class="hover:text-brand">Criar conta de cliente</a>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ─────────── 2) ADMIN ─────────── -->
-<section id="admin" class="border-b border-line">
-  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">2 · Admin Dashboard</h2>
-  <header class="sticky-not bg-white border-b border-line mt-4">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
-        <span class="font-bold tracking-wide">SUBLINE</span>
-      </div>
-      <h1 class="hidden sm:block text-lg font-semibold">Admin Dashboard</h1>
-      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
-        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">AD</span>
-        <span class="hidden sm:inline text-sm font-medium">Admin</span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
-      </div>
-    </div>
-  </header>
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-    <!-- KPI -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-accent">
-        <div class="flex items-center justify-between"><i data-lucide="users" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+12.5%</span></div>
-        <div><p class="text-3xl font-bold">245</p><p class="text-xs opacity-90">Total Users</p></div>
-      </div>
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-success">
-        <div class="flex items-center justify-between"><i data-lucide="check-circle-2" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+8.2%</span></div>
-        <div><p class="text-3xl font-bold">156</p><p class="text-xs opacity-90">Active Subscriptions</p></div>
-      </div>
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-brand">
-        <div class="flex items-center justify-between"><i data-lucide="dollar-sign" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+15.3%</span></div>
-        <div><p class="text-3xl font-bold">$12,450</p><p class="text-xs opacity-90">Monthly Revenue</p></div>
-      </div>
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-muted">
-        <div class="flex items-center justify-between"><i data-lucide="trending-up" class="w-5 h-5 opacity-90"></i></div>
-        <div><p class="text-3xl font-bold">+12.5%</p><p class="text-xs opacity-90">User Growth</p></div>
-      </div>
-    </div>
-    <!-- Quick actions -->
-    <div class="flex flex-wrap gap-3 mb-6">
-      <button class="h-12 px-5 bg-brand-gradient text-white rounded-button font-medium shadow-card flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i>Add User</button>
-      <button class="h-12 px-5 bg-white border border-line rounded-button font-medium">View Reports</button>
-      <button class="h-12 px-5 bg-white border border-line rounded-button font-medium">System Settings</button>
-    </div>
-    <!-- Users table -->
-    <div class="bg-white rounded-card shadow-card overflow-hidden">
-      <div class="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center gap-3">
-        <div class="flex items-center gap-2 flex-1"><i data-lucide="search" class="w-4 h-4 text-muted"></i><input placeholder="Search by name or email…" class="flex-1 outline-none"/></div>
-        <div class="flex gap-2">
-          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>All roles</option></select>
-          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>Any status</option></select>
-          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>Newest</option></select>
+<section id="admin" class="border-b border-line bg-surface">
+  <div class="max-w-7xl mx-auto px-4 pt-10 flex items-center justify-between">
+    <h2 class="text-xs uppercase tracking-wider text-muted">2 · Painel admin</h2>
+    <span class="text-xs text-muted">desktop · sidebar fixa</span>
+  </div>
+
+  <div class="max-w-7xl mx-auto mt-4 mb-10 bg-surface rounded-card overflow-hidden border border-line shadow-card">
+    <div class="grid grid-cols-[260px_1fr] min-h-[820px]">
+      <!-- Sidebar -->
+      <aside class="bg-white border-r border-line p-4 flex flex-col">
+        <div class="flex items-center gap-2 px-2 pb-4 border-b border-line">
+          <svg width="28" height="28" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+          <span class="font-bold">SUBLINE</span>
         </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-surface text-muted text-xs uppercase tracking-wide">
-            <tr><th class="text-left px-5 py-3">Name</th><th class="text-left px-5 py-3">Email</th><th class="text-left px-5 py-3">Role</th><th class="text-left px-5 py-3">Status</th><th class="text-left px-5 py-3">Created</th><th class="text-right px-5 py-3">Actions</th></tr>
-          </thead>
-          <tbody>
-            <tr class="border-b border-line"><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">JD</span><span class="font-medium">John Doe</span></div></td><td class="px-5 py-3 text-muted">john@email.com</td><td class="px-5 py-3"><span class="badge b-brand">barber</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">May 10, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
-            <tr class="border-b border-line"><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-accent text-white font-semibold flex items-center justify-center text-xs">JS</span><span class="font-medium">Jane Smith</span></div></td><td class="px-5 py-3 text-muted">jane@email.com</td><td class="px-5 py-3"><span class="badge b-muted">client</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">May 8, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
-            <tr><td class="px-5 py-3"><div class="flex items-center gap-3"><span class="w-8 h-8 rounded-full bg-success text-white font-semibold flex items-center justify-center text-xs">AU</span><span class="font-medium">Admin User</span></div></td><td class="px-5 py-3 text-muted">admin@subline.local</td><td class="px-5 py-3"><span class="badge b-accent">admin</span></td><td class="px-5 py-3"><span class="badge b-success">active</span></td><td class="px-5 py-3 text-muted">Apr 1, 2025</td><td class="px-5 py-3 text-right"><button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button><button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="px-5 py-3 border-t border-line flex items-center justify-between text-sm">
-        <p class="text-muted">Showing 3 of 245 · Page 1 of 25</p>
-        <div class="flex gap-2"><button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Previous</button><button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Next</button></div>
+        <nav class="mt-4 flex-1 space-y-1">
+          <a class="nav-link active"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+          <a class="nav-link"><i data-lucide="users" class="w-4 h-4"></i> Utilizadores</a>
+          <a class="nav-link"><i data-lucide="package" class="w-4 h-4"></i> Planos</a>
+          <a class="nav-link"><i data-lucide="life-buoy" class="w-4 h-4"></i> Tickets <span class="ml-auto badge b-warning">3</span></a>
+          <a class="nav-link"><i data-lucide="file-clock" class="w-4 h-4"></i> Logs</a>
+          <a class="nav-link"><i data-lucide="settings" class="w-4 h-4"></i> Definições</a>
+        </nav>
+        <div class="mt-auto rounded-card bg-brand-gradient-soft p-3 text-xs text-brand-dark">
+          <p class="font-semibold">Stripe da plataforma</p>
+          <p class="text-muted text-[11px] mt-1">Define <code>STRIPE_SECRET_KEY</code> para ativar pagamentos globais.</p>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <div class="flex flex-col bg-surface">
+        <header class="bg-white border-b border-line h-16 px-6 flex items-center justify-between">
+          <h1 class="text-lg font-semibold">Dashboard</h1>
+          <div class="flex items-center gap-3">
+            <button class="relative w-10 h-10 rounded-full hover:bg-surface flex items-center justify-center">
+              <i data-lucide="bell" class="w-5 h-5 text-muted"></i>
+              <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-danger"></span>
+            </button>
+            <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+              <span class="w-8 h-8 rounded-full bg-accent text-white font-semibold flex items-center justify-center text-xs">AD</span>
+              <span class="text-sm font-medium">Admin</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+            </div>
+          </div>
+        </header>
+
+        <main class="p-6 space-y-6">
+          <!-- Stripe banner -->
+          <div class="rounded-card border border-warning/30 bg-warning/5 p-4 flex items-start gap-3">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-warning shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+              <p class="font-semibold text-ink">Stripe da plataforma não configurado</p>
+              <p class="text-sm text-muted">Os pagamentos estão em modo stub. Define <code>STRIPE_SECRET_KEY</code> e <code>STRIPE_WEBHOOK_SECRET</code> no servidor para ativar.</p>
+            </div>
+          </div>
+
+          <!-- KPIs -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="rounded-card p-5 text-white shadow-card bg-accent">
+              <div class="flex items-center justify-between"><i data-lucide="users" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+12.5%</span></div>
+              <p class="text-3xl font-bold mt-3">245</p>
+              <p class="text-xs opacity-90">Utilizadores</p>
+            </div>
+            <div class="rounded-card p-5 text-white shadow-card bg-success">
+              <div class="flex items-center justify-between"><i data-lucide="check-circle-2" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+8.2%</span></div>
+              <p class="text-3xl font-bold mt-3">156</p>
+              <p class="text-xs opacity-90">Subscrições ativas</p>
+            </div>
+            <div class="rounded-card p-5 text-white shadow-card bg-brand">
+              <div class="flex items-center justify-between"><i data-lucide="euro" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">+15.3%</span></div>
+              <p class="text-3xl font-bold mt-3">12 450 €</p>
+              <p class="text-xs opacity-90">Receita / mês</p>
+            </div>
+            <div class="rounded-card p-5 text-white shadow-card bg-warning">
+              <div class="flex items-center justify-between"><i data-lucide="life-buoy" class="w-5 h-5 opacity-90"></i><span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">3 abertos</span></div>
+              <p class="text-3xl font-bold mt-3">3</p>
+              <p class="text-xs opacity-90">Tickets de suporte</p>
+            </div>
+          </div>
+
+          <!-- Two-column extras -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="rounded-card bg-white shadow-card p-5">
+              <p class="text-xs uppercase tracking-wide text-muted">Planos</p>
+              <p class="text-2xl font-bold mt-1">12 <span class="text-sm text-muted font-normal">por barbeiro</span></p>
+              <p class="text-xs text-muted mt-3 flex items-center gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5"></i> Cada barbeiro define os seus.</p>
+            </div>
+            <div class="rounded-card bg-white shadow-card p-5">
+              <p class="text-xs uppercase tracking-wide text-muted">Barbeiros</p>
+              <p class="text-2xl font-bold mt-1">8 <span class="text-sm text-muted font-normal">ativos</span></p>
+              <p class="text-xs text-success mt-3 flex items-center gap-1.5"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +2 este mês</p>
+            </div>
+            <div class="rounded-card bg-white shadow-card p-5">
+              <p class="text-xs uppercase tracking-wide text-muted">Marcações hoje</p>
+              <p class="text-2xl font-bold mt-1">34</p>
+              <p class="text-xs text-muted mt-3 flex items-center gap-1.5"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> 3 ainda por confirmar</p>
+            </div>
+          </div>
+
+          <!-- Recent tickets -->
+          <div class="bg-white rounded-card shadow-card overflow-hidden">
+            <div class="p-5 border-b border-line flex items-center justify-between">
+              <h3 class="font-semibold">Tickets recentes</h3>
+              <a class="text-sm text-brand">Ver todos →</a>
+            </div>
+            <div class="divide-y divide-line">
+              <div class="px-5 py-3 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full bg-warning/10 text-warning flex items-center justify-center"><i data-lucide="alert-circle" class="w-4 h-4"></i></span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate">Pagamento não foi processado</p>
+                  <p class="text-xs text-muted">Kate Malone · há 2h</p>
+                </div>
+                <span class="badge b-warning">aberto</span>
+                <span class="badge b-danger">alta</span>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full bg-info/10 text-info flex items-center justify-center"><i data-lucide="message-square" class="w-4 h-4"></i></span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate">Como mudo de plano?</p>
+                  <p class="text-xs text-muted">Mark Reeves · há 5h</p>
+                </div>
+                <span class="badge b-info">em curso</span>
+                <span class="badge b-muted">normal</span>
+              </div>
+              <div class="px-5 py-3 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full bg-success/10 text-success flex items-center justify-center"><i data-lucide="check" class="w-4 h-4"></i></span>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium truncate">Conta Stripe ligada</p>
+                  <p class="text-xs text-muted">João Doe · ontem</p>
+                </div>
+                <span class="badge b-success">resolvido</span>
+                <span class="badge b-muted">baixa</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audit log preview -->
+          <div class="bg-white rounded-card shadow-card overflow-hidden">
+            <div class="p-5 border-b border-line">
+              <h3 class="font-semibold">Logs de auditoria</h3>
+            </div>
+            <ul class="divide-y divide-line text-sm">
+              <li class="px-5 py-3 flex items-center gap-3">
+                <span class="badge b-brand">create</span>
+                <span class="text-muted">user</span>
+                <span class="flex-1">Admin criou cliente <span class="font-medium">emma@email.com</span></span>
+                <span class="text-xs text-muted">há 12 min</span>
+              </li>
+              <li class="px-5 py-3 flex items-center gap-3">
+                <span class="badge b-warning">update</span>
+                <span class="text-muted">plan</span>
+                <span class="flex-1">Plano <span class="font-medium">Gold</span> alterado para 49,99 €</span>
+                <span class="text-xs text-muted">há 1h</span>
+              </li>
+              <li class="px-5 py-3 flex items-center gap-3">
+                <span class="badge b-info">stripe</span>
+                <span class="text-muted">webhook</span>
+                <span class="flex-1">Recebido <span class="font-mono text-xs">checkout.session.completed</span></span>
+                <span class="text-xs text-muted">há 2h</span>
+              </li>
+            </ul>
+          </div>
+        </main>
       </div>
     </div>
-  </main>
+  </div>
 </section>
 
 <!-- ─────────── 3) BARBER ─────────── -->
 <section id="barber" class="border-b border-line">
-  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">3 · Barber Dashboard</h2>
-  <header class="bg-white border-b border-line mt-4">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
-        <span class="font-bold tracking-wide">SUBLINE</span>
-      </div>
-      <h1 class="hidden sm:block text-lg font-semibold">My Clients</h1>
-      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
-        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">JM</span>
-        <span class="hidden sm:inline text-sm font-medium">John Marker</span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+  <div class="max-w-7xl mx-auto px-4 pt-10 flex items-center justify-between">
+    <h2 class="text-xs uppercase tracking-wider text-muted">3 · Painel barbeiro</h2>
+    <span class="text-xs text-muted">com Stripe Connect, calendário e chat</span>
+  </div>
+
+  <div class="max-w-7xl mx-auto mt-4 mb-10 bg-surface rounded-card overflow-hidden border border-line shadow-card">
+    <div class="grid grid-cols-[260px_1fr] min-h-[900px]">
+      <!-- Sidebar -->
+      <aside class="bg-white border-r border-line p-4 flex flex-col">
+        <div class="flex items-center gap-2 px-2 pb-4 border-b border-line">
+          <svg width="28" height="28" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+          <span class="font-bold">SUBLINE</span>
+        </div>
+        <nav class="mt-4 flex-1 space-y-1">
+          <a class="nav-link"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard</a>
+          <a class="nav-link active"><i data-lucide="calendar-days" class="w-4 h-4"></i> Calendário</a>
+          <a class="nav-link"><i data-lucide="users" class="w-4 h-4"></i> Clientes</a>
+          <a class="nav-link"><i data-lucide="package" class="w-4 h-4"></i> Planos</a>
+          <a class="nav-link"><i data-lucide="message-square" class="w-4 h-4"></i> Chat <span class="ml-auto badge b-brand">2</span></a>
+          <a class="nav-link"><i data-lucide="user" class="w-4 h-4"></i> Perfil</a>
+        </nav>
+      </aside>
+
+      <!-- Main -->
+      <div class="flex flex-col bg-surface">
+        <header class="bg-white border-b border-line h-16 px-6 flex items-center justify-between">
+          <h1 class="text-lg font-semibold">Calendário</h1>
+          <div class="flex items-center gap-3">
+            <button class="relative w-10 h-10 rounded-full hover:bg-surface flex items-center justify-center">
+              <i data-lucide="bell" class="w-5 h-5 text-muted"></i>
+              <span class="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">2</span>
+            </button>
+            <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+              <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">JD</span>
+              <span class="text-sm font-medium">João Doe</span>
+              <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+            </div>
+          </div>
+        </header>
+
+        <main class="p-6 space-y-6">
+          <!-- Stripe Connect banner -->
+          <div class="rounded-card border border-info/30 bg-info/5 p-4 flex items-start gap-3">
+            <i data-lucide="credit-card" class="w-5 h-5 text-info shrink-0 mt-0.5"></i>
+            <div class="flex-1">
+              <p class="font-semibold text-ink">Liga a tua conta Stripe Connect</p>
+              <p class="text-sm text-muted">Recebe pagamentos automáticos das subscrições dos teus clientes. Sem Stripe ligado, partilhas links manuais.</p>
+            </div>
+            <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium flex items-center gap-1.5 shrink-0">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Ligar Stripe
+            </button>
+          </div>
+
+          <!-- Calendar header -->
+          <div class="bg-white rounded-card shadow-card overflow-hidden">
+            <div class="p-4 border-b border-line flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-2">
+                <button class="w-9 h-9 rounded-button border border-line hover:bg-surface flex items-center justify-center"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                <button class="h-9 px-3 rounded-button border border-line text-sm">Hoje</button>
+                <button class="w-9 h-9 rounded-button border border-line hover:bg-surface flex items-center justify-center"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                <span class="ml-3 font-semibold">29 abr — 5 mai 2026</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="h-9 px-3 rounded-button border border-line text-sm flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4"></i> Disponibilidade</button>
+                <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium flex items-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i> Marcação</button>
+              </div>
+            </div>
+            <!-- Week grid mini -->
+            <div class="grid grid-cols-[60px_repeat(7,1fr)] text-xs">
+              <div class="border-b border-r border-line"></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">qua</p><p class="font-semibold text-base">29</p></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">qui</p><p class="font-semibold text-base">30</p></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">sex</p><p class="font-semibold text-base">1</p></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">sáb</p><p class="font-semibold text-base">2</p></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">dom</p><p class="font-semibold text-base">3</p></div>
+              <div class="text-center py-2 border-b border-r border-line"><p class="text-muted uppercase">seg</p><p class="font-semibold text-base">4</p></div>
+              <div class="text-center py-2 border-b border-line"><p class="text-muted uppercase">ter</p><p class="font-semibold text-base">5</p></div>
+
+              <!-- Hours: 09, 10, 11, 12, 13, 14 -->
+              <div class="text-right pr-2 py-3 border-r border-line text-muted">09</div>
+              <div class="border-r border-line h-12 hover:bg-brand-light/40 cursor-pointer"></div>
+              <div class="border-r border-line h-12 p-1"><div class="bg-brand text-white text-[11px] rounded p-1 leading-tight"><p class="font-semibold">Kate · corte</p><p class="opacity-80">09:00</p></div></div>
+              <div class="border-r border-line h-12"></div>
+              <div class="border-r border-line h-12"></div>
+              <div class="border-r border-line h-12 bg-surface/60"></div>
+              <div class="border-r border-line h-12"></div>
+              <div class="border-line h-12"></div>
+
+              <div class="text-right pr-2 py-3 border-r border-t border-line text-muted">10</div>
+              <div class="border-r border-t border-line h-12 p-1"><div class="bg-accent text-white text-[11px] rounded p-1 leading-tight"><p class="font-semibold">Mark · barba</p><p class="opacity-80">10:00</p></div></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12 p-1"><div class="bg-brand text-white text-[11px] rounded p-1 leading-tight"><p class="font-semibold">Rui · combo</p><p class="opacity-80">10:00</p></div></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12 bg-surface/60"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-t border-line h-12"></div>
+
+              <div class="text-right pr-2 py-3 border-r border-t border-line text-muted">11</div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12 p-1"><div class="bg-warning text-white text-[11px] rounded p-1 leading-tight"><p class="font-semibold">Emma · pendente</p><p class="opacity-80">11:30</p></div></div>
+              <div class="border-r border-t border-line h-12 bg-surface/60"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-t border-line h-12"></div>
+
+              <div class="text-right pr-2 py-3 border-r border-t border-line text-muted">12</div>
+              <div class="border-r border-t border-line h-12 bg-muted/10"></div>
+              <div class="border-r border-t border-line h-12 bg-muted/10"></div>
+              <div class="border-r border-t border-line h-12 bg-muted/10"></div>
+              <div class="border-r border-t border-line h-12 bg-muted/10"></div>
+              <div class="border-r border-t border-line h-12 bg-surface/60"></div>
+              <div class="border-r border-t border-line h-12 bg-muted/10"></div>
+              <div class="border-t border-line h-12 bg-muted/10"></div>
+
+              <div class="text-right pr-2 py-3 border-r border-t border-line text-muted">14</div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12 p-1"><div class="bg-brand text-white text-[11px] rounded p-1 leading-tight"><p class="font-semibold">Kate · corte</p><p class="opacity-80">14:00</p></div></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-r border-t border-line h-12 bg-surface/60"></div>
+              <div class="border-r border-t border-line h-12"></div>
+              <div class="border-t border-line h-12"></div>
+            </div>
+          </div>
+
+          <!-- Quick stats + clients -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-white rounded-card shadow-card p-5">
+              <h3 class="font-semibold mb-3">Clientes (cortes este mês)</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <div class="flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-warning text-white font-semibold text-xs flex items-center justify-center">KM</span><span class="font-medium">Kate · Gold</span></div>
+                    <span class="text-muted">3/4</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-surface overflow-hidden"><div class="h-full bg-brand-gradient" style="width:75%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <div class="flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-brand text-white font-semibold text-xs flex items-center justify-center">MR</span><span class="font-medium">Mark · Bronze</span></div>
+                    <span class="text-muted">1/1</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-surface overflow-hidden"><div class="h-full bg-success" style="width:100%"></div></div>
+                </div>
+                <div>
+                  <div class="flex items-center justify-between text-sm mb-1">
+                    <div class="flex items-center gap-2"><span class="w-7 h-7 rounded-full bg-accent text-white font-semibold text-xs flex items-center justify-center">RP</span><span class="font-medium">Rui · Silver</span></div>
+                    <span class="text-muted">0/2</span>
+                  </div>
+                  <div class="w-full h-2 rounded-full bg-surface overflow-hidden"><div class="h-full bg-brand-gradient" style="width:0%"></div></div>
+                </div>
+              </div>
+              <button class="mt-4 w-full h-9 border border-line rounded-button text-sm flex items-center justify-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i> Registar corte</button>
+            </div>
+
+            <div class="bg-white rounded-card shadow-card p-5">
+              <h3 class="font-semibold mb-3">Próximas marcações</h3>
+              <ul class="divide-y divide-line text-sm">
+                <li class="py-2.5 flex items-center gap-3">
+                  <div class="w-12 text-center"><p class="font-bold text-base">09:00</p><p class="text-[10px] text-muted uppercase">Hoje</p></div>
+                  <div class="flex-1 min-w-0"><p class="font-medium">Kate Malone · Corte</p><span class="badge b-success">confirmado</span></div>
+                </li>
+                <li class="py-2.5 flex items-center gap-3">
+                  <div class="w-12 text-center"><p class="font-bold text-base">10:00</p><p class="text-[10px] text-muted uppercase">Hoje</p></div>
+                  <div class="flex-1 min-w-0"><p class="font-medium">Mark Reeves · Barba</p><span class="badge b-success">confirmado</span></div>
+                </li>
+                <li class="py-2.5 flex items-center gap-3">
+                  <div class="w-12 text-center"><p class="font-bold text-base">11:30</p><p class="text-[10px] text-muted uppercase">Sex</p></div>
+                  <div class="flex-1 min-w-0"><p class="font-medium">Emma Lopes · Combo</p><span class="badge b-warning">pendente</span></div>
+                </li>
+                <li class="py-2.5 flex items-center gap-3">
+                  <div class="w-12 text-center"><p class="font-bold text-base">14:00</p><p class="text-[10px] text-muted uppercase">Sex</p></div>
+                  <div class="flex-1 min-w-0"><p class="font-medium">Kate Malone · Corte</p><span class="badge b-success">confirmado</span></div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Chat preview -->
+          <div class="bg-white rounded-card shadow-card overflow-hidden">
+            <div class="grid grid-cols-[280px_1fr] min-h-[280px]">
+              <div class="border-r border-line">
+                <div class="grid grid-cols-2 border-b border-line text-sm">
+                  <button class="py-3 border-b-2 border-brand text-brand font-medium">Clientes</button>
+                  <button class="py-3 text-muted">Suporte</button>
+                </div>
+                <ul class="divide-y divide-line">
+                  <li class="px-4 py-3 bg-brand-light/40 flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-warning text-white font-semibold text-xs flex items-center justify-center">KM</span>
+                    <div class="flex-1 min-w-0"><p class="font-medium">Kate Malone</p><p class="text-xs text-muted truncate">Posso remarcar para 14h?</p></div>
+                    <span class="badge b-brand">2</span>
+                  </li>
+                  <li class="px-4 py-3 flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-brand text-white font-semibold text-xs flex items-center justify-center">MR</span>
+                    <div class="flex-1 min-w-0"><p class="font-medium">Mark Reeves</p><p class="text-xs text-muted truncate">Obrigado, até logo!</p></div>
+                  </li>
+                  <li class="px-4 py-3 flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-accent text-white font-semibold text-xs flex items-center justify-center">EL</span>
+                    <div class="flex-1 min-w-0"><p class="font-medium">Emma Lopes</p><p class="text-xs text-muted truncate">Bom dia 👋</p></div>
+                  </li>
+                </ul>
+              </div>
+              <div class="flex flex-col">
+                <div class="px-5 py-3 border-b border-line">
+                  <p class="font-semibold">Kate Malone</p>
+                  <p class="text-xs text-muted">cliente · Gold</p>
+                </div>
+                <div class="flex-1 p-4 space-y-3 bg-surface/40">
+                  <div class="flex"><div class="bg-white rounded-card rounded-bl-none px-3 py-2 max-w-[70%] shadow-card text-sm">Olá João, posso remarcar a marcação das 09h para as 14h?</div></div>
+                  <div class="flex justify-end"><div class="bg-brand text-white rounded-card rounded-br-none px-3 py-2 max-w-[70%] shadow-card text-sm">Claro Kate, sem problema. Marcação atualizada ✅</div></div>
+                  <div class="flex"><div class="bg-white rounded-card rounded-bl-none px-3 py-2 max-w-[70%] shadow-card text-sm">Obrigada! 🙌</div></div>
+                </div>
+                <div class="p-3 border-t border-line flex gap-2">
+                  <input class="flex-1 h-10 px-3 border border-line rounded-button text-sm" placeholder="Escreve uma mensagem…" />
+                  <button class="h-10 w-10 bg-brand-gradient text-white rounded-button flex items-center justify-center"><i data-lucide="send" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
-  </header>
-  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-brand-gradient">
-        <i data-lucide="users" class="w-5 h-5 opacity-90"></i>
-        <div><p class="text-3xl font-bold">28</p><p class="text-xs opacity-90">Active Clients</p></div>
-      </div>
-      <div class="rounded-card p-6 text-white shadow-card flex flex-col gap-2 bg-accent">
-        <i data-lucide="dollar-sign" class="w-5 h-5 opacity-90"></i>
-        <div><p class="text-3xl font-bold">$2,450.00</p><p class="text-xs opacity-90">Est. Monthly Revenue</p></div>
-      </div>
-      <div class="rounded-card p-6 bg-surface flex flex-col gap-2">
-        <i data-lucide="star" class="w-5 h-5 text-warning fill-warning"></i>
-        <div><p class="text-3xl font-bold">4.8<span class="text-base text-muted">/5</span></p><p class="text-xs text-muted">Client Rating</p></div>
-      </div>
-    </div>
-    <div class="bg-white rounded-card shadow-card overflow-hidden">
-      <div class="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 class="text-lg font-semibold">My Clients</h2>
-        <div class="flex flex-wrap gap-2 items-center">
-          <div class="flex items-center gap-2 px-3 h-9 border border-line rounded-button bg-white"><i data-lucide="search" class="w-4 h-4 text-muted"></i><input placeholder="Search clients…" class="outline-none text-sm w-48"/></div>
-          <select class="h-9 px-2 border border-line rounded-button text-sm"><option>All</option></select>
-          <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium flex items-center gap-1"><i data-lucide="user-plus" class="w-4 h-4"></i>Add Client</button>
-        </div>
-      </div>
-      <div class="p-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="border border-line rounded-card p-4 flex gap-3">
-          <span class="w-11 h-11 rounded-full bg-brand text-white font-semibold flex items-center justify-center shrink-0">KM</span>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold">Kate Malone</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> kate@email.com</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> +1-555-0199</p>
-            <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="badge b-warning">Gold</span>
-              <span class="badge b-success">active</span>
-              <span class="text-xs text-muted">Renews Jun 15, 2025</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        </div>
-        <div class="border border-line rounded-card p-4 flex gap-3">
-          <span class="w-11 h-11 rounded-full bg-accent text-white font-semibold flex items-center justify-center shrink-0">MR</span>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold">Mark Reeves</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> mark@email.com</p>
-            <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="badge b-brand">Bronze</span>
-              <span class="badge b-success">active</span>
-              <span class="text-xs text-muted">Renews May 30, 2025</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        </div>
-        <div class="border border-line rounded-card p-4 flex gap-3">
-          <span class="w-11 h-11 rounded-full bg-success text-white font-semibold flex items-center justify-center shrink-0">EL</span>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold">Emma Lopes</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> emma@email.com</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> +351 912 345 678</p>
-            <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="badge b-muted">Silver</span>
-              <span class="badge b-danger">cancelled</span>
-              <span class="text-xs text-muted">Ended Apr 22, 2025</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        </div>
-        <div class="border border-line rounded-card p-4 flex gap-3">
-          <span class="w-11 h-11 rounded-full bg-warning text-white font-semibold flex items-center justify-center shrink-0">RP</span>
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold">Rui Pereira</p>
-            <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="mail" class="w-3 h-3"></i> rui@email.com</p>
-            <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="badge b-warning">Gold</span>
-              <span class="badge b-success">active</span>
-              <span class="text-xs text-muted">Renews Jun 02, 2025</span>
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <button class="p-2 text-muted hover:text-brand"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-            <button class="p-2 text-muted hover:text-danger"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+  </div>
 </section>
 
 <!-- ─────────── 4) CLIENT ─────────── -->
-<section id="client" class="border-b border-line">
-  <h2 class="max-w-6xl mx-auto px-4 pt-10 text-xs uppercase tracking-wider text-muted">4 · Client Dashboard</h2>
-  <header class="bg-white border-b border-line mt-4">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <svg width="32" height="32" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
-        <span class="font-bold tracking-wide">SUBLINE</span>
-      </div>
-      <h1 class="hidden sm:block text-lg font-semibold">My Subscription</h1>
-      <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
-        <span class="w-8 h-8 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-xs">KM</span>
-        <span class="hidden sm:inline text-sm font-medium">Kate Malone</span>
-        <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
-      </div>
+<section id="client" class="border-b border-line bg-surface">
+  <div class="max-w-7xl mx-auto px-4 pt-10 flex items-center justify-between">
+    <h2 class="text-xs uppercase tracking-wider text-muted">4 · Cliente — desktop &amp; mobile</h2>
+    <span class="text-xs text-muted">subscrição, cortes, marcações, chat</span>
+  </div>
+
+  <div class="max-w-7xl mx-auto mt-4 mb-10 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 px-4">
+    <!-- Desktop variant -->
+    <div class="bg-white rounded-card border border-line shadow-card overflow-hidden">
+      <header class="bg-white border-b border-line h-16 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg width="28" height="28" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/><path d="M40 22c-1.6-2.4-4.4-3.6-7.5-3.6-4.6 0-7.5 2.6-7.5 6.2 0 8.4 16 4.6 16 13.6 0 4-3.6 7-9 7-4 0-7.4-1.6-9-4.6" stroke="#fff" stroke-width="3.5" stroke-linecap="round" fill="none"/></svg>
+          <span class="font-bold">SUBLINE</span>
+        </div>
+        <h1 class="text-lg font-semibold">A minha subscrição</h1>
+        <div class="flex items-center gap-3">
+          <button class="relative w-10 h-10 rounded-full hover:bg-surface flex items-center justify-center">
+            <i data-lucide="bell" class="w-5 h-5 text-muted"></i>
+          </button>
+          <div class="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2 cursor-pointer">
+            <span class="w-8 h-8 rounded-full bg-warning text-white font-semibold flex items-center justify-center text-xs">KM</span>
+            <span class="text-sm font-medium">Kate Malone</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-muted"></i>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6 space-y-5">
+        <!-- Subscription with cuts progress -->
+        <section class="rounded-card border border-line p-5 relative overflow-hidden bg-gradient-to-br from-brand-light to-white">
+          <div class="absolute inset-x-0 top-0 h-1 bg-brand-gradient"></div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs uppercase tracking-wide text-muted">Plano</p>
+              <h2 class="text-3xl font-bold mt-1">Gold</h2>
+              <p class="text-muted">49,99 € / mês</p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-wide text-muted">Estado</p>
+              <p class="text-success font-semibold mt-1 flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Ativo</p>
+              <p class="text-xs text-muted mt-1">Renova 15 jun 2026</p>
+            </div>
+            <div class="sm:col-span-2 mt-1">
+              <div class="flex items-center justify-between text-sm mb-1">
+                <span class="text-muted">Cortes utilizados este mês</span>
+                <span class="font-semibold">3/4</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-white overflow-hidden border border-line"><div class="h-full bg-brand-gradient" style="width:75%"></div></div>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-4">
+            <button class="h-9 px-3 border border-line rounded-button text-sm">Cancelar subscrição</button>
+            <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium">Mudar de plano</button>
+          </div>
+        </section>
+
+        <!-- Plans -->
+        <section>
+          <h3 class="font-semibold mb-3">Planos disponíveis</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="rounded-card border border-line p-4">
+              <p class="font-semibold">Bronze</p>
+              <p class="text-2xl font-bold mt-1">19,99 €<span class="text-sm font-normal text-muted">/mês</span></p>
+              <p class="text-xs text-muted mt-2">1 corte / mês</p>
+            </div>
+            <div class="rounded-card border-2 border-brand p-4 relative">
+              <span class="absolute -top-2 left-3 badge b-brand">recomendado</span>
+              <p class="font-semibold">Silver</p>
+              <p class="text-2xl font-bold mt-1">34,99 €<span class="text-sm font-normal text-muted">/mês</span></p>
+              <p class="text-xs text-muted mt-2">2 cortes / mês</p>
+            </div>
+            <div class="rounded-card border border-line p-4">
+              <p class="font-semibold">Gold</p>
+              <p class="text-2xl font-bold mt-1">49,99 €<span class="text-sm font-normal text-muted">/mês</span></p>
+              <p class="text-xs text-muted mt-2">4 cortes / mês</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Booking slot picker -->
+        <section class="rounded-card border border-line p-5">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">Marcar corte</h3>
+            <span class="text-xs text-muted">com João Doe</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs uppercase text-muted">Serviço</label>
+              <select class="w-full mt-1 h-10 px-3 border border-line rounded-button text-sm"><option>Corte</option><option>Barba</option><option>Combo</option></select>
+            </div>
+            <div>
+              <label class="text-xs uppercase text-muted">Data</label>
+              <input type="date" value="2026-05-02" class="w-full mt-1 h-10 px-3 border border-line rounded-button text-sm" />
+            </div>
+          </div>
+          <p class="text-xs uppercase text-muted mb-2">Horário disponível</p>
+          <div class="grid grid-cols-5 gap-2">
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">09:00</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">09:30</button>
+            <button class="h-9 rounded-button border border-line bg-surface text-muted text-sm line-through cursor-not-allowed">10:00</button>
+            <button class="h-9 rounded-button bg-brand text-white border border-brand text-sm font-medium">10:30</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">11:00</button>
+            <button class="h-9 rounded-button border border-line bg-surface text-muted text-sm line-through cursor-not-allowed">11:30</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">14:00</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">14:30</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">15:00</button>
+            <button class="h-9 rounded-button border border-line bg-white text-sm hover:border-brand">15:30</button>
+          </div>
+          <button class="mt-4 w-full h-10 bg-brand-gradient text-white rounded-button font-medium">Marcar para 02 mai · 10:30</button>
+        </section>
+
+        <!-- Payment history -->
+        <section class="rounded-card border border-line overflow-hidden">
+          <div class="p-4 border-b border-line"><h3 class="font-semibold">Histórico de pagamentos</h3></div>
+          <div class="divide-y divide-line text-sm">
+            <div class="hidden sm:grid grid-cols-4 gap-4 px-5 py-2 text-xs uppercase text-muted bg-surface"><span>Data</span><span>Plano</span><span>Valor</span><span>Estado</span></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3"><span>15 abr 2026</span><span class="text-muted">Gold</span><span class="font-medium">49,99 €</span><span class="badge b-success"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Pago</span></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3"><span>15 mar 2026</span><span class="text-muted">Gold</span><span class="font-medium">49,99 €</span><span class="badge b-success"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Pago</span></div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3"><span>15 fev 2026</span><span class="text-muted">Silver</span><span class="font-medium">34,99 €</span><span class="badge b-warning"><i data-lucide="clock" class="w-3 h-3"></i> Pendente</span></div>
+          </div>
+        </section>
+      </main>
     </div>
-  </header>
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-    <!-- Subscription -->
-    <section class="bg-white rounded-card shadow-card p-6 relative overflow-hidden">
-      <div class="absolute inset-x-0 top-0 h-1 bg-brand-gradient"></div>
-      <p class="text-xs uppercase tracking-wide text-muted">Your Subscription</p>
-      <div class="flex items-baseline gap-3 mt-2">
-        <h2 class="text-3xl font-bold">Gold</h2>
-        <span class="text-muted">$49.99/mo</span>
-      </div>
-      <div class="flex items-center gap-2 mt-2">
-        <i data-lucide="check-circle-2" class="w-4 h-4 text-success"></i>
-        <span class="text-success font-medium">Active</span>
-        <span class="text-muted text-sm">· Valid until Jun 15, 2025</span>
-      </div>
-      <p class="text-sm text-muted mt-2">With <span class="text-brand font-medium">John's Barber Shop</span></p>
-      <div class="flex flex-wrap gap-3 mt-5">
-        <button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Cancel subscription</button>
-        <button class="h-9 px-3 bg-brand-gradient text-white rounded-button text-sm font-medium">Contact Barber</button>
-      </div>
-    </section>
-    <!-- Payment history -->
-    <section class="bg-white rounded-card shadow-card overflow-hidden">
-      <div class="p-5 border-b border-line"><p class="text-xs uppercase tracking-wide text-muted">Payment History</p></div>
-      <div class="divide-y divide-line">
-        <div class="hidden sm:grid grid-cols-4 gap-4 px-5 py-2 text-xs uppercase text-muted bg-surface"><span>Date</span><span>Plan</span><span>Amount</span><span>Status</span></div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>May 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Apr 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Mar 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Feb 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-warning inline-flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Pending</span></div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"><span>Jan 15, 2025</span><span class="text-muted">Gold</span><span class="font-medium">$49.99</span><span class="badge b-success inline-flex items-center gap-1"><i data-lucide="check-circle-2" class="w-3 h-3"></i> Paid</span></div>
-      </div>
-    </section>
-    <!-- Barber info -->
-    <section class="bg-white rounded-card shadow-card p-6">
-      <p class="text-xs uppercase tracking-wide text-muted mb-3">Your Barber</p>
-      <div class="flex items-start gap-4">
-        <span class="w-14 h-14 rounded-full bg-brand text-white font-semibold flex items-center justify-center text-lg">JD</span>
-        <div class="flex-1">
-          <p class="text-lg font-semibold">John Doe</p>
-          <div class="flex items-center gap-1 text-sm text-muted"><i data-lucide="star" class="w-3.5 h-3.5 text-warning fill-warning"></i><span>4.8/5</span></div>
-          <p class="flex items-center gap-1.5 text-sm text-muted mt-1"><i data-lucide="map-pin" class="w-3.5 h-3.5"></i> 123 Main St, City</p>
-          <p class="flex items-center gap-1.5 text-sm text-muted"><i data-lucide="phone" class="w-3.5 h-3.5"></i> +1-555-0123</p>
+
+    <!-- Mobile variant -->
+    <div class="lg:sticky lg:top-24 self-start">
+      <p class="text-xs uppercase tracking-wider text-muted mb-2 text-center">Mobile · bottom nav</p>
+      <div class="mx-auto w-[340px] h-[700px] rounded-[36px] border-[10px] border-ink bg-white overflow-hidden shadow-card-lg flex flex-col">
+        <!-- Mobile topbar -->
+        <div class="h-12 bg-white border-b border-line flex items-center justify-between px-4">
+          <div class="flex items-center gap-1.5">
+            <svg width="22" height="22" viewBox="0 0 64 64"><path d="M16 8h32a8 8 0 0 1 8 8v32a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8V16a8 8 0 0 1 8-8z" fill="url(#g)"/></svg>
+            <span class="font-bold text-sm">SUBLINE</span>
+          </div>
+          <button class="relative w-9 h-9 flex items-center justify-center">
+            <i data-lucide="bell" class="w-5 h-5 text-muted"></i>
+            <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger"></span>
+          </button>
+        </div>
+
+        <!-- Mobile content (Início) -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-surface/40">
+          <div class="rounded-card bg-gradient-to-br from-brand-light to-white border border-line p-4 relative overflow-hidden">
+            <div class="absolute inset-x-0 top-0 h-1 bg-brand-gradient"></div>
+            <p class="text-xs uppercase tracking-wide text-muted">Plano</p>
+            <p class="text-xl font-bold">Gold · 49,99 €</p>
+            <div class="mt-3">
+              <div class="flex justify-between text-xs mb-1"><span class="text-muted">Cortes</span><span class="font-semibold">3/4</span></div>
+              <div class="w-full h-2 rounded-full bg-white overflow-hidden border border-line"><div class="h-full bg-brand-gradient" style="width:75%"></div></div>
+            </div>
+          </div>
+
+          <div class="rounded-card bg-white border border-line p-4">
+            <p class="text-xs uppercase tracking-wide text-muted mb-2">Próxima marcação</p>
+            <div class="flex items-center gap-3">
+              <div class="w-12 text-center"><p class="font-bold">10:30</p><p class="text-[10px] text-muted uppercase">2 mai</p></div>
+              <div>
+                <p class="font-medium text-sm">Corte com João</p>
+                <span class="badge b-success">confirmado</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-card bg-white border border-line p-4">
+            <p class="text-xs uppercase tracking-wide text-muted mb-2">Cortes recentes</p>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2"><i data-lucide="scissors" class="w-3.5 h-3.5 text-brand"></i> Corte · 18 abr</li>
+              <li class="flex items-center gap-2"><i data-lucide="scissors" class="w-3.5 h-3.5 text-brand"></i> Corte · 4 abr</li>
+              <li class="flex items-center gap-2"><i data-lucide="scissors" class="w-3.5 h-3.5 text-brand"></i> Combo · 22 mar</li>
+            </ul>
+          </div>
+
+          <div class="rounded-card bg-white border border-line p-4">
+            <p class="text-xs uppercase tracking-wide text-muted mb-2">Barbeiro</p>
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-full bg-brand text-white font-semibold flex items-center justify-center">JD</span>
+              <div>
+                <p class="font-medium text-sm">João Doe</p>
+                <p class="text-xs text-muted flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> Av. da Liberdade, Lisboa</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom nav -->
+        <div class="bg-white border-t border-line grid grid-cols-5 text-[10px] relative">
+          <a class="flex flex-col items-center gap-0.5 py-2 text-brand"><i data-lucide="home" class="w-5 h-5"></i><span>Início</span></a>
+          <a class="flex flex-col items-center gap-0.5 py-2 text-muted"><i data-lucide="calendar-days" class="w-5 h-5"></i><span>Calendário</span></a>
+          <div class="flex justify-center">
+            <button class="-mt-6 w-14 h-14 rounded-full bg-brand-gradient text-white shadow-card-lg flex items-center justify-center"><i data-lucide="plus" class="w-6 h-6"></i></button>
+          </div>
+          <a class="flex flex-col items-center gap-0.5 py-2 text-muted"><i data-lucide="message-square" class="w-5 h-5"></i><span>Chat</span></a>
+          <a class="flex flex-col items-center gap-0.5 py-2 text-muted"><i data-lucide="user" class="w-5 h-5"></i><span>Perfil</span></a>
         </div>
       </div>
-    </section>
-    <!-- Profile -->
-    <section class="bg-white rounded-card shadow-card p-6">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-xs uppercase tracking-wide text-muted">Personal Information</p>
-        <button class="h-9 px-3 bg-white border border-line rounded-button text-sm">Edit Profile</button>
-      </div>
-      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
-        <div><dt class="text-muted text-xs">Name</dt><dd class="font-medium">Kate Malone</dd></div>
-        <div><dt class="text-muted text-xs">Email</dt><dd class="font-medium">kate@email.com</dd></div>
-        <div><dt class="text-muted text-xs">Phone</dt><dd class="font-medium">+1-555-0199</dd></div>
-        <div><dt class="text-muted text-xs">Joined</dt><dd class="font-medium">Jan 10, 2025</dd></div>
-      </dl>
-    </section>
-  </main>
+    </div>
+  </div>
 </section>
 
-<footer class="max-w-6xl mx-auto px-4 py-10 text-center text-xs text-muted">
-  SUBLINE — Design preview · Tailwind CDN · static mock-up · all data is fake
+<!-- ─────────── 5) FEATURES SUMMARY ─────────── -->
+<section class="border-b border-line bg-white">
+  <div class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-xs uppercase tracking-wider text-muted mb-6">5 · Funcionalidades v3</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="credit-card" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Stripe Connect</p>
+        <p class="text-sm text-muted mt-1">Pagamentos diretos barbeiro ⇄ cliente. Stubs prontos a ativar quando a conta estiver pronta.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="package" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Planos por barbeiro</p>
+        <p class="text-sm text-muted mt-1">Cada barbeiro define os seus planos com nº de cortes e preço.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="calendar-days" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Calendário &amp; slots</p>
+        <p class="text-sm text-muted mt-1">Disponibilidade semanal, indisponibilidades pontuais, slot picker para o cliente.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="message-square" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Chat &amp; tickets</p>
+        <p class="text-sm text-muted mt-1">Conversas cliente ⇄ barbeiro e tickets de suporte com categorias e prioridades.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="bell" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Notificações</p>
+        <p class="text-sm text-muted mt-1">Sino com badge não lidas, polling de 30s, marcar como lido.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="scissors" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Cortes &amp; progresso</p>
+        <p class="text-sm text-muted mt-1">Barra de progresso por subscrição, registo de cortes pelo barbeiro.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="file-clock" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Audit log</p>
+        <p class="text-sm text-muted mt-1">Eventos de admin/barber/stripe registados com filtros.</p>
+      </div>
+      <div class="rounded-card border border-line p-5">
+        <div class="w-10 h-10 rounded-button bg-brand-light text-brand flex items-center justify-center mb-3"><i data-lucide="smartphone" class="w-5 h-5"></i></div>
+        <p class="font-semibold">Mobile-first</p>
+        <p class="text-sm text-muted mt-1">Bottom nav para o cliente, drawer para admin/barbeiro, layouts responsivos.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="max-w-7xl mx-auto px-4 py-10 text-center text-xs text-muted">
+  SUBLINE v3 · pré-visualização estática · Tailwind CDN · todos os dados são exemplos · pt-PT (€)
 </footer>
 
 <script>lucide.createIcons();</script>
