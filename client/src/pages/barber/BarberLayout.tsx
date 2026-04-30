@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users as UsersIcon,
@@ -9,10 +9,11 @@ import {
   Home,
   UserPlus,
 } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { RoleShell } from '@/components/layout/RoleShell';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
+import { useToast } from '@/components/ui/Toast';
 
 const DashboardPage = lazy(() => import('./DashboardPage'));
 const ClientsPage = lazy(() => import('./ClientsPage'));
@@ -20,6 +21,29 @@ const CalendarPage = lazy(() => import('./CalendarPage'));
 const PlansPage = lazy(() => import('./PlansPage'));
 const ChatPage = lazy(() => import('./ChatPage'));
 const ProfilePage = lazy(() => import('./ProfilePage'));
+
+/** Show a toast when the Stripe Connect OAuth flow completes. */
+function StripeConnectFeedback() {
+  const toast = useToast();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+
+  useEffect(() => {
+    const stripe = params.get('stripe');
+    if (stripe === 'connected') {
+      toast.success('Conta Stripe ligada com sucesso! ✅');
+      navigate('/barber', { replace: true });
+    } else if (stripe === 'error') {
+      toast.error('Ocorreu um erro ao ligar a conta Stripe. Tenta novamente.');
+      navigate('/barber', { replace: true });
+    } else if (stripe === 'not_configured') {
+      toast.error('Stripe ainda não configurado na plataforma.');
+      navigate('/barber', { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return null;
+}
 
 export default function BarberLayout() {
   return (
@@ -45,6 +69,7 @@ export default function BarberLayout() {
         />
       }
     >
+      <StripeConnectFeedback />
       <Suspense fallback={<FullPageSpinner />}>
         <Routes>
           <Route index element={<DashboardPage />} />

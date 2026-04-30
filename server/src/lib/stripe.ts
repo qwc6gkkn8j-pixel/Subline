@@ -1,24 +1,12 @@
 /**
- * Stripe Connect integration — stub.
+ * Stripe Connect integration — real SDK implementation.
  *
- * This module exposes the full surface area we'll need (plan creation,
- * Connect OAuth, checkout sessions, webhook verification) but every method
- * throws StripeNotConfigured until STRIPE_SECRET_KEY is set in env.
- *
- * ── To activate (when you have a Stripe account ready) ───────────────────
- * 1. `npm install stripe` in the server workspace
- * 2. Set in server/.env:
- *      STRIPE_SECRET_KEY=sk_test_...
- *      STRIPE_WEBHOOK_SECRET=whsec_...
- *      STRIPE_CLIENT_ID=ca_...    (Connect platform client_id)
- *      STRIPE_PUBLISHABLE_KEY=pk_test_...
- * 3. Replace the function bodies below with real Stripe SDK calls.
- *    Each function has the intended call documented inline.
- *
- * Routes that depend on Stripe should call `assertStripeConfigured()` at the
- * top and let the error middleware translate it to a 503.
+ * Activates automatically when STRIPE_SECRET_KEY is set in env.
+ * All functions degrade gracefully (throw StripeNotConfigured → 503) when
+ * the key is absent, so the app runs fully without Stripe until you're ready.
  */
 
+import Stripe from 'stripe';
 import { env } from './env.js';
 import { HttpError } from './errors.js';
 
@@ -27,6 +15,16 @@ export class StripeNotConfigured extends HttpError {
     super(503, message, 'stripe_not_configured');
     this.name = 'StripeNotConfigured';
   }
+}
+
+// Lazy singleton — only instantiated once STRIPE_SECRET_KEY is available.
+let _stripe: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!env.STRIPE_SECRET_KEY) throw new StripeNotConfigured();
+  if (!_stripe) {
+    _stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2026-04-22.dahlia' });
+  }
+  return _stripe;
 }
 
 export function isStripeConfigured(): boolean {
@@ -43,8 +41,7 @@ export function assertStripeConfigured(): void {
 
 /**
  * Public-facing Stripe status — safe to expose via API.
- * Frontend uses this to decide whether to show "Connect Stripe" banners or
- * gate payment-related UI behind a "configure first" message.
+ * Frontend uses this to decide whether to show payment UI.
  */
 export function stripeStatus() {
   return {
@@ -60,31 +57,33 @@ export function stripeStatus() {
 
 /**
  * Build the URL the barber clicks to authorize the platform.
- *
- * Real impl:
- *   const url = new URL('https://connect.stripe.com/oauth/authorize');
- *   url.searchParams.set('response_type', 'code');
- *   url.searchParams.set('client_id', env.STRIPE_CLIENT_ID!);
- *   url.searchParams.set('scope', 'read_write');
- *   url.searchParams.set('state', state);
- *   url.searchParams.set('redirect_uri', `${env.APP_URL}/api/stripe/callback`);
- *   return url.toString();
+ * @param state  barberId — returned verbatim in the OAuth callback so we know
+ *               which barber is connecting.
  */
-export function buildConnectOAuthUrl(_state: string): string {
-  assertStripeConfigured();
-  throw new StripeNotConfigured();
+export function buildConnectOAuthUrl(state: string): string {
+  if (!env.STRIPE_CLIENT_ID) throw new StripeNotConfigured();
+  const url = new URL('https://connect.stripe.com/oauth/authorize');
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('client_id', env.STRIPE_CLIENT_ID);
+  url.searchParams.set('scope', 'read_write');
+  url.searchParams.set('state', state);
+  url.searchParams.set('redirect_uri', `${env.APP_URL}/api/public/stripe/callback`);
+  return url.toString();
 }
 
 /**
- * Exchange the OAuth code for the barber's connected account id.
- *
- * Real impl:
- *   const result = await stripe.oauth.token({ grant_type: 'authorization_code', code });
- *   return result.stripe_user_id;  // → save to barber.stripeAccountId
+ * Exchange the OAuth code (from Stripe callback) for the barber's account id.
+ * Save the returned string to barber.stripeAccountId.
  */
-export async function exchangeConnectCode(_code: string): Promise<string> {
-  assertStripeConfigured();
-  throw new StripeNotConfigured();
+export async function exchangeConnectCode(code: string): Promise<string> {
+  const result = await getStripe().oauth.token({
+    grant_type: 'authorization_code',
+    code,
+  });
+  if (!result.stripe_user_id) {
+    throw new Error('Stripe OAuth token response is missing stripe_user_id');
+  }
+  return result.stripe_user_id;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -95,7 +94,7 @@ export interface CreatePlanInput {
   stripeAccountId: string;
   name: string;
   description?: string;
-  priceEUR: number; // in euros (e.g. 49.99)
+  priceEUR: number; // e.g. 49.99 — converted to cents internally
   metadata?: Record<string, string>;
 }
 
@@ -106,43 +105,64 @@ export interface CreatePlanResult {
 }
 
 /**
- * Real impl:
- *   const product = await stripe.products.create(
- *     { name, description },
- *     { stripeAccount: stripeAccountId }
- *   );
- *   const price = await stripe.prices.create(
- *     { product: product.id, unit_amount: Math.round(priceEUR * 100),
- *       currency: 'eur', recurring: { interval: 'month' } },
- *     { stripeAccount: stripeAccountId }
- *   );
- *   const link = await stripe.paymentLinks.create(
- *     { line_items: [{ price: price.id, quantity: 1 }],
- *       after_completion: { type: 'redirect',
- *         redirect: { url: `${env.APP_URL}/client/subscription-success` } },
- *       metadata },
- *     { stripeAccount: stripeAccountId }
- *   );
- *   return { productId: product.id, priceId: price.id, paymentLinkUrl: link.url };
+ * Create a Stripe Product, monthly Price, and a Payment Link — all on the
+ * barber's connected account so they receive the funds directly.
+ *
+ * metadata should include at least: { planId, clientId } so the webhook can
+ * identify which subscription to activate after checkout.session.completed.
  */
 export async function createPlanOnConnectedAccount(
-  _input: CreatePlanInput,
+  input: CreatePlanInput,
 ): Promise<CreatePlanResult> {
-  assertStripeConfigured();
-  throw new StripeNotConfigured();
+  const stripe = getStripe();
+  const opts: Stripe.RequestOptions = { stripeAccount: input.stripeAccountId };
+
+  const product = await stripe.products.create(
+    { name: input.name, description: input.description },
+    opts,
+  );
+
+  const price = await stripe.prices.create(
+    {
+      product: product.id,
+      unit_amount: Math.round(input.priceEUR * 100),
+      currency: 'eur',
+      recurring: { interval: 'month' },
+    },
+    opts,
+  );
+
+  const link = await stripe.paymentLinks.create(
+    {
+      line_items: [{ price: price.id, quantity: 1 }],
+      after_completion: {
+        type: 'redirect',
+        redirect: {
+          url: `${env.APP_URL}/client/subscription?stripe=success`,
+        },
+      },
+      metadata: input.metadata,
+    },
+    opts,
+  );
+
+  return { productId: product.id, priceId: price.id, paymentLinkUrl: link.url };
 }
 
 // ────────────────────────────────────────────────────────────────────────────
 // Subscriptions
 // ────────────────────────────────────────────────────────────────────────────
 
-/** Cancel a subscription on the connected account. */
+/** Cancel a Stripe subscription immediately on the connected account. */
 export async function cancelSubscription(
-  _stripeAccountId: string,
-  _stripeSubscriptionId: string,
+  stripeAccountId: string,
+  stripeSubscriptionId: string,
 ): Promise<void> {
-  assertStripeConfigured();
-  throw new StripeNotConfigured();
+  await getStripe().subscriptions.cancel(
+    stripeSubscriptionId,
+    {},
+    { stripeAccount: stripeAccountId },
+  );
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -152,14 +172,11 @@ export async function cancelSubscription(
 /**
  * Verify the Stripe-Signature header against the raw request body.
  *
- * Real impl:
- *   return stripe.webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET!);
- *
- * Always pass the *raw* body (Buffer), not the parsed JSON. Our Express app
- * needs a raw body parser specifically on the webhook route — see the route
- * file's setup.
+ * IMPORTANT: Express must receive the raw Buffer on the webhook route (not
+ * the parsed JSON body). See app.ts where express.raw() is mounted before
+ * express.json() specifically for /api/webhooks/stripe.
  */
-export function verifyWebhookSignature(_rawBody: Buffer, _signature: string): unknown {
-  assertStripeConfigured();
-  throw new StripeNotConfigured();
+export function verifyWebhookSignature(rawBody: Buffer, signature: string): Stripe.Event {
+  if (!env.STRIPE_WEBHOOK_SECRET) throw new StripeNotConfigured();
+  return getStripe().webhooks.constructEvent(rawBody, signature, env.STRIPE_WEBHOOK_SECRET);
 }

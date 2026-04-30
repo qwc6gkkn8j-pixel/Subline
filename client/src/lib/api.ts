@@ -16,8 +16,14 @@ export const tokens = {
   },
 };
 
+// In production (Vercel/Railway), VITE_API_URL points to the deployed server.
+// In dev, the Vite proxy forwards /api → localhost:4000, so no env var needed.
+const baseURL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
+
 export const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -36,7 +42,7 @@ async function refreshAccessToken(): Promise<string | null> {
   const refresh = tokens.getRefresh();
   if (!refresh) return null;
   try {
-    const { data } = await axios.post('/api/auth/refresh', { refreshToken: refresh });
+    const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken: refresh });
     tokens.set(data.accessToken);
     return data.accessToken as string;
   } catch {

@@ -64,7 +64,16 @@ export default function ProfilePage() {
     setStripeBusy(true);
     try {
       const { data } = await api.get<{ url: string }>('/barber/stripe/connect-url');
-      window.location.href = data.url;
+      // On native (iOS/Android), Stripe blocks OAuth inside a WebView.
+      // Use @capacitor/browser to open in SFSafariViewController / Chrome Custom Tab.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isNative = Boolean((window as any).Capacitor?.isNativePlatform?.());
+      if (isNative) {
+        const { Browser } = await import('@capacitor/browser');
+        await Browser.open({ url: data.url });
+      } else {
+        window.location.href = data.url;
+      }
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {

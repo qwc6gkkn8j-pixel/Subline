@@ -1,5 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { lazy, Suspense, type ReactElement } from 'react';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { ToastProvider } from '@/components/ui/Toast';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -38,11 +38,59 @@ function PublicOnly({ children }: { children: ReactElement }) {
   return children;
 }
 
+/**
+ * Listens for deep links opened in the Capacitor native shell.
+ *
+ * When the Stripe Connect OAuth flow completes, the server redirects to:
+ *   https://YOUR_DOMAIN/barber?stripe=connected
+ *
+ * On native, the OS fires an appUrlOpen event with this URL. We intercept it
+ * and navigate React Router to the correct path so the barber dashboard can
+ * detect the `?stripe=connected` query param and show a success toast.
+ */
+function CapacitorDeepLinkHandler() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!(window as any).Capacitor?.isNativePlatform?.()) return;
+
+    let cleanup: (() => void) | undefined;
+
+    void import('@capacitor/app').then(({ App: CapApp }) => {
+      const listenerPromise = CapApp.addListener('appUrlOpen', ({ url }) => {
+        try {
+          const parsed = new URL(url);
+          // Route the incoming URL path into React Router.
+          // Examples:
+          //   subline://barber?stripe=connected  →  /barber?stripe=connected
+          //   https://app.subline.com/client/subscription?stripe=success  →  /client/subscription?stripe=success
+          const destination = parsed.pathname + parsed.search;
+          if (destination && destination !== '/') {
+            navigate(destination, { replace: true });
+          }
+        } catch {
+          // Malformed URL — ignore
+        }
+      });
+
+      cleanup = () => {
+        void listenerPromise.then((handle) => void handle.remove());
+      };
+    });
+
+    return () => cleanup?.();
+  }, [navigate]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
         <Suspense fallback={<FullPageSpinner />}>
+          <CapacitorDeepLinkHandler />
           <Routes>
             <Route path="/" element={<RootRedirect />} />
             <Route
