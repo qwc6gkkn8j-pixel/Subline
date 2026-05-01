@@ -17,6 +17,7 @@ import type {
   AppointmentService,
   AppointmentStatus,
   BarberAvailability,
+  BarberUnavailable,
   Client,
   Subscription,
 } from '@/lib/types';
@@ -49,11 +50,14 @@ export default function CalendarPage() {
   const loadOnce = async () => {
     try {
       const [av, cl] = await Promise.all([
-        api.get<{ availability: BarberAvailability[] }>('/barber/availability'),
+        // Server returns `{ rules, unavailable }` (not `{ availability }`).
+        api.get<{ rules: BarberAvailability[]; unavailable: BarberUnavailable[] }>(
+          '/barber/availability',
+        ),
         api.get<{ clients: ClientLite[] }>('/barber/clients'),
       ]);
-      setAvailability(av.data.availability);
-      setClients(cl.data.clients);
+      setAvailability(av.data.rules ?? []);
+      setClients(cl.data.clients ?? []);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
