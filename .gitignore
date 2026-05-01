@@ -14,3 +14,4 @@ dist
 
 # legacy archive — safe to remove once migration verified
 _old_v1/
+tsconfig.json
