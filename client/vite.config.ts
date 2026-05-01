@@ -18,4 +18,8 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    host: true,
+    allowedHosts: ['subline-client-production.up.railway.app'],
+  },
 });
