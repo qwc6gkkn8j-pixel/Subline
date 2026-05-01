@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil, CalendarOff } from 'lucide-react';
+import { Plus, Trash2, Pencil, CalendarOff, Check, X } from 'lucide-react';
 import { CalendarView } from '@/components/calendar/CalendarView';
 import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
 import { Banner } from '@/components/ui/Banner';
 import { useToast } from '@/components/ui/Toast';
+import { AppointmentStatusBadge } from '@/components/ui/StatusBadge';
 import { api, apiErrorMessage } from '@/lib/api';
-import { addDays, isoDate, startOfWeek } from '@/lib/utils';
+import { addDays, cn, isoDate, startOfWeek } from '@/lib/utils';
 import { formatDate } from '@/lib/dateUtils';
 import {
   DAY_OF_WEEK_LABEL,
@@ -20,6 +21,7 @@ import type {
   BarberAvailability,
   BarberUnavailable,
   Client,
+  Slot,
   Subscription,
 } from '@/lib/types';
 
@@ -165,6 +167,7 @@ function AppointmentModal({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const isEditing = Boolean(existing);
   const [clientId, setClientId] = useState(existing?.clientId ?? clients[0]?.id ?? '');
   const [service, setService] = useState<AppointmentService>(existing?.service ?? 'haircut');
   const [date, setDate] = useState(slot.date);
@@ -172,29 +175,81 @@ function AppointmentModal({
   const [duration, setDuration] = useState<number>(
     existing?.durationMinutes ?? SERVICE_DURATION[existing?.service ?? 'haircut'],
   );
-  const [status, setStatus] = useState<AppointmentStatus>(existing?.status ?? 'confirmed');
+  const [status, setStatus] = useState<AppointmentStatus>(existing?.status ?? 'pending');
   const [notes, setNotes] = useState(existing?.notes ?? '');
   const [busy, setBusy] = useState(false);
+
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Reload available slots whenever the selected date changes.
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingSlots(true);
+    api
+      .get<{ date: string; slots: Slot[] }>('/barber/calendar/slots', { params: { date } })
+      .then((r) => {
+        if (!cancelled) setSlots(r.data.slots ?? []);
+      })
+      .catch((err) => {
+        if (!cancelled) toast.error(apiErrorMessage(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingSlots(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date]);
+
+  // Determine if the appointment is in the past (only relevant when editing).
+  const isPast = useMemo(() => {
+    if (!isEditing || !existing) return false;
+    const apptDate = new Date(`${isoDate(existing.date)}T${existing.startTime}:00`);
+    return apptDate.getTime() < Date.now();
+  }, [isEditing, existing]);
+
+  const canMarkPresence = isEditing && isPast && (status === 'confirmed' || status === 'pending');
 
   const onSubmit = async () => {
     setBusy(true);
     try {
-      const payload = {
+      const base = {
         clientId,
         service,
         date,
         startTime: time,
         durationMinutes: duration,
-        status,
         notes: notes || undefined,
       };
       if (existing) {
-        await api.put(`/barber/appointments/${existing.id}`, payload);
+        await api.put(`/barber/appointments/${existing.id}`, { ...base, status });
         toast.success('Marcação atualizada');
       } else {
-        await api.post('/barber/appointments', payload);
+        // Don't send status on create — server defaults to 'pending'.
+        await api.post('/barber/appointments', base);
         toast.success('Marcação criada');
       }
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onMarkPresence = async (newStatus: 'completed' | 'no_show') => {
+    if (!existing) return;
+    setBusy(true);
+    try {
+      await api.put(`/barber/appointments/${existing.id}`, { status: newStatus });
+      toast.success(
+        newStatus === 'completed'
+          ? 'Marcado como presente'
+          : 'Marcado como não compareceu',
+      );
       onSaved();
       onClose();
     } catch (err) {
@@ -223,10 +278,11 @@ function AppointmentModal({
     <Modal
       open
       onClose={onClose}
-      title={existing ? 'Editar marcação' : 'Nova marcação'}
+      title={isEditing ? 'Editar marcação' : 'Nova marcação'}
+      size="lg"
       footer={
         <div className="flex w-full justify-between">
-          {existing ? (
+          {isEditing ? (
             <button className="btn-danger btn-sm" onClick={() => void onDelete()} disabled={busy}>
               <Trash2 size={14} /> Remover
             </button>
@@ -245,6 +301,38 @@ function AppointmentModal({
       }
     >
       <div className="space-y-4">
+        {/* Status header (edit only) */}
+        {isEditing && existing && (
+          <div className="flex items-center justify-between -mt-1">
+            <AppointmentStatusBadge status={status} />
+            <span className="text-xs text-muted">
+              {formatDate(existing.date)} · {existing.startTime}
+            </span>
+          </div>
+        )}
+
+        {/* Presence buttons — only when appointment is past + still pending/confirmed */}
+        {canMarkPresence && (
+          <div className="flex gap-2 p-3 bg-brand/5 rounded-button border border-brand/10">
+            <button
+              type="button"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-button bg-success text-white hover:bg-success/90 disabled:opacity-50 transition-colors text-sm font-medium"
+              onClick={() => void onMarkPresence('completed')}
+              disabled={busy}
+            >
+              <Check size={16} /> Cliente presente
+            </button>
+            <button
+              type="button"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-button bg-danger text-white hover:bg-danger/90 disabled:opacity-50 transition-colors text-sm font-medium"
+              onClick={() => void onMarkPresence('no_show')}
+              disabled={busy}
+            >
+              <X size={16} /> Não apareceu
+            </button>
+          </div>
+        )}
+
         <div>
           <label className="label">Cliente</label>
           <select value={clientId} onChange={(e) => setClientId(e.target.value)}>
@@ -256,6 +344,7 @@ function AppointmentModal({
             ))}
           </select>
         </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Serviço</label>
@@ -284,29 +373,87 @@ function AppointmentModal({
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Data</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
-          <div>
-            <label className="label">Hora</label>
-            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-          </div>
-        </div>
+
         <div>
-          <label className="label">Estado</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
-          >
-            <option value="pending">Pendente</option>
-            <option value="confirmed">Confirmada</option>
-            <option value="completed">Concluída</option>
-            <option value="cancelled">Cancelada</option>
-            <option value="no_show">Não compareceu</option>
-          </select>
+          <label className="label">Data</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <p className="text-xs text-muted mt-1">{formatDate(date)}</p>
         </div>
+
+        {/* Slot grid: replaces manual time input when slots are available */}
+        <div>
+          <label className="label">Hora disponível</label>
+          {loadingSlots ? (
+            <div className="text-center py-6">
+              <Spinner />
+            </div>
+          ) : slots.length === 0 ? (
+            <div className="space-y-2">
+              <Banner tone="warning">
+                Sem horário definido para este dia. Escolhe a hora manualmente.
+              </Banner>
+              <input
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-56 overflow-y-auto">
+              {slots.map((s) => {
+                // The current appointment's own slot should remain selectable
+                // when editing, even though the server marks it as booked.
+                const isSelfSlot =
+                  isEditing &&
+                  existing &&
+                  isoDate(existing.date) === date &&
+                  existing.startTime === s.time;
+                const occupied = !s.available && !isSelfSlot;
+                const selected = s.time === time;
+                return (
+                  <button
+                    key={s.time}
+                    type="button"
+                    disabled={occupied}
+                    onClick={() => setTime(s.time)}
+                    className={cn(
+                      'h-9 rounded-button border text-sm transition-all',
+                      selected
+                        ? 'bg-brand text-white border-brand'
+                        : occupied
+                          ? 'bg-surface text-muted border-line line-through cursor-not-allowed'
+                          : 'bg-white text-ink border-line hover:border-brand',
+                    )}
+                  >
+                    {s.time}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Status only on edit — created appointments default to 'pending' */}
+        {isEditing && (
+          <div>
+            <label className="label">Estado</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
+            >
+              <option value="pending">Pendente</option>
+              <option value="confirmed">Confirmada</option>
+              <option value="completed">Concluída</option>
+              <option value="cancelled">Cancelada</option>
+              <option value="no_show">Não compareceu</option>
+            </select>
+          </div>
+        )}
+
         <div>
           <label className="label">Notas (opcional)</label>
           <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />

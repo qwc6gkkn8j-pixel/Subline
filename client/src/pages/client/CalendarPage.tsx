@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Banner } from '@/components/ui/Banner';
 import { useToast } from '@/components/ui/Toast';
+import { AppointmentStatusBadge } from '@/components/ui/StatusBadge';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatDate, isoDate } from '@/lib/utils';
 import {
@@ -136,20 +137,8 @@ function AppointmentRow({
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-ink">{SERVICE_LABEL[appt.service]}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span
-            className={
-              appt.status === 'confirmed'
-                ? 'badge-success'
-                : appt.status === 'pending'
-                  ? 'badge-warning'
-                  : appt.status === 'cancelled'
-                    ? 'badge-danger'
-                    : 'badge-muted'
-            }
-          >
-            {appt.status}
-          </span>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <AppointmentStatusBadge status={appt.status} />
           <span className="text-xs text-muted">
             {appt.durationMinutes} min · com {appt.barber?.name ?? 'barbeiro'}
           </span>

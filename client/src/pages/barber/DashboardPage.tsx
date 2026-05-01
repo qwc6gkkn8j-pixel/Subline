@@ -11,7 +11,8 @@ import {
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { StripeBanner } from '@/components/ui/StripeBanner';
-import { formatCurrency, formatDate, isoDate } from '@/lib/utils';
+import { formatCurrency, isoDate } from '@/lib/utils';
+import { formatToday } from '@/lib/dateUtils';
 import type { Appointment } from '@/lib/types';
 import { SERVICE_LABEL } from '@/lib/types';
 
@@ -78,7 +79,7 @@ export default function DashboardPage() {
       <section className="card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-ink flex items-center gap-2">
-            <CalendarDays size={18} className="text-brand" /> Hoje · {formatDate(new Date())}
+            <CalendarDays size={18} className="text-brand" /> {formatToday()}
           </h2>
           <Link to="/barber/calendar" className="btn-outline btn-sm">
             Ver agenda
