@@ -244,11 +244,15 @@ function AppointmentModal({
     if (!existing) return;
     setBusy(true);
     try {
-      await api.put(`/barber/appointments/${existing.id}`, { status: newStatus });
+      // Dedicated status route — auto-tracks the cut on the client's
+      // active subscription when newStatus === 'completed'.
+      await api.put(`/barber/appointments/${existing.id}/status`, {
+        status: newStatus,
+      });
       toast.success(
         newStatus === 'completed'
-          ? 'Marcado como presente'
-          : 'Marcado como não compareceu',
+          ? 'Cliente marcado como presente · corte registado'
+          : 'Cliente marcado como não compareceu',
       );
       onSaved();
       onClose();

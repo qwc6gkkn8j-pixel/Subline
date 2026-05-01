@@ -633,6 +633,124 @@ barberRouter.put(
   }),
 );
 
+// ────────────────────────────────────────────────────────────────────────────
+// PUT /api/barber/appointments/:id/status — dedicated status transition.
+// Triggers automatic cut tracking on completion. Cancellation refund logic
+// is added in a follow-up commit (F4).
+// ────────────────────────────────────────────────────────────────────────────
+const appointmentStatusSchema = z.object({
+  status: z.enum(['completed', 'no_show', 'cancelled']),
+});
+
+barberRouter.put(
+  '/appointments/:appointmentId/status',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = appointmentStatusSchema.parse(req.body);
+    const existing = await prisma.appointment.findFirst({
+      where: { id: req.params.appointmentId, barberId },
+      include: {
+        client: {
+          select: {
+            id: true,
+            userId: true,
+            name: true,
+            subscriptions: {
+              where: { status: 'active' },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+    if (!existing) throw NotFound('Appointment not found');
+
+    await prisma.$transaction(async (tx) => {
+      // ── Auto cut tracking when marking as completed ───────────────────────
+      if (data.status === 'completed') {
+        const sub = existing.client.subscriptions[0];
+        const existingCut = await tx.cut.findUnique({
+          where: { appointmentId: existing.id },
+        });
+
+        if (sub && !existingCut) {
+          const hasRoom = sub.cutsTotal === 0 || sub.cutsUsed < sub.cutsTotal;
+          if (hasRoom) {
+            const updated = await tx.subscription.update({
+              where: { id: sub.id },
+              data: { cutsUsed: { increment: 1 } },
+            });
+            await tx.cut.create({
+              data: { subscriptionId: sub.id, appointmentId: existing.id },
+            });
+            if (updated.cutsTotal > 0 && updated.cutsUsed >= updated.cutsTotal) {
+              await tx.notification.create({
+                data: {
+                  userId: existing.client.userId,
+                  type: 'cuts_limit_reached',
+                  title: 'Limite de cortes atingido',
+                  body: `Usaste ${updated.cutsUsed} de ${updated.cutsTotal} cortes este mês.`,
+                  data: { subscriptionId: sub.id, appointmentId: existing.id },
+                },
+              });
+            }
+          } else {
+            // Subscription exists but no remaining cuts — log + notify barber
+            const barber = await tx.barber.findUnique({ where: { id: barberId } });
+            if (barber) {
+              await tx.notification.create({
+                data: {
+                  userId: barber.userId,
+                  type: 'general',
+                  title: 'Cliente sem cortes disponíveis',
+                  body: `${existing.client.name} já usou todos os cortes do plano.`,
+                  data: { appointmentId: existing.id, clientId: existing.client.id },
+                },
+              });
+            }
+            console.warn(
+              `[barber/appointments/status] Client ${existing.client.id} cut limit reached; appointment ${existing.id} marked completed without cut`,
+            );
+          }
+        } else if (!sub) {
+          // No active subscription — log + notify barber
+          const barber = await tx.barber.findUnique({ where: { id: barberId } });
+          if (barber) {
+            await tx.notification.create({
+              data: {
+                userId: barber.userId,
+                type: 'general',
+                title: 'Cliente sem subscrição ativa',
+                body: `${existing.client.name} não tem subscrição ativa.`,
+                data: { appointmentId: existing.id, clientId: existing.client.id },
+              },
+            });
+          }
+          console.warn(
+            `[barber/appointments/status] Client ${existing.client.id} has no active subscription; appointment ${existing.id} completed without cut tracking`,
+          );
+        }
+      }
+
+      // For 'cancelled' the F4 commit will add the refund logic.
+      // 'no_show' has no extra side effects.
+
+      await tx.appointment.update({
+        where: { id: existing.id },
+        data: {
+          status: data.status,
+          ...(data.status === 'cancelled'
+            ? { cancelledBy: 'barber', cancelledAt: new Date() }
+            : {}),
+        },
+      });
+    });
+
+    res.json({ message: 'Status updated' });
+  }),
+);
+
 barberRouter.delete(
   '/appointments/:appointmentId',
   asyncHandler(async (req, res) => {
