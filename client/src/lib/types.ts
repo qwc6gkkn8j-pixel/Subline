@@ -181,8 +181,9 @@ export interface BarberAvailability {
 export interface BarberUnavailable {
   id: string;
   barberId: string;
-  startDate: string;
-  endDate: string;
+  // Prisma columns: dateFrom / dateTo (ISO date strings).
+  dateFrom: string;
+  dateTo: string;
   reason: string | null;
   createdAt: string;
 }

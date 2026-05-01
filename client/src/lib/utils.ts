@@ -1,5 +1,20 @@
 import clsx, { type ClassValue } from 'clsx';
 
+// Re-export the EU date formatters so existing call sites (formatDate,
+// formatDateTime, formatRelative) automatically get DD/MM/YYYY format.
+// New code should import from '@/lib/dateUtils' directly.
+export {
+  formatDate,
+  formatDateTime,
+  formatTime,
+  formatRelative,
+  formatMonth,
+  formatMonthShort,
+  formatToday,
+  formatWeekdayShort,
+  formatWeekRange,
+} from './dateUtils';
+
 export function cn(...inputs: ClassValue[]): string {
   return clsx(inputs);
 }
@@ -9,36 +24,6 @@ export function formatCurrency(amount: number | string): string {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(
     Number.isFinite(n) ? n : 0,
   );
-}
-
-export function formatDate(input: string | Date): string {
-  const d = typeof input === 'string' ? new Date(input) : input;
-  return d.toLocaleDateString('pt-PT', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-export function formatDateTime(input: string | Date): string {
-  const d = typeof input === 'string' ? new Date(input) : input;
-  return d.toLocaleString('pt-PT', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
-export function formatRelative(input: string | Date): string {
-  const d = typeof input === 'string' ? new Date(input) : input;
-  const diff = Date.now() - d.getTime();
-  const sec = Math.floor(diff / 1000);
-  if (sec < 45) return 'agora mesmo';
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `há ${min} min`;
-  const hours = Math.floor(min / 60);
-  if (hours < 24) return `há ${hours} h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `há ${days} d`;
-  return formatDate(d);
 }
 
 export function initials(name: string): string {

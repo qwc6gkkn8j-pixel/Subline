@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil, CalendarOff } from 'lucide-react';
 import { CalendarView } from '@/components/calendar/CalendarView';
 import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
@@ -7,6 +7,7 @@ import { Banner } from '@/components/ui/Banner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { addDays, isoDate, startOfWeek } from '@/lib/utils';
+import { formatDate } from '@/lib/dateUtils';
 import {
   DAY_OF_WEEK_LABEL,
   SERVICE_DURATION,
@@ -24,11 +25,14 @@ import type {
 
 type ClientLite = Client & { subscriptions: Subscription[] };
 
+const SLOT_DURATIONS = [15, 30, 45, 60];
+
 export default function CalendarPage() {
   const toast = useToast();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), 1));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availability, setAvailability] = useState<BarberAvailability[]>([]);
+  const [unavailable, setUnavailable] = useState<BarberUnavailable[]>([]);
   const [clients, setClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState<{ date: string; time: string } | null>(null);
@@ -41,7 +45,7 @@ export default function CalendarPage() {
       const { data } = await api.get<{ appointments: Appointment[] }>('/barber/appointments', {
         params: { from, to },
       });
-      setAppointments(data.appointments);
+      setAppointments(data.appointments ?? []);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
@@ -50,13 +54,14 @@ export default function CalendarPage() {
   const loadOnce = async () => {
     try {
       const [av, cl] = await Promise.all([
-        // Server returns `{ rules, unavailable }` (not `{ availability }`).
+        // Server returns `{ rules, unavailable }`.
         api.get<{ rules: BarberAvailability[]; unavailable: BarberUnavailable[] }>(
           '/barber/availability',
         ),
         api.get<{ clients: ClientLite[] }>('/barber/clients'),
       ]);
       setAvailability(av.data.rules ?? []);
+      setUnavailable(av.data.unavailable ?? []);
       setClients(cl.data.clients ?? []);
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -114,6 +119,7 @@ export default function CalendarPage() {
         weekStart={weekStart}
         onWeekChange={setWeekStart}
         appointments={upcomingByDay}
+        unavailable={unavailable}
         onSlotClick={(date, time) => setCreating({ date, time })}
         onAppointmentClick={(a) => setCreating({ date: isoDate(a.date), time: a.startTime })}
       />
@@ -132,7 +138,8 @@ export default function CalendarPage() {
 
       {editingAvailability && (
         <AvailabilityModal
-          availability={availability}
+          rules={availability}
+          unavailable={unavailable}
           onClose={() => setEditingAvailability(false)}
           onSaved={async () => {
             await loadOnce();
@@ -310,45 +317,55 @@ function AppointmentModal({
 }
 
 function AvailabilityModal({
-  availability,
+  rules,
+  unavailable,
   onClose,
   onSaved,
 }: {
-  availability: BarberAvailability[];
+  rules: BarberAvailability[];
+  unavailable: BarberUnavailable[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const toast = useToast();
-  const [rules, setRules] = useState<BarberAvailability[]>(availability);
+  const [draftRules, setDraftRules] = useState<BarberAvailability[]>(rules);
+  const [ranges, setRanges] = useState<BarberUnavailable[]>(unavailable);
+  const [newRange, setNewRange] = useState({ dateFrom: '', dateTo: '', reason: '' });
   const [busy, setBusy] = useState(false);
+  const [savingRange, setSavingRange] = useState(false);
 
   const upsertRule = async (
     dayOfWeek: number,
     startTime: string,
     endTime: string,
+    slotDuration: number,
     isActive: boolean,
   ) => {
-    const existing = rules.find((r) => r.dayOfWeek === dayOfWeek);
-    if (existing) {
+    const existing = draftRules.find((r) => r.dayOfWeek === dayOfWeek);
+    if (existing && !existing.id.startsWith('temp-')) {
       await api.put(`/barber/availability/${existing.id}`, {
         startTime,
         endTime,
+        slotDuration,
         isActive,
-        slotDuration: existing.slotDuration,
       });
     } else {
       await api.post('/barber/availability', {
         dayOfWeek,
         startTime,
         endTime,
-        slotDuration: 30,
+        slotDuration,
         isActive,
       });
     }
   };
 
-  const handleDayChange = (dayOfWeek: number, key: 'startTime' | 'endTime' | 'isActive', value: string | boolean) => {
-    setRules((prev) => {
+  const handleDayChange = (
+    dayOfWeek: number,
+    key: 'startTime' | 'endTime' | 'isActive' | 'slotDuration',
+    value: string | boolean | number,
+  ) => {
+    setDraftRules((prev) => {
       const idx = prev.findIndex((r) => r.dayOfWeek === dayOfWeek);
       if (idx === -1) {
         const newRule: BarberAvailability = {
@@ -372,8 +389,8 @@ function AvailabilityModal({
   const onSave = async () => {
     setBusy(true);
     try {
-      for (const r of rules) {
-        await upsertRule(r.dayOfWeek, r.startTime, r.endTime, r.isActive);
+      for (const r of draftRules) {
+        await upsertRule(r.dayOfWeek, r.startTime, r.endTime, r.slotDuration, r.isActive);
       }
       toast.success('Disponibilidade atualizada');
       onSaved();
@@ -385,57 +402,200 @@ function AvailabilityModal({
     }
   };
 
+  const addRange = async () => {
+    if (!newRange.dateFrom || !newRange.dateTo) {
+      toast.error('Indica a data de início e fim');
+      return;
+    }
+    if (newRange.dateFrom > newRange.dateTo) {
+      toast.error('Data de início tem de ser anterior à de fim');
+      return;
+    }
+    setSavingRange(true);
+    try {
+      const { data } = await api.post<{ range: BarberUnavailable }>(
+        '/barber/availability/unavailable',
+        {
+          dateFrom: newRange.dateFrom,
+          dateTo: newRange.dateTo,
+          reason: newRange.reason || null,
+        },
+      );
+      setRanges((prev) => [...prev, data.range]);
+      setNewRange({ dateFrom: '', dateTo: '', reason: '' });
+      toast.success('Período fechado adicionado');
+      onSaved();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setSavingRange(false);
+    }
+  };
+
+  const removeRange = async (id: string) => {
+    setSavingRange(true);
+    try {
+      await api.delete(`/barber/availability/unavailable/${id}`);
+      setRanges((prev) => prev.filter((r) => r.id !== id));
+      toast.success('Período removido');
+      onSaved();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setSavingRange(false);
+    }
+  };
+
   return (
     <Modal
       open
       onClose={onClose}
-      title="Disponibilidade semanal"
+      title="Disponibilidade & dias fechados"
       size="lg"
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            Fechar
           </button>
           <button className="btn-primary" onClick={() => void onSave()} disabled={busy}>
-            {busy ? <Spinner /> : 'Guardar'}
+            {busy ? <Spinner /> : 'Guardar disponibilidade'}
           </button>
         </>
       }
     >
-      <p className="text-sm text-muted mb-3">Define os horários em que aceitas marcações.</p>
-      <div className="space-y-3">
-        {[1, 2, 3, 4, 5, 6, 0].map((dow) => {
-          const r = rules.find((x) => x.dayOfWeek === dow);
-          return (
-            <div key={dow} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-              <label className="sm:col-span-3 flex items-center gap-2 text-sm">
+      <section className="space-y-3">
+        <div>
+          <h3 className="font-semibold text-ink mb-1">Horário semanal</h3>
+          <p className="text-sm text-muted">Define os horários em que aceitas marcações.</p>
+        </div>
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5, 6, 0].map((dow) => {
+            const r = draftRules.find((x) => x.dayOfWeek === dow);
+            return (
+              <div key={dow} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                <label className="sm:col-span-3 flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={r?.isActive ?? false}
+                    onChange={(e) => handleDayChange(dow, 'isActive', e.target.checked)}
+                    className="!w-auto !h-auto"
+                  />
+                  {DAY_OF_WEEK_LABEL[dow]}
+                </label>
                 <input
-                  type="checkbox"
-                  checked={r?.isActive ?? false}
-                  onChange={(e) => handleDayChange(dow, 'isActive', e.target.checked)}
-                  className="!w-auto !h-auto"
+                  type="time"
+                  value={r?.startTime ?? '09:00'}
+                  onChange={(e) => handleDayChange(dow, 'startTime', e.target.value)}
+                  disabled={!r?.isActive}
+                  className="sm:col-span-3 !h-9"
                 />
-                {DAY_OF_WEEK_LABEL[dow]}
-              </label>
-              <input
-                type="time"
-                value={r?.startTime ?? '09:00'}
-                onChange={(e) => handleDayChange(dow, 'startTime', e.target.value)}
-                disabled={!r?.isActive}
-                className="sm:col-span-4 !h-9"
-              />
-              <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
-              <input
-                type="time"
-                value={r?.endTime ?? '18:00'}
-                onChange={(e) => handleDayChange(dow, 'endTime', e.target.value)}
-                disabled={!r?.isActive}
-                className="sm:col-span-4 !h-9"
-              />
-            </div>
-          );
-        })}
-      </div>
+                <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
+                <input
+                  type="time"
+                  value={r?.endTime ?? '18:00'}
+                  onChange={(e) => handleDayChange(dow, 'endTime', e.target.value)}
+                  disabled={!r?.isActive}
+                  className="sm:col-span-3 !h-9"
+                />
+                <select
+                  className="sm:col-span-2 !h-9"
+                  value={r?.slotDuration ?? 30}
+                  onChange={(e) => handleDayChange(dow, 'slotDuration', Number(e.target.value))}
+                  disabled={!r?.isActive}
+                  title="Duração de cada slot"
+                >
+                  {SLOT_DURATIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d} min
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-3 mt-6 pt-6 border-t border-line">
+        <div className="flex items-start gap-2">
+          <CalendarOff size={18} className="text-muted mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-ink mb-1">Dias fechados</h3>
+            <p className="text-sm text-muted">
+              Adiciona períodos em que não aceitas marcações (férias, feriados, etc.).
+            </p>
+          </div>
+        </div>
+
+        {/* Existing ranges (future + ongoing only) */}
+        <ul className="space-y-2">
+          {ranges.length === 0 && (
+            <li className="text-sm text-muted italic">Sem períodos fechados.</li>
+          )}
+          {ranges.map((r) => (
+            <li
+              key={r.id}
+              className="flex items-center gap-3 p-3 rounded-button bg-surface border border-line"
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-ink font-medium">
+                  {formatDate(r.dateFrom)}
+                  {r.dateFrom.slice(0, 10) !== r.dateTo.slice(0, 10) &&
+                    ` — ${formatDate(r.dateTo)}`}
+                </p>
+                {r.reason && <p className="text-xs text-muted">{r.reason}</p>}
+              </div>
+              <button
+                className="btn-ghost btn-sm !text-danger"
+                onClick={() => void removeRange(r.id)}
+                disabled={savingRange}
+                aria-label="Remover período"
+              >
+                <Trash2 size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {/* Add new range form */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end pt-2">
+          <div className="sm:col-span-3">
+            <label className="label">De</label>
+            <input
+              type="date"
+              value={newRange.dateFrom}
+              onChange={(e) => setNewRange((p) => ({ ...p, dateFrom: e.target.value }))}
+            />
+          </div>
+          <div className="sm:col-span-3">
+            <label className="label">Até</label>
+            <input
+              type="date"
+              value={newRange.dateTo}
+              onChange={(e) => setNewRange((p) => ({ ...p, dateTo: e.target.value }))}
+            />
+          </div>
+          <div className="sm:col-span-4">
+            <label className="label">Motivo (opcional)</label>
+            <input
+              type="text"
+              placeholder="Ex: Férias"
+              value={newRange.reason}
+              onChange={(e) => setNewRange((p) => ({ ...p, reason: e.target.value }))}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <button
+              type="button"
+              className="btn-outline w-full"
+              onClick={() => void addRange()}
+              disabled={savingRange}
+            >
+              <Plus size={14} /> Adicionar
+            </button>
+          </div>
+        </div>
+      </section>
     </Modal>
   );
 }
