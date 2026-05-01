@@ -684,7 +684,7 @@ barberRouter.post(
     const barberId = ensureBarberId(req);
     const data = availabilitySchema.parse(req.body);
     const rule = await prisma.barberAvailability.create({
-      data: { barber: { connect: { id: barberId } }, ...data },
+      data: { barberId: barberId, dayOfWeek: data.dayOfWeek, startTime: data.startTime, endTime: data.endTime, slotDuration: data.slotDuration, isActive: data.isActive },
     });
     res.status(201).json({ rule });
   }),
