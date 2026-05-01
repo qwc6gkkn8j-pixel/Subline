@@ -13,7 +13,7 @@ import { stripePublicRouter, stripeWebhookRouter } from './routes/stripe.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp() {
-  const app = express();
+  const app = express(); app.set('trust proxy', 1)
 
   app.use(helmet());
   app.use(
