@@ -27,8 +27,6 @@ import type {
 
 type ClientLite = Client & { subscriptions: Subscription[] };
 
-const SLOT_DURATIONS = [15, 30, 45, 60];
-
 export default function CalendarPage() {
   const toast = useToast();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), 1));
@@ -485,36 +483,39 @@ function AvailabilityModal({
   const [busy, setBusy] = useState(false);
   const [savingRange, setSavingRange] = useState(false);
 
-  const upsertRule = async (
-    dayOfWeek: number,
-    startTime: string,
-    endTime: string,
-    slotDuration: number,
-    isActive: boolean,
-  ) => {
-    const existing = draftRules.find((r) => r.dayOfWeek === dayOfWeek);
+  const upsertRule = async (rule: {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    breakStart: string | null;
+    breakEnd: string | null;
+    isActive: boolean;
+  }) => {
+    const existing = draftRules.find((r) => r.dayOfWeek === rule.dayOfWeek);
     if (existing && !existing.id.startsWith('temp-')) {
       await api.put(`/barber/availability/${existing.id}`, {
-        startTime,
-        endTime,
-        slotDuration,
-        isActive,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        breakStart: rule.breakStart,
+        breakEnd: rule.breakEnd,
+        isActive: rule.isActive,
       });
     } else {
       await api.post('/barber/availability', {
-        dayOfWeek,
-        startTime,
-        endTime,
-        slotDuration,
-        isActive,
+        dayOfWeek: rule.dayOfWeek,
+        startTime: rule.startTime,
+        endTime: rule.endTime,
+        breakStart: rule.breakStart,
+        breakEnd: rule.breakEnd,
+        isActive: rule.isActive,
       });
     }
   };
 
   const handleDayChange = (
     dayOfWeek: number,
-    key: 'startTime' | 'endTime' | 'isActive' | 'slotDuration',
-    value: string | boolean | number,
+    key: 'startTime' | 'endTime' | 'isActive' | 'breakStart' | 'breakEnd',
+    value: string | boolean | null,
   ) => {
     setDraftRules((prev) => {
       const idx = prev.findIndex((r) => r.dayOfWeek === dayOfWeek);
@@ -526,6 +527,8 @@ function AvailabilityModal({
           startTime: '09:00',
           endTime: '18:00',
           slotDuration: 30,
+          breakStart: null,
+          breakEnd: null,
           isActive: true,
           ...{ [key]: value },
         };
@@ -537,11 +540,32 @@ function AvailabilityModal({
     });
   };
 
+  const toggleBreak = (dayOfWeek: number, hasBreak: boolean) => {
+    setDraftRules((prev) => {
+      const idx = prev.findIndex((r) => r.dayOfWeek === dayOfWeek);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      next[idx] = {
+        ...next[idx],
+        breakStart: hasBreak ? next[idx].breakStart ?? '13:00' : null,
+        breakEnd: hasBreak ? next[idx].breakEnd ?? '14:00' : null,
+      };
+      return next;
+    });
+  };
+
   const onSave = async () => {
     setBusy(true);
     try {
       for (const r of draftRules) {
-        await upsertRule(r.dayOfWeek, r.startTime, r.endTime, r.slotDuration, r.isActive);
+        await upsertRule({
+          dayOfWeek: r.dayOfWeek,
+          startTime: r.startTime,
+          endTime: r.endTime,
+          breakStart: r.breakStart ?? null,
+          breakEnd: r.breakEnd ?? null,
+          isActive: r.isActive,
+        });
       }
       toast.success('Disponibilidade atualizada');
       onSaved();
@@ -619,48 +643,74 @@ function AvailabilityModal({
           <h3 className="font-semibold text-ink mb-1">Horário semanal</h3>
           <p className="text-sm text-muted">Define os horários em que aceitas marcações.</p>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {[1, 2, 3, 4, 5, 6, 0].map((dow) => {
             const r = draftRules.find((x) => x.dayOfWeek === dow);
+            const hasBreak = Boolean(r?.breakStart && r?.breakEnd);
             return (
-              <div key={dow} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-                <label className="sm:col-span-3 flex items-center gap-2 text-sm">
+              <div key={dow} className="rounded-button border border-line bg-surface/40 p-3 space-y-2">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                  <label className="sm:col-span-4 flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={r?.isActive ?? false}
+                      onChange={(e) => handleDayChange(dow, 'isActive', e.target.checked)}
+                      className="!w-auto !h-auto"
+                    />
+                    <span className="font-medium text-ink">{DAY_OF_WEEK_LABEL[dow]}</span>
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={r?.isActive ?? false}
-                    onChange={(e) => handleDayChange(dow, 'isActive', e.target.checked)}
-                    className="!w-auto !h-auto"
+                    type="time"
+                    value={r?.startTime ?? '09:00'}
+                    onChange={(e) => handleDayChange(dow, 'startTime', e.target.value)}
+                    disabled={!r?.isActive}
+                    className="sm:col-span-3 !h-9"
+                    aria-label="Hora de abertura"
                   />
-                  {DAY_OF_WEEK_LABEL[dow]}
-                </label>
-                <input
-                  type="time"
-                  value={r?.startTime ?? '09:00'}
-                  onChange={(e) => handleDayChange(dow, 'startTime', e.target.value)}
-                  disabled={!r?.isActive}
-                  className="sm:col-span-3 !h-9"
-                />
-                <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
-                <input
-                  type="time"
-                  value={r?.endTime ?? '18:00'}
-                  onChange={(e) => handleDayChange(dow, 'endTime', e.target.value)}
-                  disabled={!r?.isActive}
-                  className="sm:col-span-3 !h-9"
-                />
-                <select
-                  className="sm:col-span-2 !h-9"
-                  value={r?.slotDuration ?? 30}
-                  onChange={(e) => handleDayChange(dow, 'slotDuration', Number(e.target.value))}
-                  disabled={!r?.isActive}
-                  title="Duração de cada slot"
-                >
-                  {SLOT_DURATIONS.map((d) => (
-                    <option key={d} value={d}>
-                      {d} min
-                    </option>
-                  ))}
-                </select>
+                  <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
+                  <input
+                    type="time"
+                    value={r?.endTime ?? '18:00'}
+                    onChange={(e) => handleDayChange(dow, 'endTime', e.target.value)}
+                    disabled={!r?.isActive}
+                    className="sm:col-span-3 !h-9"
+                    aria-label="Hora de fecho"
+                  />
+                </div>
+
+                {r?.isActive && (
+                  <div className="pl-6">
+                    <label className="flex items-center gap-2 text-sm text-muted">
+                      <input
+                        type="checkbox"
+                        checked={hasBreak}
+                        onChange={(e) => toggleBreak(dow, e.target.checked)}
+                        className="!w-auto !h-auto"
+                      />
+                      Pausa de meio-dia
+                    </label>
+                    {hasBreak && (
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center mt-2">
+                        <span className="sm:col-span-3 text-xs text-muted">Sem marcações</span>
+                        <input
+                          type="time"
+                          value={r.breakStart ?? '13:00'}
+                          onChange={(e) => handleDayChange(dow, 'breakStart', e.target.value)}
+                          className="sm:col-span-3 !h-9"
+                          aria-label="Início da pausa"
+                        />
+                        <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
+                        <input
+                          type="time"
+                          value={r.breakEnd ?? '14:00'}
+                          onChange={(e) => handleDayChange(dow, 'breakEnd', e.target.value)}
+                          className="sm:col-span-3 !h-9"
+                          aria-label="Fim da pausa"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

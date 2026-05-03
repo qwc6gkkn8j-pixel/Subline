@@ -25,6 +25,9 @@ export interface AvailabilityRule {
   endTime: TimeStr;
   slotDuration: number;
   isActive: boolean;
+  /** Optional mid-day break — slot grid skips overlaps. */
+  breakStart?: TimeStr | null;
+  breakEnd?: TimeStr | null;
 }
 
 export interface BookedRange {
@@ -81,9 +84,25 @@ export function computeAvailableSlots(args: {
     end: parseTime(b.endTime),
   }));
 
+  // Mid-day break — only applies when both breakStart and breakEnd are set
+  // and form a non-empty interval inside the working day.
+  const breakRange =
+    rule.breakStart && rule.breakEnd
+      ? (() => {
+          const bStart = parseTime(rule.breakStart);
+          const bEnd = parseTime(rule.breakEnd);
+          return bEnd > bStart ? { start: bStart, end: bEnd } : null;
+        })()
+      : null;
+
   const slots: SlotResult[] = [];
   for (let t = start; t + step <= end; t += step) {
     const slotEnd = t + step;
+    // Skip any slot that overlaps the configured break range entirely —
+    // the slot just doesn't exist on the grid (better UX than greyed-out).
+    if (breakRange && !(slotEnd <= breakRange.start || t >= breakRange.end)) {
+      continue;
+    }
     const overlaps = bookedMinutes.some(
       (b) => !(slotEnd <= b.start || t >= b.end),
     );

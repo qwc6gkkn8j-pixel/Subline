@@ -167,7 +167,10 @@ export interface BarberAvailability {
   dayOfWeek: number; // 0=Sun .. 6=Sat
   startTime: string; // HH:MM
   endTime: string;
-  slotDuration: number; // minutes
+  slotDuration: number; // minutes — kept for back-compat, no longer surfaced in the form.
+  /** Optional mid-day break (HH:MM). Both must be set for the break to apply. */
+  breakStart?: string | null;
+  breakEnd?: string | null;
   isActive: boolean;
 }
 

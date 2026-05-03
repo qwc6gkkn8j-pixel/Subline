@@ -807,11 +807,22 @@ barberRouter.get(
   }),
 );
 
+// breakStart/breakEnd are optional. If only one is sent, treat as "no break".
+// We accept empty string as a way to clear the field (clients normalize too).
+const timeOrEmpty = z
+  .string()
+  .regex(/^(\d{2}:\d{2})?$/)
+  .nullable()
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : null));
+
 const availabilitySchema = z.object({
   dayOfWeek: z.coerce.number().int().min(0).max(6),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   endTime: z.string().regex(/^\d{2}:\d{2}$/),
   slotDuration: z.coerce.number().int().positive().default(30),
+  breakStart: timeOrEmpty,
+  breakEnd: timeOrEmpty,
   isActive: z.boolean().default(true),
 });
 
@@ -821,7 +832,16 @@ barberRouter.post(
     const barberId = ensureBarberId(req);
     const data = availabilitySchema.parse(req.body);
     const rule = await prisma.barberAvailability.create({
-      data: { barberId: barberId, dayOfWeek: data.dayOfWeek, startTime: data.startTime, endTime: data.endTime, slotDuration: data.slotDuration, isActive: data.isActive },
+      data: {
+        barberId,
+        dayOfWeek: data.dayOfWeek,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        slotDuration: data.slotDuration,
+        breakStart: data.breakStart,
+        breakEnd: data.breakEnd,
+        isActive: data.isActive,
+      },
     });
     res.status(201).json({ rule });
   }),

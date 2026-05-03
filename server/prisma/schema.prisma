@@ -303,7 +303,11 @@ model BarberAvailability {
   dayOfWeek    Int // 0 = Sunday, 6 = Saturday
   startTime    String // "HH:MM"
   endTime      String // "HH:MM"
-  slotDuration Int      @default(30) // minutes
+  slotDuration Int      @default(30) // minutes — kept for backward compat (clients now infer slot length from service durations)
+  // Optional mid-day break. When both are set, the slot algorithm
+  // skips any slot that overlaps [breakStart, breakEnd).
+  breakStart   String? // "HH:MM"
+  breakEnd     String? // "HH:MM"
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 
