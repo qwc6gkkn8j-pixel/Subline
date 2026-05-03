@@ -27,19 +27,12 @@ export type AppointmentStatus =
 export type CancelledBy = 'client' | 'barber' | 'system';
 export type ConversationType = 'barber_client' | 'support';
 export type MessageType = 'text' | 'image' | 'system' | 'attachment';
-export type TicketCategory =
-  | 'billing'
-  | 'subscription'
-  | 'technical'
-  | 'account'
-  | 'general';
-export type TicketPriority = 'low' | 'normal' | 'high' | 'urgent';
-export type TicketStatus =
-  | 'open'
-  | 'pending'
-  | 'in_progress'
-  | 'resolved'
-  | 'closed';
+// Aligned with server Prisma enums (see server/prisma/schema.prisma).
+// Server's Zod schemas reject anything outside this set, so any drift here
+// causes silent 400 errors on POST /tickets.
+export type TicketCategory = 'payment' | 'account' | 'booking' | 'other';
+export type TicketPriority = 'low' | 'medium' | 'high';
+export type TicketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type NotificationType =
   | 'payment_success'
   | 'payment_failed'
@@ -322,16 +315,14 @@ export const SERVICE_DURATION: Record<AppointmentService, number> = {
 };
 
 export const TICKET_CATEGORY_LABEL: Record<TicketCategory, string> = {
-  billing: 'Pagamentos',
-  subscription: 'Subscrição',
-  technical: 'Técnico',
+  payment: 'Pagamento',
   account: 'Conta',
-  general: 'Geral',
+  booking: 'Marcações',
+  other: 'Outro',
 };
 
 export const TICKET_STATUS_LABEL: Record<TicketStatus, string> = {
   open: 'Aberto',
-  pending: 'Pendente',
   in_progress: 'Em curso',
   resolved: 'Resolvido',
   closed: 'Fechado',
@@ -339,9 +330,8 @@ export const TICKET_STATUS_LABEL: Record<TicketStatus, string> = {
 
 export const TICKET_PRIORITY_LABEL: Record<TicketPriority, string> = {
   low: 'Baixa',
-  normal: 'Normal',
+  medium: 'Média',
   high: 'Alta',
-  urgent: 'Urgente',
 };
 
 export const DAY_OF_WEEK_LABEL: string[] = [

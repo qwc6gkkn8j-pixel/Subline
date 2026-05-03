@@ -1124,6 +1124,22 @@ barberRouter.post(
           type: 'text',
         },
       });
+      // Notify all admins of the new ticket so they see it in the notification bell.
+      const admins = await tx.user.findMany({
+        where: { role: 'admin', status: 'active' },
+        select: { id: true },
+      });
+      if (admins.length > 0) {
+        await tx.notification.createMany({
+          data: admins.map((a) => ({
+            userId: a.id,
+            type: 'ticket_update',
+            title: 'Novo ticket de suporte',
+            body: `${data.subject} — barbeiro`,
+            data: { ticketId: ticket.id, conversationId: conv.id, requesterRole: 'barber' },
+          })),
+        });
+      }
       return { ticket, conversation: conv };
     });
     res.status(201).json(result);

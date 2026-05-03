@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
+import { ChatWindow } from '@/components/chat/ChatWindow';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatRelative } from '@/lib/utils';
 import type {
@@ -25,8 +26,9 @@ interface TicketsResp {
   totalPages: number;
 }
 
-const STATUS_OPTIONS: TicketStatus[] = ['open', 'pending', 'in_progress', 'resolved', 'closed'];
-const PRIORITY_OPTIONS: TicketPriority[] = ['low', 'normal', 'high', 'urgent'];
+const STATUS_OPTIONS: TicketStatus[] = ['open', 'in_progress', 'resolved', 'closed'];
+const PRIORITY_OPTIONS: TicketPriority[] = ['low', 'medium', 'high'];
+const CATEGORY_OPTIONS: TicketCategory[] = ['payment', 'account', 'booking', 'other'];
 
 export default function TicketsPage() {
   const toast = useToast();
@@ -83,7 +85,7 @@ export default function TicketsPage() {
           className="!h-9 !py-1 text-sm"
         >
           <option value="">Categoria</option>
-          {(Object.keys(TICKET_CATEGORY_LABEL) as TicketCategory[]).map((c) => (
+          {CATEGORY_OPTIONS.map((c) => (
             <option key={c} value={c}>
               {TICKET_CATEGORY_LABEL[c]}
             </option>
@@ -159,16 +161,14 @@ export default function TicketsPage() {
 }
 
 function PriorityBadge({ p }: { p: TicketPriority }) {
-  if (p === 'urgent') return <span className="badge-danger">Urgente</span>;
-  if (p === 'high') return <span className="badge-warning">Alta</span>;
+  if (p === 'high') return <span className="badge-danger">Alta</span>;
   if (p === 'low') return <span className="badge-muted">Baixa</span>;
-  return <span className="badge-muted">Normal</span>;
+  return <span className="badge-warning">Média</span>;
 }
 
 function StatusBadge({ s }: { s: TicketStatus }) {
   const map: Record<TicketStatus, string> = {
     open: 'badge-brand',
-    pending: 'badge-warning',
     in_progress: 'badge-accent',
     resolved: 'badge-success',
     closed: 'badge-muted',
@@ -207,9 +207,18 @@ function TicketDetailModal({
     }
   };
 
-  // The conversation for support tickets uses the admin endpoint base — we'll use barber-style polling endpoint
-  // (admin doesn't currently have a dedicated /admin/conversations REST surface, but the support tickets carry a conversationId).
-  // For preview purposes we'll show metadata and ticket info; chat via dedicated thread arrives in a follow-up.
+  // Build a synthetic conversation object for ChatWindow.
+  // Admin has dedicated /admin/conversations/:id/{messages,read} endpoints.
+  const conversation = ticket.conversation ?? {
+    id: ticket.conversationId,
+    type: 'support' as const,
+    barberId: null,
+    clientId: null,
+    adminId: null,
+    lastMessageAt: null,
+    createdAt: ticket.createdAt,
+    updatedAt: ticket.updatedAt,
+  };
 
   return (
     <Modal
@@ -257,10 +266,12 @@ function TicketDetailModal({
           {ticket.requester?.email}) · {ticket.requester?.role}
         </div>
 
-        <div className="rounded-card border border-line bg-surface p-4 text-sm text-muted">
-          A conversa do ticket fica disponível ao requerente. O admin pode atualizar o estado e
-          prioridade aqui — respostas em texto chegam num próximo update.
-        </div>
+        <ChatWindow
+          conversation={conversation}
+          endpointBase="/admin/conversations"
+          title={ticket.subject}
+          subtitle={`${ticket.requester?.fullName ?? 'Requerente'} · ${TICKET_CATEGORY_LABEL[ticket.category]}`}
+        />
       </div>
     </Modal>
   );

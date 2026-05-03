@@ -222,8 +222,8 @@ function NewTicketModal({
   const toast = useToast();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [category, setCategory] = useState<TicketCategory>('general');
-  const [priority, setPriority] = useState<TicketPriority>('normal');
+  const [category, setCategory] = useState<TicketCategory>('other');
+  const [priority, setPriority] = useState<TicketPriority>('medium');
   const [busy, setBusy] = useState(false);
 
   const onCreate = async () => {
@@ -282,7 +282,7 @@ function NewTicketModal({
               value={priority}
               onChange={(e) => setPriority(e.target.value as TicketPriority)}
             >
-              {(['low', 'normal', 'high', 'urgent'] as TicketPriority[]).map((p) => (
+              {(['low', 'medium', 'high'] as TicketPriority[]).map((p) => (
                 <option key={p} value={p}>
                   {TICKET_PRIORITY_LABEL[p]}
                 </option>

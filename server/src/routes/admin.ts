@@ -403,6 +403,16 @@ adminRouter.get(
         take: params.limit,
         include: {
           requester: { select: { id: true, fullName: true, email: true, role: true } },
+          conversation: {
+            include: {
+              messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+              _count: {
+                select: {
+                  messages: { where: { isRead: false, NOT: { senderRole: 'admin' } } },
+                },
+              },
+            },
+          },
         },
       }),
       prisma.supportTicket.count({ where }),
@@ -459,6 +469,102 @@ adminRouter.put(
       details: { status: data.status ?? null, priority: data.priority ?? null },
     });
     res.json({ ticket: updated });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// SUPPORT TICKETS — admin chat (read messages, send replies)
+// Admin can read/respond to any support conversation. The "assignToMe"
+// helper above lets an admin claim a ticket but does not gate access here.
+// ────────────────────────────────────────────────────────────────────────────
+adminRouter.get(
+  '/conversations/:id/messages',
+  asyncHandler(async (req, res) => {
+    const conv = await prisma.conversation.findUnique({
+      where: { id: req.params.id },
+    });
+    if (!conv) throw NotFound('Conversation not found');
+    if (conv.type !== 'support') throw NotFound('Not a support conversation');
+    const messages = await prisma.message.findMany({
+      where: { conversationId: conv.id },
+      orderBy: { createdAt: 'asc' },
+      take: 200,
+      include: { sender: { select: { id: true, fullName: true, role: true, avatarUrl: true } } },
+    });
+    res.json({ messages });
+  }),
+);
+
+const adminSendMessageSchema = z.object({
+  content: z.string().min(1).max(4000),
+  type: z.enum(['text', 'image']).default('text'),
+  imageUrl: z.string().url().optional(),
+});
+
+adminRouter.post(
+  '/conversations/:id/messages',
+  asyncHandler(async (req, res) => {
+    const data = adminSendMessageSchema.parse(req.body);
+    const conv = await prisma.conversation.findUnique({
+      where: { id: req.params.id },
+      include: { ticket: true },
+    });
+    if (!conv) throw NotFound('Conversation not found');
+    if (conv.type !== 'support') throw NotFound('Not a support conversation');
+
+    const message = await prisma.message.create({
+      data: {
+        conversationId: conv.id,
+        senderId: req.auth!.userId,
+        senderRole: 'admin',
+        content: data.content,
+        type: data.type,
+        imageUrl: data.imageUrl ?? null,
+      },
+    });
+    // Auto-assign the conversation to this admin if not already assigned,
+    // and bump updatedAt so listings re-sort.
+    await prisma.conversation.update({
+      where: { id: conv.id },
+      data: {
+        adminId: conv.adminId ?? req.auth!.userId,
+        updatedAt: new Date(),
+      },
+    });
+    // If the ticket is still "open", move it to in_progress on first reply.
+    if (conv.ticket && conv.ticket.status === 'open') {
+      await prisma.supportTicket.update({
+        where: { id: conv.ticket.id },
+        data: { status: 'in_progress' },
+      });
+    }
+    // Notify the requester of the reply.
+    if (conv.ticket) {
+      await prisma.notification.create({
+        data: {
+          userId: conv.ticket.requesterId,
+          type: 'ticket_update',
+          title: 'Resposta do suporte',
+          body: data.content.slice(0, 100),
+          data: { ticketId: conv.ticket.id, conversationId: conv.id },
+        },
+      });
+    }
+    res.status(201).json({ message });
+  }),
+);
+
+adminRouter.post(
+  '/conversations/:id/read',
+  asyncHandler(async (req, res) => {
+    const conv = await prisma.conversation.findUnique({ where: { id: req.params.id } });
+    if (!conv) throw NotFound('Conversation not found');
+    if (conv.type !== 'support') throw NotFound('Not a support conversation');
+    await prisma.message.updateMany({
+      where: { conversationId: conv.id, NOT: { senderRole: 'admin' } },
+      data: { isRead: true },
+    });
+    res.json({ message: 'Marked as read' });
   }),
 );
 
