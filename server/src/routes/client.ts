@@ -7,6 +7,7 @@ import { BadRequest, Forbidden, NotFound } from '../lib/errors.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error.js';
 import { computeAvailableSlots } from '../lib/calendar.js';
+import { applyCancellationCutLogic } from '../lib/appointmentLifecycle.js';
 
 export const clientRouter = Router();
 clientRouter.use(requireAuth, requireRole('client'));
@@ -303,12 +304,50 @@ clientRouter.put(
     const clientId = ensureClientId(req);
     const existing = await prisma.appointment.findFirst({
       where: { id: req.params.appointmentId, clientId },
+      include: {
+        client: {
+          select: {
+            id: true,
+            userId: true,
+            name: true,
+            subscriptions: {
+              where: { status: 'active' },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        },
+      },
     });
     if (!existing) throw NotFound('Appointment not found');
-    await prisma.appointment.update({
-      where: { id: existing.id },
-      data: { status: 'cancelled', cancelledBy: 'client', cancelledAt: new Date() },
+
+    // Already cancelled — short-circuit so we don't double-refund.
+    if (existing.status === 'cancelled') {
+      return res.json({ message: 'Appointment already cancelled' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await applyCancellationCutLogic(tx, {
+        id: existing.id,
+        date: existing.date,
+        startTime: existing.startTime,
+        client: {
+          id: existing.client.id,
+          userId: existing.client.userId,
+          name: existing.client.name,
+          subscriptions: existing.client.subscriptions.map((s) => ({
+            id: s.id,
+            cutsUsed: s.cutsUsed,
+            cutsTotal: s.cutsTotal,
+          })),
+        },
+      });
+      await tx.appointment.update({
+        where: { id: existing.id },
+        data: { status: 'cancelled', cancelledBy: 'client', cancelledAt: new Date() },
+      });
     });
+
     res.json({ message: 'Appointment cancelled' });
   }),
 );

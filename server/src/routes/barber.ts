@@ -14,6 +14,7 @@ import {
   isStripeConfigured,
   StripeNotConfigured,
 } from '../lib/stripe.js';
+import { applyCancellationCutLogic } from '../lib/appointmentLifecycle.js';
 
 export const barberRouter = Router();
 barberRouter.use(requireAuth, requireRole('barber'));
@@ -733,7 +734,25 @@ barberRouter.put(
         }
       }
 
-      // For 'cancelled' the F4 commit will add the refund logic.
+      // ── Refund / penalty logic when cancelling ────────────────────────────
+      if (data.status === 'cancelled' && existing.status !== 'cancelled') {
+        await applyCancellationCutLogic(tx, {
+          id: existing.id,
+          date: existing.date,
+          startTime: existing.startTime,
+          client: {
+            id: existing.client.id,
+            userId: existing.client.userId,
+            name: existing.client.name,
+            subscriptions: existing.client.subscriptions.map((s) => ({
+              id: s.id,
+              cutsUsed: s.cutsUsed,
+              cutsTotal: s.cutsTotal,
+            })),
+          },
+        });
+      }
+
       // 'no_show' has no extra side effects.
 
       await tx.appointment.update({
