@@ -15,6 +15,7 @@ import {
 import type {
   Appointment,
   AppointmentService,
+  Service,
   Slot,
 } from '@/lib/types';
 
@@ -159,6 +160,8 @@ function AppointmentRow({
 function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const toast = useToast();
   const [date, setDate] = useState(isoDate(new Date(Date.now() + 24 * 3600 * 1000)));
+  const [services, setServices] = useState<Service[]>([]);
+  const [serviceId, setServiceId] = useState<string>('');
   const [service, setService] = useState<AppointmentService>('haircut');
   const [duration, setDuration] = useState<number>(SERVICE_DURATION.haircut);
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -166,6 +169,16 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   const [notes, setNotes] = useState('');
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Load barber's service catalog once when the modal opens.
+  useEffect(() => {
+    api
+      .get<{ services: Service[] }>('/client/services')
+      .then((r) => setServices(r.data.services))
+      .catch(() => undefined);
+  }, []);
+
+  const hasCatalog = services.length > 0;
 
   useEffect(() => {
     setLoadingSlots(true);
@@ -189,6 +202,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     try {
       await api.post('/client/appointments', {
         service,
+        serviceId: serviceId || null,
         date,
         startTime: time,
         durationMinutes: duration,
@@ -225,20 +239,41 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Serviço</label>
-            <select
-              value={service}
-              onChange={(e) => {
-                const s = e.target.value as AppointmentService;
-                setService(s);
-                setDuration(SERVICE_DURATION[s]);
-              }}
-            >
-              {(Object.keys(SERVICE_LABEL) as AppointmentService[]).map((s) => (
-                <option key={s} value={s}>
-                  {SERVICE_LABEL[s]}
-                </option>
-              ))}
-            </select>
+            {hasCatalog ? (
+              <select
+                value={serviceId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setServiceId(id);
+                  if (id) {
+                    const found = services.find((sv) => sv.id === id);
+                    if (found) setDuration(found.durationMinutes);
+                  }
+                }}
+              >
+                <option value="">— escolher —</option>
+                {services.map((sv) => (
+                  <option key={sv.id} value={sv.id}>
+                    {sv.name} · {sv.durationMinutes}min · {Number(sv.price).toFixed(2)}€
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select
+                value={service}
+                onChange={(e) => {
+                  const s = e.target.value as AppointmentService;
+                  setService(s);
+                  setDuration(SERVICE_DURATION[s]);
+                }}
+              >
+                {(Object.keys(SERVICE_LABEL) as AppointmentService[]).map((s) => (
+                  <option key={s} value={s}>
+                    {SERVICE_LABEL[s]}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="label">Duração (min)</label>
@@ -247,6 +282,8 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
               min={5}
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
+              disabled={Boolean(serviceId)}
+              title={serviceId ? 'Definida pelo serviço escolhido' : undefined}
             />
           </div>
         </div>

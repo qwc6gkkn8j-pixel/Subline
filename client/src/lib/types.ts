@@ -146,6 +146,10 @@ export interface Appointment {
   barberId: string;
   clientId: string;
   service: AppointmentService;
+  /** Optional reference to a Service catalog row (F4). Null for legacy bookings. */
+  serviceId: string | null;
+  /** Snapshot of Service.price at booking time, stored as Decimal on the server. */
+  priceAtBooking: number | string | null;
   date: string;
   startTime: string; // HH:MM
   endTime: string; // HH:MM
@@ -159,6 +163,7 @@ export interface Appointment {
   updatedAt: string;
   client?: Pick<Client, 'id' | 'name' | 'email' | 'phone'>;
   barber?: Pick<Barber, 'id' | 'name'>;
+  serviceRef?: Pick<Service, 'id' | 'name' | 'price' | 'durationMinutes' | 'category'> | null;
 }
 
 export interface BarberAvailability {
@@ -187,6 +192,36 @@ export interface BarberUnavailable {
 export interface Slot {
   time: string; // HH:MM
   available: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Services (F4 — barber's one-time service catalog)
+// ─────────────────────────────────────────────────────────────────────────────
+export type ServiceCategory = 'Corte' | 'Barba' | 'Tratamento' | 'Combo' | 'Outro';
+
+export const SERVICE_CATEGORIES: ServiceCategory[] = [
+  'Corte',
+  'Barba',
+  'Tratamento',
+  'Combo',
+  'Outro',
+];
+
+export const SERVICE_DURATIONS = [15, 30, 45, 60, 90, 120];
+
+export interface Service {
+  id: string;
+  barberId: string;
+  name: string;
+  description: string | null;
+  /** Stored as Decimal on the server — comes through as string via JSON. */
+  price: number | string;
+  durationMinutes: number;
+  category: string | null;
+  isActive: boolean;
+  imageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

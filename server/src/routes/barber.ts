@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/db.js';
 import { env } from '../lib/env.js';
 import { logAudit } from '../lib/audit.js';
@@ -540,6 +541,11 @@ barberRouter.get(
 const appointmentSchema = z.object({
   clientId: z.string().uuid(),
   service: z.enum(['haircut', 'beard', 'haircut_beard', 'other']).default('haircut'),
+  // New optional reference to a Service catalog row (F4). When provided, the
+  // server pulls duration + price from the Service and stores them on the
+  // appointment so the historical price/duration is preserved even if the
+  // Service later changes.
+  serviceId: z.string().uuid().optional().nullable(),
   date: z.string(), // YYYY-MM-DD
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   durationMinutes: z.coerce.number().int().positive().default(30),
@@ -557,8 +563,20 @@ barberRouter.post(
     const client = await prisma.client.findFirst({ where: { id: data.clientId, barberId } });
     if (!client) throw NotFound('Client not found or not yours');
 
+    // Resolve service catalog row (if any) and lock in its duration/price.
+    let serviceRow: { id: string; durationMinutes: number; price: unknown } | null = null;
+    if (data.serviceId) {
+      const found = await prisma.service.findFirst({
+        where: { id: data.serviceId, barberId, isActive: true },
+        select: { id: true, durationMinutes: true, price: true },
+      });
+      if (!found) throw NotFound('Service not found or inactive');
+      serviceRow = found;
+    }
+
+    const effectiveDuration = serviceRow?.durationMinutes ?? data.durationMinutes;
     const [hh, mm] = data.startTime.split(':').map(Number);
-    const endMinutes = hh * 60 + mm + data.durationMinutes;
+    const endMinutes = hh * 60 + mm + effectiveDuration;
     const endTime = `${Math.floor(endMinutes / 60)
       .toString()
       .padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`;
@@ -568,10 +586,12 @@ barberRouter.post(
         barberId,
         clientId: data.clientId,
         service: data.service,
+        serviceId: serviceRow?.id ?? null,
+        priceAtBooking: serviceRow ? (serviceRow.price as Prisma.Decimal) : null,
         date: new Date(data.date),
         startTime: data.startTime,
         endTime,
-        durationMinutes: data.durationMinutes,
+        durationMinutes: effectiveDuration,
         notes: data.notes ?? null,
         status: data.status,
       },
@@ -1163,6 +1183,114 @@ barberRouter.post(
       return { ticket, conversation: conv };
     });
     res.status(201).json(result);
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// SERVICES — barber's catalog (CRUD)
+// ────────────────────────────────────────────────────────────────────────────
+barberRouter.get(
+  '/services',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const services = await prisma.service.findMany({
+      where: { barberId, isActive: true },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+    res.json({ services });
+  }),
+);
+
+barberRouter.get(
+  '/services/all',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const services = await prisma.service.findMany({
+      where: { barberId },
+      orderBy: [{ isActive: 'desc' }, { category: 'asc' }, { name: 'asc' }],
+    });
+    res.json({ services });
+  }),
+);
+
+const serviceCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  description: z.string().max(2000).optional().nullable(),
+  price: z.coerce.number().nonnegative().max(99999),
+  durationMinutes: z.coerce.number().int().positive().max(480).default(30),
+  category: z.string().max(60).optional().nullable(),
+  isActive: z.boolean().default(true),
+  imageUrl: z.string().url().optional().nullable(),
+});
+
+barberRouter.post(
+  '/services',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = serviceCreateSchema.parse(req.body);
+    const service = await prisma.service.create({
+      data: {
+        barberId,
+        name: data.name,
+        description: data.description ?? null,
+        price: data.price,
+        durationMinutes: data.durationMinutes,
+        category: data.category ?? null,
+        isActive: data.isActive,
+        imageUrl: data.imageUrl ?? null,
+      },
+    });
+    await logAudit({
+      userId: req.auth!.userId,
+      action: 'created',
+      entityType: 'service',
+      entityId: service.id,
+      details: { name: service.name, price: data.price },
+    });
+    res.status(201).json({ service });
+  }),
+);
+
+barberRouter.put(
+  '/services/:id',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = serviceCreateSchema.partial().parse(req.body);
+    const existing = await prisma.service.findFirst({
+      where: { id: req.params.id, barberId },
+    });
+    if (!existing) throw NotFound('Service not found');
+    const service = await prisma.service.update({
+      where: { id: existing.id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.price !== undefined ? { price: data.price } : {}),
+        ...(data.durationMinutes !== undefined ? { durationMinutes: data.durationMinutes } : {}),
+        ...(data.category !== undefined ? { category: data.category } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+        ...(data.imageUrl !== undefined ? { imageUrl: data.imageUrl } : {}),
+      },
+    });
+    res.json({ service });
+  }),
+);
+
+barberRouter.delete(
+  '/services/:id',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const existing = await prisma.service.findFirst({
+      where: { id: req.params.id, barberId },
+    });
+    if (!existing) throw NotFound('Service not found');
+    // Soft delete — isActive=false. Existing Appointment.serviceId references
+    // remain intact (FK is SetNull on hard delete; soft delete preserves both).
+    await prisma.service.update({
+      where: { id: existing.id },
+      data: { isActive: false },
+    });
+    res.json({ message: 'Service deactivated' });
   }),
 );
 

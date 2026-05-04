@@ -21,6 +21,7 @@ import type {
   BarberAvailability,
   BarberUnavailable,
   Client,
+  Service,
   Slot,
   Subscription,
 } from '@/lib/types';
@@ -34,6 +35,7 @@ export default function CalendarPage() {
   const [availability, setAvailability] = useState<BarberAvailability[]>([]);
   const [unavailable, setUnavailable] = useState<BarberUnavailable[]>([]);
   const [clients, setClients] = useState<ClientLite[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState<{ date: string; time: string } | null>(null);
   const [editingAvailability, setEditingAvailability] = useState(false);
@@ -53,16 +55,18 @@ export default function CalendarPage() {
 
   const loadOnce = async () => {
     try {
-      const [av, cl] = await Promise.all([
+      const [av, cl, sv] = await Promise.all([
         // Server returns `{ rules, unavailable }`.
         api.get<{ rules: BarberAvailability[]; unavailable: BarberUnavailable[] }>(
           '/barber/availability',
         ),
         api.get<{ clients: ClientLite[] }>('/barber/clients'),
+        api.get<{ services: Service[] }>('/barber/services'),
       ]);
       setAvailability(av.data.rules ?? []);
       setUnavailable(av.data.unavailable ?? []);
       setClients(cl.data.clients ?? []);
+      setServices(sv.data.services ?? []);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
@@ -128,6 +132,7 @@ export default function CalendarPage() {
         <AppointmentModal
           slot={creating}
           clients={clients}
+          services={services}
           existing={appointments.find(
             (a) => isoDate(a.date) === creating.date && a.startTime === creating.time,
           )}
@@ -155,18 +160,23 @@ function AppointmentModal({
   slot,
   existing,
   clients,
+  services,
   onClose,
   onSaved,
 }: {
   slot: { date: string; time: string };
   existing?: Appointment;
   clients: ClientLite[];
+  services: Service[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const toast = useToast();
   const isEditing = Boolean(existing);
   const [clientId, setClientId] = useState(existing?.clientId ?? clients[0]?.id ?? '');
+  // Catalog selection (F4) — when present, takes precedence over the legacy
+  // service enum. "" means "no service from catalog → legacy enum + manual duration".
+  const [serviceId, setServiceId] = useState<string>(existing?.serviceId ?? '');
   const [service, setService] = useState<AppointmentService>(existing?.service ?? 'haircut');
   const [date, setDate] = useState(slot.date);
   const [time, setTime] = useState(existing?.startTime ?? slot.time);
@@ -176,6 +186,8 @@ function AppointmentModal({
   const [status, setStatus] = useState<AppointmentStatus>(existing?.status ?? 'pending');
   const [notes, setNotes] = useState(existing?.notes ?? '');
   const [busy, setBusy] = useState(false);
+
+  const hasCatalog = services.length > 0;
 
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -216,6 +228,9 @@ function AppointmentModal({
       const base = {
         clientId,
         service,
+        // Send serviceId only when something is selected; the server uses it
+        // to lock in duration + priceAtBooking from the catalog.
+        serviceId: serviceId || null,
         date,
         startTime: time,
         durationMinutes: duration,
@@ -350,20 +365,41 @@ function AppointmentModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Serviço</label>
-            <select
-              value={service}
-              onChange={(e) => {
-                const s = e.target.value as AppointmentService;
-                setService(s);
-                setDuration(SERVICE_DURATION[s]);
-              }}
-            >
-              {(Object.keys(SERVICE_LABEL) as AppointmentService[]).map((s) => (
-                <option key={s} value={s}>
-                  {SERVICE_LABEL[s]}
-                </option>
-              ))}
-            </select>
+            {hasCatalog ? (
+              <select
+                value={serviceId}
+                onChange={(e) => {
+                  const id = e.target.value;
+                  setServiceId(id);
+                  if (id) {
+                    const found = services.find((sv) => sv.id === id);
+                    if (found) setDuration(found.durationMinutes);
+                  }
+                }}
+              >
+                <option value="">— escolher —</option>
+                {services.map((sv) => (
+                  <option key={sv.id} value={sv.id}>
+                    {sv.name} · {sv.durationMinutes}min · {Number(sv.price).toFixed(2)}€
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select
+                value={service}
+                onChange={(e) => {
+                  const s = e.target.value as AppointmentService;
+                  setService(s);
+                  setDuration(SERVICE_DURATION[s]);
+                }}
+              >
+                {(Object.keys(SERVICE_LABEL) as AppointmentService[]).map((s) => (
+                  <option key={s} value={s}>
+                    {SERVICE_LABEL[s]}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="label">Duração (min)</label>
@@ -372,6 +408,8 @@ function AppointmentModal({
               min={5}
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
+              disabled={Boolean(serviceId)}
+              title={serviceId ? 'Definida pelo serviço escolhido' : undefined}
             />
           </div>
         </div>

@@ -160,6 +160,7 @@ model Barber {
   unavailable    BarberUnavailable[]
   conversations  Conversation[]        @relation("ConversationBarber")
   staff          StaffMember[]
+  services       Service[]
 }
 
 model Client {
@@ -286,7 +287,11 @@ model Appointment {
   id              String             @id @default(uuid())
   barberId        String
   clientId        String
+  // Legacy enum service (kept for back-compat with existing appointments).
+  // New flow uses serviceId + priceAtBooking when the barber has a Service catalog.
   service         AppointmentService @default(haircut)
+  serviceId       String?
+  priceAtBooking  Decimal?           @db.Decimal(10, 2)
   date            DateTime           @db.Date
   startTime       String // "HH:MM" 24h
   endTime         String // "HH:MM" 24h
@@ -299,13 +304,15 @@ model Appointment {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  barber Barber  @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  client Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  cut    Cut?
+  barber       Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  serviceRef   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  cut          Cut?
 
   @@index([barberId, date])
   @@index([clientId])
   @@index([status])
+  @@index([serviceId])
 }
 
 model BarberAvailability {
@@ -423,6 +430,31 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([createdAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SERVICES — barber's one-time service catalog (used by appointments)
+// ────────────────────────────────────────────────────────────────────────────
+
+model Service {
+  id              String   @id @default(uuid())
+  barberId        String
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  durationMinutes Int      @default(30)
+  // Free-form bucket for UI grouping/filtering: Corte, Barba, Tratamento, Combo, Outro.
+  category        String?
+  isActive        Boolean  @default(true)
+  // Optional photo url (asset upload is out of scope for this version).
+  imageUrl        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  barber       Barber        @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([barberId, isActive])
 }
 
 // ────────────────────────────────────────────────────────────────────────────

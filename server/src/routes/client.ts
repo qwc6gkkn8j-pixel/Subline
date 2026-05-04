@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/db.js';
 import { env } from '../lib/env.js';
 import { BadRequest, Forbidden, NotFound } from '../lib/errors.js';
@@ -199,6 +200,26 @@ clientRouter.get(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// GET /api/client/services — active services of the client's assigned barber.
+// Returns [] if the client has no barber set.
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/services',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    if (!client?.barberId) {
+      return res.json({ services: [] });
+    }
+    const services = await prisma.service.findMany({
+      where: { barberId: client.barberId, isActive: true },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+    res.json({ services });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // GET /api/client/cuts — own cut history (across subscriptions)
 // ────────────────────────────────────────────────────────────────────────────
 clientRouter.get(
@@ -249,6 +270,9 @@ clientRouter.get(
 
 const bookSchema = z.object({
   service: z.enum(['haircut', 'beard', 'haircut_beard', 'other']).default('haircut'),
+  // Optional reference to the barber's Service catalog (F4). When provided,
+  // the server pulls duration/price from the Service row.
+  serviceId: z.string().uuid().optional().nullable(),
   date: z.string(),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   durationMinutes: z.coerce.number().int().positive().default(30),
@@ -263,8 +287,19 @@ clientRouter.post(
     const client = await prisma.client.findUnique({ where: { id: clientId } });
     if (!client?.barberId) throw BadRequest('No barber assigned');
 
+    let serviceRow: { id: string; durationMinutes: number; price: unknown } | null = null;
+    if (data.serviceId) {
+      const found = await prisma.service.findFirst({
+        where: { id: data.serviceId, barberId: client.barberId, isActive: true },
+        select: { id: true, durationMinutes: true, price: true },
+      });
+      if (!found) throw NotFound('Service not found or inactive');
+      serviceRow = found;
+    }
+
+    const effectiveDuration = serviceRow?.durationMinutes ?? data.durationMinutes;
     const [hh, mm] = data.startTime.split(':').map(Number);
-    const endMinutes = hh * 60 + mm + data.durationMinutes;
+    const endMinutes = hh * 60 + mm + effectiveDuration;
     const endTime = `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`;
 
     const appointment = await prisma.appointment.create({
@@ -272,10 +307,12 @@ clientRouter.post(
         barberId: client.barberId,
         clientId,
         service: data.service,
+        serviceId: serviceRow?.id ?? null,
+        priceAtBooking: serviceRow ? (serviceRow.price as Prisma.Decimal) : null,
         date: new Date(data.date),
         startTime: data.startTime,
         endTime,
-        durationMinutes: data.durationMinutes,
+        durationMinutes: effectiveDuration,
         clientNotes: data.clientNotes ?? null,
         status: 'pending',
       },
@@ -615,5 +652,21 @@ publicRouter.get(
       orderBy: { name: 'asc' },
     });
     res.json({ barbers });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// Public: GET /api/public/barber/:barberId/services — active services list
+// Used by the client booking flow to render the service catalog without
+// requiring the client to be subscribed to that barber yet.
+// ────────────────────────────────────────────────────────────────────────────
+publicRouter.get(
+  '/barber/:barberId/services',
+  asyncHandler(async (req, res) => {
+    const services = await prisma.service.findMany({
+      where: { barberId: req.params.barberId, isActive: true },
+      orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    });
+    res.json({ services });
   }),
 );
