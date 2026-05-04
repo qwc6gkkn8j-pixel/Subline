@@ -197,15 +197,8 @@ export interface Slot {
 // ─────────────────────────────────────────────────────────────────────────────
 // Services (F4 — barber's one-time service catalog)
 // ─────────────────────────────────────────────────────────────────────────────
-export type ServiceCategory = 'Corte' | 'Barba' | 'Tratamento' | 'Combo' | 'Outro';
-
-export const SERVICE_CATEGORIES: ServiceCategory[] = [
-  'Corte',
-  'Barba',
-  'Tratamento',
-  'Combo',
-  'Outro',
-];
+// ServiceCategory is now free-form text (autocomplete from existing categories)
+export type ServiceCategory = string;
 
 export const SERVICE_DURATIONS = [15, 30, 45, 60, 90, 120];
 

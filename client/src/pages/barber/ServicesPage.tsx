@@ -14,16 +14,19 @@ import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/lib/utils';
-import { SERVICE_CATEGORIES, SERVICE_DURATIONS } from '@/lib/types';
-import type { Service, ServiceCategory } from '@/lib/types';
+import { SERVICE_DURATIONS } from '@/lib/types';
+import type { Service } from '@/lib/types';
 
-const CATEGORY_BADGE: Record<string, string> = {
-  Corte: 'badge-brand',
-  Barba: 'badge-accent',
-  Tratamento: 'badge-warning',
-  Combo: 'badge-success',
-  Outro: 'badge-muted',
-};
+// Dynamic badge color based on category name
+function getCategoryBadgeColor(category: string): string {
+  const colors = ['badge-brand', 'badge-accent', 'badge-warning', 'badge-success', 'badge-muted'];
+  let hash = 0;
+  for (let i = 0; i < category.length; i++) {
+    hash = ((hash << 5) - hash) + category.charCodeAt(i);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
 
 export default function ServicesPage() {
   const toast = useToast();
@@ -110,7 +113,7 @@ export default function ServicesPage() {
 
               <div className="flex flex-wrap items-center gap-2">
                 {s.category && (
-                  <span className={CATEGORY_BADGE[s.category] ?? 'badge-muted'}>
+                  <span className={getCategoryBadgeColor(s.category)}>
                     <Tag size={11} className="inline -mt-0.5 mr-1" />
                     {s.category}
                   </span>
@@ -148,6 +151,7 @@ export default function ServicesPage() {
 
       {creating && (
         <ServiceFormModal
+          allServices={services}
           onClose={() => setCreating(false)}
           onSaved={() => {
             setCreating(false);
@@ -158,6 +162,7 @@ export default function ServicesPage() {
       {editing && (
         <ServiceFormModal
           existing={editing}
+          allServices={services}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -169,20 +174,24 @@ export default function ServicesPage() {
   );
 }
 
+interface ServiceFormModalProps {
+  existing?: Service;
+  onClose: () => void;
+  onSaved: () => void;
+  allServices?: Service[];
+}
+
 function ServiceFormModal({
   existing,
   onClose,
   onSaved,
-}: {
-  existing?: Service;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+  allServices = [],
+}: ServiceFormModalProps) {
   const toast = useToast();
   const [name, setName] = useState(existing?.name ?? '');
-  const [category, setCategory] = useState<ServiceCategory>(
-    (existing?.category as ServiceCategory) ?? 'Corte',
-  );
+  const [category, setCategory] = useState(existing?.category ?? '');
+  const [categoryInput, setCategoryInput] = useState(existing?.category ?? '');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [description, setDescription] = useState(existing?.description ?? '');
   const [price, setPrice] = useState<string>(
     existing?.price !== undefined ? String(existing.price) : '',
@@ -190,6 +199,17 @@ function ServiceFormModal({
   const [duration, setDuration] = useState<number>(existing?.durationMinutes ?? 30);
   const [isActive, setIsActive] = useState(existing?.isActive ?? true);
   const [busy, setBusy] = useState(false);
+
+  // Extract unique categories from all services
+  const suggestedCategories = Array.from(
+    new Set(allServices.filter(s => s.category).map(s => s.category!))
+  ).filter(cat => cat.toLowerCase().includes(categoryInput.toLowerCase()));
+
+  const handleCategorySelect = (cat: string) => {
+    setCategoryInput(cat);
+    setCategory(cat);
+    setShowSuggestions(false);
+  };
 
   const isEdit = Boolean(existing);
 
@@ -258,16 +278,34 @@ function ServiceFormModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Categoria</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as ServiceCategory)}
-            >
-              {SERVICE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <input
+                type="text"
+                value={categoryInput}
+                onChange={(e) => {
+                  setCategoryInput(e.target.value);
+                  setCategory(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                placeholder="Ex: Corte, Barba, Coloração..."
+              />
+              {showSuggestions && suggestedCategories.length > 0 && (
+                <div className="absolute top-full left-0 right-0 bg-white border border-line rounded-button mt-1 z-10 shadow-card">
+                  {suggestedCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => handleCategorySelect(cat)}
+                      className="w-full text-left px-3 py-2 hover:bg-surface text-sm"
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label className="label">Duração (min)</label>
