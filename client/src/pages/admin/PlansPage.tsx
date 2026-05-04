@@ -66,7 +66,7 @@ export default function PlansPage() {
             onChange={(e) => setBarberFilter(e.target.value)}
             className="!h-9 !py-1 text-sm"
           >
-            <option value="">Todos os barbeiros</option>
+            <option value="">Todos os profissionais</option>
             {barbers.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -259,7 +259,7 @@ function PlanFormModal({
     >
       <form id="plan-form" onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label className="label">Barbeiro</label>
+          <label className="label">Professional</label>
           <select
             value={form.barberId}
             onChange={(e) => set('barberId', e.target.value)}

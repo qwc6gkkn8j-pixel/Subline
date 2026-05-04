@@ -21,7 +21,7 @@ export function ConversationList({ conversations, activeId, onSelect, view = 'ba
           view === 'barber'
             ? c.client?.name ?? 'Cliente'
             : view === 'client'
-              ? c.barber?.name ?? 'Barbeiro'
+              ? c.barber?.name ?? 'Professional'
               : c.ticket?.subject ?? c.requester?.fullName ?? 'Conversa';
         const subtitle =
           c.lastMessage?.content ??

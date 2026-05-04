@@ -25,7 +25,7 @@ export default function SettingsPage() {
           </span>
           <div>
             <h2 className="font-semibold text-ink">Stripe Connect</h2>
-            <p className="text-xs text-muted">Pagamentos e onboarding de barbeiros</p>
+            <p className="text-xs text-muted">Pagamentos e onboarding de profissionais</p>
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       <section className="card">
         <h2 className="font-semibold text-ink mb-2">Sobre</h2>
         <p className="text-sm text-muted">
-          SUBLINE — sistema de gestão de barbearias. Versão de pré-visualização (v3) com Stripe Connect
+          SUBLINE — sistema de gestão de negócios. Versão de pré-visualização (v3) com Stripe Connect
           em modo stub. As mensagens de erro Stripe (HTTP 503) são esperadas até preencheres as variáveis
           de ambiente.
         </p>

@@ -143,7 +143,7 @@ export default function StaffPage() {
           <EmptyState
             icon={UserPlus}
             title="Sem staff"
-            description="Adiciona o primeiro funcionário da tua barbearia."
+            description="Adiciona o primeiro funcionário da tua negócio."
           />
         </div>
       ) : (
@@ -244,7 +244,7 @@ function StaffFormModal({
 }) {
   const toast = useToast();
   const [name, setName] = useState(existing?.name ?? '');
-  const [role, setRole] = useState(existing?.role ?? 'Barbeiro');
+  const [role, setRole] = useState(existing?.role ?? 'Professional');
   const [createAccount, setCreateAccount] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

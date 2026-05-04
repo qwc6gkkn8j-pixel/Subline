@@ -25,7 +25,7 @@ export default function Login() {
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
           <Logo size={80} showText />
-          <p className="text-sm text-muted mt-2">Barbershop management, simplified.</p>
+          <p className="text-sm text-muted mt-2">Business management, simplified.</p>
         </div>
 
         <div className="bg-white rounded-card shadow-card p-6 sm:p-8">
@@ -296,13 +296,13 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <label className="label">I am a…</label>
         <div className="grid grid-cols-2 gap-2">
           <RoleRadio value="client" current={role} onChange={setRole} label="Client" />
-          <RoleRadio value="barber" current={role} onChange={setRole} label="Barber" />
+          <RoleRadio value="barber" current={role} onChange={setRole} label="Professional" />
         </div>
       </div>
 
       {role === 'client' && barbers.length > 0 && (
         <div>
-          <label className="label">Choose a barber (optional)</label>
+          <label className="label">Choose a professional (optional)</label>
           <select value={barberId} onChange={(e) => setBarberId(e.target.value)}>
             <option value="">— Pick later —</option>
             {barbers.map((b) => (

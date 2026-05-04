@@ -141,7 +141,7 @@ function AppointmentRow({
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <AppointmentStatusBadge status={appt.status} />
           <span className="text-xs text-muted">
-            {appt.durationMinutes} min · com {appt.barber?.name ?? 'barbeiro'}
+            {appt.durationMinutes} min · com {appt.barber?.name ?? 'professional'}
           </span>
         </div>
       </div>

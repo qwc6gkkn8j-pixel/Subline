@@ -104,7 +104,7 @@ export default function UsersPage() {
             >
               <option value="">Todos os papéis</option>
               <option value="admin">Admin</option>
-              <option value="barber">Barbeiro</option>
+              <option value="barber">Professional</option>
               <option value="client">Cliente</option>
             </select>
             <select
@@ -438,7 +438,7 @@ function UserFormModal({
               disabled={!isNew}
             >
               <option value="admin">Admin</option>
-              <option value="barber">Barbeiro</option>
+              <option value="barber">Professional</option>
               <option value="client">Cliente</option>
             </select>
           </div>

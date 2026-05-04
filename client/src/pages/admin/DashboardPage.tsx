@@ -97,7 +97,7 @@ export default function DashboardPage() {
         <QuickCard
           to="/admin/users?role=barber"
           icon={<Scissors size={18} />}
-          label="Barbeiros"
+          label="Profissionais"
           value={extras?.barbersCount ?? '—'}
         />
         <QuickCard
