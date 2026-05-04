@@ -1295,6 +1295,102 @@ barberRouter.delete(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// PLANS — barber's own plans CRUD
+// ────────────────────────────────────────────────────────────────────────────
+
+barberRouter.get(
+  '/plans',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const plans = await prisma.plan.findMany({
+      where: { barberId },
+      include: {
+        subscriptions: { where: { status: 'active' }, select: { id: true } },
+      },
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
+    });
+    res.json({
+      plans: plans.map((p) => ({
+        ...p,
+        activeSubscriptions: p.subscriptions.length,
+        subscriptions: undefined,
+      })),
+    });
+  }),
+);
+
+const planCreateSchema = z.object({
+  name: z.string().min(2).max(120),
+  description: z.string().max(2000).optional().nullable(),
+  price: z.coerce.number().positive().max(99999),
+  cutsPerMonth: z.coerce.number().int().min(1).max(100).optional().nullable(),
+  isActive: z.boolean().default(true),
+});
+
+barberRouter.post(
+  '/plans',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = planCreateSchema.parse(req.body);
+    const plan = await prisma.plan.create({
+      data: {
+        barberId,
+        name: data.name,
+        description: data.description ?? null,
+        price: data.price,
+        cutsPerMonth: data.cutsPerMonth ?? null,
+        isActive: data.isActive,
+      },
+    });
+    res.status(201).json({ plan });
+  }),
+);
+
+barberRouter.put(
+  '/plans/:planId',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const planId = req.params.planId;
+    const data = planCreateSchema.parse(req.body);
+
+    // Verify ownership
+    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan || plan.barberId !== barberId) throw Forbidden('Plan not found');
+
+    const updated = await prisma.plan.update({
+      where: { id: planId },
+      data: {
+        name: data.name,
+        description: data.description ?? null,
+        price: data.price,
+        cutsPerMonth: data.cutsPerMonth ?? null,
+        isActive: data.isActive,
+      },
+    });
+    res.json({ plan: updated });
+  }),
+);
+
+barberRouter.delete(
+  '/plans/:planId',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const planId = req.params.planId;
+
+    // Verify ownership
+    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+    if (!plan || plan.barberId !== barberId) throw Forbidden('Plan not found');
+
+    // Delete by setting isActive=false (soft delete)
+    const updated = await prisma.plan.update({
+      where: { id: planId },
+      data: { isActive: false },
+    });
+    res.json({ plan: updated });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // STAFF — barber's employees CRUD + entry history
 // ────────────────────────────────────────────────────────────────────────────
 barberRouter.get(

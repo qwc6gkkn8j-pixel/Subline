@@ -1,38 +1,67 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// /barber/plans — barber-side CRUD for subscription plans (F3 revised).
+//
+// Grid of cards (active + inactive). Each card has Edit / Toggle active.
+// The "New plan" button opens a modal with name, description, price, cutsPerMonth, isActive.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useState } from 'react';
-import { Tag } from 'lucide-react';
+import { Plus, Pencil, Power } from 'lucide-react';
+import { api, apiErrorMessage } from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
+import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Banner } from '@/components/ui/Banner';
-import { useToast } from '@/components/ui/Toast';
-import { api, apiErrorMessage } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import type { Plan } from '@/lib/types';
 
 export default function PlansPage() {
   const toast = useToast();
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<(Plan & { _count?: { subscriptions: number } })[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<Plan | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get<{ plans: (Plan & { _count?: { subscriptions: number } })[] }>('/barber/plans');
+      setPlans(data.plans);
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    api
-      .get<{ plans: Plan[] }>('/barber/plans')
-      .then((r) => setPlans(r.data.plans))
-      .catch((err) => toast.error(apiErrorMessage(err)))
-      .finally(() => setLoading(false));
+    void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-ink">Os meus planos</h1>
+  const toggleActive = async (p: Plan) => {
+    try {
+      if (p.isActive) {
+        await api.delete(`/barber/plans/${p.id}`);
+        toast.success('Plano desativado');
+      } else {
+        await api.put(`/barber/plans/${p.id}`, { isActive: true });
+        toast.success('Plano reativado');
+      }
+      void load();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    }
+  };
 
-      <Banner tone="info" title="Gestão de planos">
-        Os planos são configurados pelo administrador da plataforma. Contacta-nos via{' '}
-        <a href="/barber/chat" className="underline">
-          suporte
-        </a>{' '}
-        para alterações.
-      </Banner>
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-5 flex-wrap">
+        <h1 className="text-2xl font-bold text-ink mr-auto">Planos</h1>
+        <button className="btn-primary" onClick={() => setCreating(true)}>
+          <Plus size={16} /> Novo plano
+        </button>
+      </div>
 
       {loading ? (
         <div className="card text-center py-10">
@@ -40,33 +69,241 @@ export default function PlansPage() {
         </div>
       ) : plans.length === 0 ? (
         <div className="card">
-          <EmptyState icon={Tag} title="Sem planos definidos" />
+          <EmptyState
+            icon={Plus}
+            title="Sem planos"
+            description="Cria o primeiro plano para começares a oferecer subscrições aos teus clientes."
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {plans.map((p) => (
-            <div key={p.id} className="card">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="text-lg font-semibold text-ink">{p.name}</h3>
-                <span className={p.isActive ? 'badge-success' : 'badge-muted'}>
-                  {p.isActive ? 'Ativo' : 'Inativo'}
-                </span>
+            <article
+              key={p.id}
+              className={`card flex flex-col gap-3 ${
+                p.isActive ? '' : 'opacity-60'
+              }`}
+            >
+              <header className="flex items-start gap-2">
+                <div className="flex-1 min-w-0">
+                  <h2 className="font-semibold text-ink truncate">{p.name}</h2>
+                  {p.description && (
+                    <p className="text-xs text-muted line-clamp-2 mt-1">{p.description}</p>
+                  )}
+                </div>
+                {p.isActive ? (
+                  <span className="badge-success">Ativo</span>
+                ) : (
+                  <span className="badge-muted">Inativo</span>
+                )}
+              </header>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {p.cutsPerMonth && (
+                  <span className="badge-muted">
+                    {p.cutsPerMonth} serviços/mês
+                  </span>
+                )}
               </div>
-              <p className="text-3xl font-bold text-ink">
-                {formatCurrency(p.price)}
-                <span className="text-sm font-normal text-muted">/mês</span>
+
+              <p className="text-2xl font-bold text-brand mt-auto">
+                {formatCurrency(Number(p.price))}/mês
               </p>
-              {p.description && <p className="text-sm text-muted mt-2">{p.description}</p>}
-              <dl className="mt-4 grid grid-cols-2 gap-y-1 text-xs">
-                <dt className="text-muted">Cortes/mês</dt>
-                <dd className="text-right font-medium">{p.cutsPerMonth ?? 'Ilimitado'}</dd>
-                <dt className="text-muted">Subscritos</dt>
-                <dd className="text-right font-medium">{p._count?.subscriptions ?? 0}</dd>
-              </dl>
-            </div>
+
+              {p._count?.subscriptions !== undefined && (
+                <div className="text-xs text-muted">
+                  <span className="badge-accent">{p._count.subscriptions} subscritores</span>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2 border-t border-line">
+                <button
+                  className="btn-outline btn-sm flex-1"
+                  onClick={() => setEditing(p)}
+                >
+                  <Pencil size={14} /> Editar
+                </button>
+                <button
+                  className={`btn-sm flex-1 ${
+                    p.isActive ? 'btn-ghost !text-danger' : 'btn-outline'
+                  }`}
+                  onClick={() => void toggleActive(p)}
+                >
+                  <Power size={14} /> {p.isActive ? 'Desativar' : 'Ativar'}
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       )}
+
+      {creating && (
+        <PlanFormModal
+          onClose={() => setCreating(false)}
+          onSaved={() => {
+            setCreating(false);
+            void load();
+          }}
+        />
+      )}
+      {editing && (
+        <PlanFormModal
+          existing={editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            void load();
+          }}
+        />
+      )}
     </div>
+  );
+}
+
+interface PlanFormModalProps {
+  existing?: Plan;
+  onClose: () => void;
+  onSaved: () => void;
+}
+
+function PlanFormModal({
+  existing,
+  onClose,
+  onSaved,
+}: PlanFormModalProps) {
+  const toast = useToast();
+  const [name, setName] = useState(existing?.name ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [price, setPrice] = useState<string>(
+    existing?.price !== undefined ? String(existing.price) : '',
+  );
+  const [cutsPerMonth, setCutsPerMonth] = useState<string>(
+    existing?.cutsPerMonth !== undefined && existing.cutsPerMonth !== null
+      ? String(existing.cutsPerMonth)
+      : '',
+  );
+  const [isActive, setIsActive] = useState(existing?.isActive ?? true);
+  const [busy, setBusy] = useState(false);
+
+  const isEdit = Boolean(existing);
+
+  const onSubmit = async () => {
+    const priceNum = Number(price);
+    if (!name.trim()) {
+      toast.error('Nome é obrigatório');
+      return;
+    }
+    if (!Number.isFinite(priceNum) || priceNum < 0) {
+      toast.error('Preço inválido');
+      return;
+    }
+
+    let cutsNum: number | null = null;
+    if (cutsPerMonth.trim()) {
+      cutsNum = Number(cutsPerMonth);
+      if (!Number.isInteger(cutsNum) || cutsNum < 1 || cutsNum > 100) {
+        toast.error('Serviços/mês deve estar entre 1 e 100');
+        return;
+      }
+    }
+
+    setBusy(true);
+    try {
+      const payload = {
+        name,
+        description: description || null,
+        price: priceNum,
+        cutsPerMonth: cutsNum,
+        isActive,
+      };
+      if (isEdit) {
+        await api.put(`/barber/plans/${existing!.id}`, payload);
+        toast.success('Plano atualizado');
+      } else {
+        await api.post('/barber/plans', payload);
+        toast.success('Plano criado');
+      }
+      onSaved();
+    } catch (err) {
+      toast.error(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={isEdit ? 'Editar plano' : 'Novo plano'}
+      footer={
+        <>
+          <button className="btn-ghost" onClick={onClose} disabled={busy}>
+            Cancelar
+          </button>
+          <button className="btn-primary" onClick={() => void onSubmit()} disabled={busy}>
+            {busy ? <Spinner /> : 'Guardar'}
+          </button>
+        </>
+      }
+    >
+      <div className="space-y-3">
+        <div>
+          <label className="label">Nome *</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex: Plano básico"
+            required
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label">Preço (EUR) *</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder="Ex: 19.99"
+              required
+            />
+          </div>
+          <div>
+            <label className="label">Serviços/mês (opcional)</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={cutsPerMonth}
+              onChange={(e) => setCutsPerMonth(e.target.value)}
+              placeholder="Ex: 4"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="label">Descrição (opcional)</label>
+          <textarea
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Detalhes do plano…"
+          />
+        </div>
+
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+            className="!w-auto !h-auto"
+          />
+          Plano ativo
+        </label>
+      </div>
+    </Modal>
   );
 }
