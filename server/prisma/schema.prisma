@@ -108,6 +108,12 @@ enum TicketStatus {
   closed
 }
 
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // CORE — User / Barber / Client (v1 + Stripe additions)
 // ────────────────────────────────────────────────────────────────────────────
@@ -161,6 +167,8 @@ model Barber {
   conversations  Conversation[]        @relation("ConversationBarber")
   staff          StaffMember[]
   services       Service[]
+  products       Product[]
+  productOrders  ProductOrder[]
 }
 
 model Client {
@@ -178,6 +186,7 @@ model Client {
   subscriptions Subscription[]
   appointments  Appointment[]
   conversations Conversation[] @relation("ConversationClient")
+  productOrders ProductOrder[]
 
   @@index([barberId])
 }
@@ -491,6 +500,50 @@ model TimeEntry {
   staffMember StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
 
   @@index([staffMemberId, timestamp])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// SHOP — Products for sale by professionals
+// ────────────────────────────────────────────────────────────────────────────
+
+model Product {
+  id              String   @id @default(uuid())
+  barberId        String
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  // Type: "physical" (merchandise) or "digital" (e-book, course, etc.)
+  type            String   @default("physical") // "physical" | "digital"
+  imageUrl        String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  barber  Barber         @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  orders  ProductOrder[]
+
+  @@index([barberId, isActive])
+}
+
+model ProductOrder {
+  id        String      @id @default(uuid())
+  barberId  String
+  clientId  String
+  productId String
+  quantity  Int         @default(1)
+  totalPrice Decimal    @db.Decimal(10, 2)
+  status    OrderStatus @default(pending)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([barberId])
+  @@index([clientId])
+  @@index([productId])
+  @@index([status])
 }
 
 // ────────────────────────────────────────────────────────────────────────────

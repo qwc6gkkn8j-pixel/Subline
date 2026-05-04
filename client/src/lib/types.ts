@@ -222,6 +222,8 @@ export interface Service {
 // ─────────────────────────────────────────────────────────────────────────────
 export type EntryType = 'clock_in' | 'break_start' | 'break_end' | 'clock_out';
 export type StaffState = 'out' | 'working' | 'on_break';
+export type OrderStatus = 'pending' | 'completed' | 'cancelled';
+export type ProductType = 'physical' | 'digital';
 
 export interface StaffMember {
   id: string;
@@ -309,6 +311,34 @@ export interface Notification {
   isRead: boolean;
   data: Record<string, unknown> | null;
   createdAt: string;
+}
+
+export interface Product {
+  id: string;
+  barberId: string;
+  name: string;
+  description: string | null;
+  /** Stored as Decimal on the server — comes through as string via JSON. */
+  price: number | string;
+  type: ProductType;
+  imageUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductOrder {
+  id: string;
+  barberId: string;
+  clientId: string;
+  productId: string;
+  quantity: number;
+  totalPrice: number | string;
+  status: OrderStatus;
+  createdAt: string;
+  updatedAt: string;
+  product?: Product;
+  client?: Pick<Client, 'id' | 'name' | 'email'>;
 }
 
 export interface AuditLog {

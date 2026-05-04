@@ -11,6 +11,7 @@ import { clientRouter, publicRouter } from './routes/client.js';
 import { staffRouter } from './routes/staff.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { stripePublicRouter, stripeWebhookRouter } from './routes/stripe.js';
+import { barberShopRouter, clientShopRouter } from './routes/shop.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp() {
@@ -61,7 +62,9 @@ export function createApp() {
   app.use('/api/public', stripePublicRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/barber', barberRouter);
+  app.use('/api/barber/shop', barberShopRouter);
   app.use('/api/client', clientRouter);
+  app.use('/api/client/shop', clientShopRouter);
   app.use('/api/staff', staffRouter);
   app.use('/api/notifications', notificationsRouter);
 

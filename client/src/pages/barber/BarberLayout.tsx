@@ -10,6 +10,7 @@ import {
   UserPlus,
   UserCog,
   Scissors,
+  ShoppingBag,
 } from 'lucide-react';
 import { lazy, Suspense, useEffect } from 'react';
 import { RoleShell } from '@/components/layout/RoleShell';
@@ -25,6 +26,7 @@ const ChatPage = lazy(() => import('./ChatPage'));
 const ProfilePage = lazy(() => import('./ProfilePage'));
 const StaffPage = lazy(() => import('./StaffPage'));
 const ServicesPage = lazy(() => import('./ServicesPage'));
+const ShopPage = lazy(() => import('./ShopPage'));
 
 /** Show a toast when the Stripe Connect OAuth flow completes. */
 function StripeConnectFeedback() {
@@ -60,6 +62,7 @@ export default function BarberLayout() {
         { to: '/barber/staff', icon: UserCog, label: 'Staff' },
         { to: '/barber/calendar', icon: Calendar, label: 'Calendário' },
         { to: '/barber/plans', icon: Tag, label: 'Planos' },
+        { to: '/barber/shop', icon: ShoppingBag, label: 'Loja' },
         { to: '/barber/chat', icon: MessageSquare, label: 'Chat' },
         { to: '/barber/profile', icon: UserIcon, label: 'Perfil' },
       ]}
@@ -84,6 +87,7 @@ export default function BarberLayout() {
           <Route path="staff" element={<StaffPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="plans" element={<PlansPage />} />
+          <Route path="shop" element={<ShopPage />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/barber" replace />} />
