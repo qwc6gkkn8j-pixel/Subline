@@ -180,7 +180,7 @@ supportRouter.post(
             type: 'ticket_update',
             title: 'Novo ticket de suporte',
             body: `${data.subject} — ${role === 'client' ? 'cliente' : 'profissional'}`,
-            data: { ticketId: ticket.id, conversationId: conv.id, requesterRole: role },
+            data: { ticketId: ticket.id, conversationId: conv.id, requesterRole: role, deepLink: `/admin/tickets?active=${ticket.id}` },
           })),
         });
       }
@@ -273,6 +273,7 @@ supportRouter.post(
       // Notify the other party
       if (role === 'admin') {
         // Notify the requester (client/barber) that admin replied
+        const requesterPath = ticket.requesterRole === 'client' ? '/client/support' : '/barber/support';
         await tx.notification.create({
           data: {
             userId: ticket.requesterId,
@@ -282,7 +283,7 @@ supportRouter.post(
             data: {
               ticketId: ticket.id,
               conversationId: ticket.conversationId,
-              deepLink: `/support/${ticket.id}`,
+              deepLink: requesterPath,
             },
           },
         });
@@ -300,7 +301,7 @@ supportRouter.post(
               type: 'ticket_update',
               title: `Resposta no ticket: ${ticket.subject}`,
               body: data.content.slice(0, 100),
-              data: { ticketId: ticket.id, conversationId: ticket.conversationId },
+              data: { ticketId: ticket.id, conversationId: ticket.conversationId, deepLink: `/admin/tickets?active=${ticket.id}` },
             })),
           });
         }

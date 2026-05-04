@@ -157,6 +157,12 @@ function AppointmentRow({
   );
 }
 
+interface StaffMember {
+  id: string;
+  name: string;
+  role: string;
+}
+
 function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const toast = useToast();
   const [date, setDate] = useState(isoDate(new Date(Date.now() + 24 * 3600 * 1000)));
@@ -169,13 +175,21 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   const [notes, setNotes] = useState('');
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
+  const [staffId, setStaffId] = useState<string>('');
 
-  // Load barber's service catalog once when the modal opens.
+  // Load barber's service catalog and staff members once when the modal opens.
   useEffect(() => {
-    api
-      .get<{ services: Service[] }>('/client/services')
-      .then((r) => setServices(r.data.services))
-      .catch(() => undefined);
+    Promise.all([
+      api
+        .get<{ services: Service[] }>('/client/services')
+        .then((r) => setServices(r.data.services))
+        .catch(() => undefined),
+      api
+        .get<{ staff: StaffMember[] }>('/client/staff')
+        .then((r) => setStaffMembers(r.data.staff))
+        .catch(() => undefined),
+    ]);
   }, []);
 
   const hasCatalog = services.length > 0;
@@ -185,13 +199,13 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     setTime('');
     api
       .get<{ slots: Slot[] }>('/client/calendar/slots', {
-        params: { date, durationMinutes: duration },
+        params: { date, durationMinutes: duration, staffId: staffId || undefined },
       })
       .then((r) => setSlots(r.data.slots))
       .catch((err) => toast.error(apiErrorMessage(err)))
       .finally(() => setLoadingSlots(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, duration]);
+  }, [date, duration, staffId]);
 
   const onCreate = async () => {
     if (!time) {
@@ -203,6 +217,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
       await api.post('/client/appointments', {
         service,
         serviceId: serviceId || null,
+        staffMemberId: staffId || null,
         date,
         startTime: time,
         durationMinutes: duration,
@@ -236,6 +251,20 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
       }
     >
       <div className="space-y-4">
+        {staffMembers.length > 0 && (
+          <div>
+            <label className="label">Profissional (opcional)</label>
+            <select value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+              <option value="">— Qualquer um —</option>
+              {staffMembers.map((staff) => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.name} ({staff.role})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Serviço</label>

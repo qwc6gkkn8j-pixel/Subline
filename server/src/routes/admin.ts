@@ -7,6 +7,7 @@ import { logAudit } from '../lib/audit.js';
 import { BadRequest, Conflict, NotFound } from '../lib/errors.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error.js';
+import { sendAppointmentReminders } from '../lib/reminders.js';
 
 export const adminRouter = Router();
 adminRouter.use(requireAuth, requireRole('admin'));
@@ -248,6 +249,28 @@ adminRouter.delete(
       entityId: req.params.userId,
     });
     res.json({ message: 'User deleted' });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/admin/barbers — List all barbers (for dropdown selects)
+// ────────────────────────────────────────────────────────────────────────────
+adminRouter.get(
+  '/barbers',
+  asyncHandler(async (req, res) => {
+    const barbers = await prisma.barber.findMany({
+      where: { user: { status: 'active' } },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        phone: true,
+        address: true,
+        bio: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+    res.json({ barbers });
   }),
 );
 
@@ -589,5 +612,17 @@ adminRouter.get(
       }),
     ]);
     res.json({ openTickets, plansCount, barbersCount, appointmentsToday });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// POST /api/admin/reminders/send — trigger appointment reminders for upcoming appointments
+// (Can be called by a cron job or monitoring service)
+// ────────────────────────────────────────────────────────────────────────────
+adminRouter.post(
+  '/reminders/send',
+  asyncHandler(async (_req, res) => {
+    const count = await sendAppointmentReminders();
+    res.json({ message: `Sent ${count} appointment reminders` });
   }),
 );

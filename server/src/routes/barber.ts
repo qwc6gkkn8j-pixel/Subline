@@ -1554,6 +1554,111 @@ barberRouter.get(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// STAFF AVAILABILITY — Per-staff-member scheduling
+// ────────────────────────────────────────────────────────────────────────────
+
+barberRouter.get(
+  '/staff/:staffId/availability',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const staffId = req.params.staffId;
+
+    // Verify staff belongs to this barber
+    const staff = await prisma.staffMember.findFirst({
+      where: { id: staffId, barberId },
+    });
+    if (!staff) throw NotFound('Staff member not found');
+
+    const rules = await prisma.barberAvailability.findMany({
+      where: { barberId, staffMemberId: staffId },
+      orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
+    });
+
+    res.json({ rules });
+  }),
+);
+
+barberRouter.post(
+  '/staff/:staffId/availability',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const staffId = req.params.staffId;
+
+    // Verify staff belongs to this barber
+    const staff = await prisma.staffMember.findFirst({
+      where: { id: staffId, barberId },
+    });
+    if (!staff) throw NotFound('Staff member not found');
+
+    const data = availabilitySchema.parse(req.body);
+    const rule = await prisma.barberAvailability.create({
+      data: {
+        barberId,
+        staffMemberId: staffId,
+        dayOfWeek: data.dayOfWeek,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        slotDuration: data.slotDuration,
+        breakStart: data.breakStart,
+        breakEnd: data.breakEnd,
+        isActive: data.isActive,
+      },
+    });
+    res.status(201).json({ rule });
+  }),
+);
+
+barberRouter.put(
+  '/staff/:staffId/availability/:ruleId',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const staffId = req.params.staffId;
+    const ruleId = req.params.ruleId;
+
+    // Verify staff belongs to this barber
+    const staff = await prisma.staffMember.findFirst({
+      where: { id: staffId, barberId },
+    });
+    if (!staff) throw NotFound('Staff member not found');
+
+    const existing = await prisma.barberAvailability.findFirst({
+      where: { id: ruleId, staffMemberId: staffId, barberId },
+    });
+    if (!existing) throw NotFound('Rule not found');
+
+    const data = availabilitySchema.partial().parse(req.body);
+    const rule = await prisma.barberAvailability.update({
+      where: { id: existing.id },
+      data,
+    });
+    res.json({ rule });
+  }),
+);
+
+barberRouter.delete(
+  '/staff/:staffId/availability/:ruleId',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const staffId = req.params.staffId;
+    const ruleId = req.params.ruleId;
+
+    // Verify staff belongs to this barber
+    const staff = await prisma.staffMember.findFirst({
+      where: { id: staffId, barberId },
+    });
+    if (!staff) throw NotFound('Staff member not found');
+
+    const existing = await prisma.barberAvailability.findFirst({
+      where: { id: ruleId, staffMemberId: staffId, barberId },
+    });
+    if (!existing) throw NotFound('Rule not found');
+
+    await prisma.barberAvailability.delete({ where: { id: existing.id } });
+    res.json({ message: 'Rule deleted' });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // STRIPE CONNECT — barber-side onboarding
 // ────────────────────────────────────────────────────────────────────────────
 barberRouter.get(
@@ -1579,5 +1684,42 @@ barberRouter.get(
     if (!isStripeConfigured()) throw new StripeNotConfigured();
     const url = buildConnectOAuthUrl(barberId);
     res.json({ url });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// REVIEWS — Get barber's reviews and rating stats
+// ────────────────────────────────────────────────────────────────────────────
+barberRouter.get(
+  '/reviews',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const skip = req.query.skip ? parseInt(req.query.skip as string, 10) : 0;
+    const take = Math.min(req.query.take ? parseInt(req.query.take as string, 10) : 10, 50);
+
+    const [reviews, total, stats] = await Promise.all([
+      prisma.review.findMany({
+        where: { barberId },
+        include: { client: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take,
+      }),
+      prisma.review.count({ where: { barberId } }),
+      prisma.review.aggregate({
+        where: { barberId },
+        _avg: { rating: true },
+        _count: true,
+      }),
+    ]);
+
+    res.json({
+      reviews,
+      pagination: { skip, take, total },
+      stats: {
+        averageRating: stats._avg.rating ?? 0,
+        totalReviews: stats._count,
+      },
+    });
   }),
 );

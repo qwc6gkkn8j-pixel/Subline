@@ -6,6 +6,7 @@ import {
   MessageSquare,
   User as UserIcon,
   ShoppingBag,
+  LifeBuoy,
 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { RoleShell } from '@/components/layout/RoleShell';
@@ -18,6 +19,7 @@ const CalendarPage = lazy(() => import('./CalendarPage'));
 const ChatPage = lazy(() => import('./ChatPage'));
 const ProfilePage = lazy(() => import('./ProfilePage'));
 const ShopPage = lazy(() => import('./ShopPage'));
+const SupportPage = lazy(() => import('./SupportPage'));
 
 export default function ClientLayout() {
   return (
@@ -29,6 +31,7 @@ export default function ClientLayout() {
         { to: '/client/calendar', icon: CalendarDays, label: 'Calendário' },
         { to: '/client/shop', icon: ShoppingBag, label: 'Loja' },
         { to: '/client/chat', icon: MessageSquare, label: 'Chat' },
+        { to: '/client/support', icon: LifeBuoy, label: 'Suporte' },
         { to: '/client/profile', icon: UserIcon, label: 'Perfil' },
       ]}
       bottomNav={
@@ -50,6 +53,7 @@ export default function ClientLayout() {
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="shop" element={<ShopPage />} />
           <Route path="chat" element={<ChatPage />} />
+          <Route path="support" element={<SupportPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/client" replace />} />
         </Routes>

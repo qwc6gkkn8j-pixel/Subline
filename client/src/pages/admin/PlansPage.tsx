@@ -24,26 +24,10 @@ export default function PlansPage() {
         api.get<{ plans: Plan[] }>('/admin/plans', {
           params: barberFilter ? { barberId: barberFilter } : undefined,
         }),
-        api.get<{ users: (Barber & { id: string; fullName?: string })[] }>('/admin/users', {
-          params: { role: 'barber', limit: 100 },
-        }),
+        api.get<{ barbers: Barber[] }>('/admin/barbers'),
       ]);
       setPlans(p.data.plans);
-      // Map admin /users (returning users) to a name list. We'll fetch barber rows separately.
-      const userIds = (b.data.users as unknown as { id: string; fullName: string }[]).map((u) => u.id);
-      // Fall-back: just use users payload as a barber-name map.
-      setBarbers(
-        (b.data.users as unknown as { id: string; fullName: string }[]).map((u) => ({
-          id: u.id,
-          userId: u.id,
-          name: u.fullName,
-          phone: null,
-          address: null,
-          bio: null,
-          rating: 0,
-        })),
-      );
-      void userIds; // not used directly
+      setBarbers(b.data.barbers);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {

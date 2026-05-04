@@ -178,3 +178,40 @@ staffRouter.post(
     res.status(201).json(updated);
   }),
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/staff/appointments — Staff member's own appointments
+// ────────────────────────────────────────────────────────────────────────────
+
+const appointmentListQuery = z.object({
+  from: z.string().optional(), // YYYY-MM-DD
+  to: z.string().optional(),
+  status: z
+    .enum(['pending', 'confirmed', 'cancelled', 'completed', 'no_show'])
+    .optional(),
+});
+
+staffRouter.get(
+  '/appointments',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const params = appointmentListQuery.parse(req.query);
+
+    const where: Record<string, unknown> = { staffMemberId: staffId };
+    if (params.from || params.to) {
+      where.date = {
+        ...(params.from ? { gte: new Date(params.from) } : {}),
+        ...(params.to ? { lte: new Date(params.to) } : {}),
+      };
+    }
+    if (params.status) where.status = params.status;
+
+    const appointments = await prisma.appointment.findMany({
+      where,
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      include: { client: { select: { id: true, name: true, email: true, phone: true } } },
+    });
+
+    res.json({ appointments });
+  }),
+);

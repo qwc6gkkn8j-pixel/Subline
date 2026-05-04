@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
+import { Decimal } from '@prisma/client/runtime/library.js';
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/db.js';
 import { env } from '../lib/env.js';
-import { BadRequest, Forbidden, NotFound } from '../lib/errors.js';
+import { BadRequest, Conflict, Forbidden, NotFound } from '../lib/errors.js';
 import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error.js';
 import { computeAvailableSlots } from '../lib/calendar.js';
@@ -73,6 +74,29 @@ clientRouter.get(
       },
     });
     res.json({ barber: client?.barber ?? null });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// GET /api/client/staff — Get barber's active staff members
+// ────────────────────────────────────────────────────────────────────────────
+clientRouter.get(
+  '/staff',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { barberId: true },
+    });
+    if (!client?.barberId) throw NotFound('No barber assigned');
+
+    const staff = await prisma.staffMember.findMany({
+      where: { barberId: client.barberId, isActive: true },
+      select: { id: true, name: true, role: true },
+      orderBy: { name: 'asc' },
+    });
+
+    res.json({ staff });
   }),
 );
 
@@ -273,6 +297,8 @@ const bookSchema = z.object({
   // Optional reference to the barber's Service catalog (F4). When provided,
   // the server pulls duration/price from the Service row.
   serviceId: z.string().uuid().optional().nullable(),
+  // Optional staff member assignment (S3)
+  staffMemberId: z.string().uuid().optional().nullable(),
   date: z.string(),
   startTime: z.string().regex(/^\d{2}:\d{2}$/),
   durationMinutes: z.coerce.number().int().positive().default(30),
@@ -286,6 +312,14 @@ clientRouter.post(
     const data = bookSchema.parse(req.body);
     const client = await prisma.client.findUnique({ where: { id: clientId } });
     if (!client?.barberId) throw BadRequest('No barber assigned');
+
+    // Verify staff member belongs to barber if provided
+    if (data.staffMemberId) {
+      const staffMember = await prisma.staffMember.findFirst({
+        where: { id: data.staffMemberId, barberId: client.barberId, isActive: true },
+      });
+      if (!staffMember) throw NotFound('Staff member not found or inactive');
+    }
 
     let serviceRow: { id: string; durationMinutes: number; price: unknown } | null = null;
     if (data.serviceId) {
@@ -306,6 +340,7 @@ clientRouter.post(
       data: {
         barberId: client.barberId,
         clientId,
+        staffMemberId: data.staffMemberId ?? null,
         service: data.service,
         serviceId: serviceRow?.id ?? null,
         priceAtBooking: serviceRow ? (serviceRow.price as Prisma.Decimal) : null,
@@ -390,6 +425,57 @@ clientRouter.put(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// REVIEWS — Create a review for a completed appointment
+// ────────────────────────────────────────────────────────────────────────────
+const reviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).optional(),
+});
+
+clientRouter.post(
+  '/appointments/:appointmentId/review',
+  asyncHandler(async (req, res) => {
+    const clientId = ensureClientId(req);
+    const data = reviewSchema.parse(req.body);
+
+    const appointment = await prisma.appointment.findFirst({
+      where: { id: req.params.appointmentId, clientId },
+    });
+    if (!appointment) throw NotFound('Appointment not found');
+
+    // Check if review already exists
+    const existing = await prisma.review.findFirst({
+      where: { appointmentId: appointment.id },
+    });
+    if (existing) throw Conflict('Review already exists for this appointment');
+
+    // Create the review
+    const review = await prisma.review.create({
+      data: {
+        appointmentId: appointment.id,
+        clientId,
+        barberId: appointment.barberId,
+        rating: data.rating,
+        comment: data.comment || null,
+      },
+    });
+
+    // Update barber's rating (average of all reviews)
+    const allReviews = await prisma.review.aggregate({
+      where: { barberId: appointment.barberId },
+      _avg: { rating: true },
+    });
+    const avgRating = allReviews._avg.rating ?? 0;
+    await prisma.barber.update({
+      where: { id: appointment.barberId },
+      data: { rating: new Decimal(avgRating.toFixed(1)) },
+    });
+
+    res.status(201).json({ review });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // SLOTS — see barber's free slots for a date
 // ────────────────────────────────────────────────────────────────────────────
 clientRouter.get(
@@ -398,8 +484,18 @@ clientRouter.get(
     const clientId = ensureClientId(req);
     const dateStr = typeof req.query.date === 'string' ? req.query.date : null;
     if (!dateStr) throw BadRequest('Missing date query parameter');
+    const staffId = typeof req.query.staffId === 'string' ? req.query.staffId : null;
+
     const client = await prisma.client.findUnique({ where: { id: clientId } });
     if (!client?.barberId) return res.json({ date: dateStr, slots: [] });
+
+    // If staffId is provided, validate that it belongs to the barber
+    if (staffId) {
+      const staffMember = await prisma.staffMember.findFirst({
+        where: { id: staffId, barberId: client.barberId, isActive: true },
+      });
+      if (!staffMember) throw NotFound('Staff member not found or does not belong to this barber');
+    }
 
     const date = new Date(dateStr);
     const dayStart = new Date(date);
@@ -409,13 +505,18 @@ clientRouter.get(
 
     const [rules, appointments, unavailable] = await Promise.all([
       prisma.barberAvailability.findMany({
-        where: { barberId: client.barberId, isActive: true },
+        where: {
+          barberId: client.barberId,
+          isActive: true,
+          ...(staffId && { staffMemberId: staffId }),
+        },
       }),
       prisma.appointment.findMany({
         where: {
           barberId: client.barberId,
           date: { gte: dayStart, lte: dayEnd },
           status: { not: 'cancelled' },
+          ...(staffId && { staffMemberId: staffId }),
         },
         select: { startTime: true, endTime: true },
       }),

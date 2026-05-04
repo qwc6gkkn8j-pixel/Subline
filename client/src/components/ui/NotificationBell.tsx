@@ -1,11 +1,26 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatRelative } from '@/lib/utils';
 
 export function NotificationBell() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { items, unread, markRead, markAllRead } = useNotifications();
+
+  const handleNotificationClick = async (n: typeof items[0]) => {
+    // Mark as read if unread
+    if (!n.isRead) {
+      await markRead(n.id);
+    }
+    // Navigate to deepLink if available
+    const deepLink = (n.data as Record<string, unknown>)?.deepLink as string | undefined;
+    if (deepLink) {
+      setOpen(false);
+      navigate(deepLink);
+    }
+  };
 
   return (
     <div className="relative">
@@ -52,7 +67,7 @@ export function NotificationBell() {
                     <li key={n.id} className={n.isRead ? 'bg-white' : 'bg-brand/5'}>
                       <button
                         type="button"
-                        onClick={() => !n.isRead && void markRead(n.id)}
+                        onClick={() => void handleNotificationClick(n)}
                         className="w-full text-left px-4 py-3 hover:bg-surface"
                       >
                         <div className="flex items-start gap-2">

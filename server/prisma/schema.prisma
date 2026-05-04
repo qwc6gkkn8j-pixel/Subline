@@ -169,6 +169,7 @@ model Barber {
   services       Service[]
   products       Product[]
   productOrders  ProductOrder[]
+  reviews        Review[]
 }
 
 model Client {
@@ -187,6 +188,7 @@ model Client {
   appointments  Appointment[]
   conversations Conversation[] @relation("ConversationClient")
   productOrders ProductOrder[]
+  reviews       Review[]
 
   @@index([barberId])
 }
@@ -296,6 +298,8 @@ model Appointment {
   id              String             @id @default(uuid())
   barberId        String
   clientId        String
+  // Optional staff member assigned to this appointment (if null, it's the barber's)
+  staffMemberId   String?
   // Legacy enum service (kept for back-compat with existing appointments).
   // New flow uses serviceId + priceAtBooking when the barber has a Service catalog.
   service         AppointmentService @default(haircut)
@@ -310,37 +314,68 @@ model Appointment {
   clientNotes     String?
   cancelledBy     CancelledBy?
   cancelledAt     DateTime?
+  reminderSentAt  DateTime?          // Track when appointment reminder notification was sent
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  barber       Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  client       Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  serviceRef   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  cut          Cut?
+  barber        Barber         @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  client        Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  staffMember   StaffMember?   @relation(fields: [staffMemberId], references: [id], onDelete: SetNull)
+  serviceRef    Service?       @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  cut           Cut?
+  review        Review?
 
   @@index([barberId, date])
   @@index([clientId])
+  @@index([staffMemberId])
   @@index([status])
   @@index([serviceId])
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// REVIEWS — Client feedback for appointments
+// ────────────────────────────────────────────────────────────────────────────
+
+model Review {
+  id            String   @id @default(uuid())
+  appointmentId String   @unique
+  clientId      String
+  barberId      String
+  rating        Int      // 1-5 stars
+  comment       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  barber      Barber      @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@index([barberId])
+  @@index([clientId])
+  @@index([rating])
+}
+
 model BarberAvailability {
-  id           String   @id @default(uuid())
-  barberId     String
-  dayOfWeek    Int // 0 = Sunday, 6 = Saturday
-  startTime    String // "HH:MM"
-  endTime      String // "HH:MM"
-  slotDuration Int      @default(30) // minutes — kept for backward compat (clients now infer slot length from service durations)
+  id            String   @id @default(uuid())
+  barberId      String
+  // Optional staff member — if set, this is the staff member's availability, not the barber's
+  staffMemberId String?
+  dayOfWeek     Int // 0 = Sunday, 6 = Saturday
+  startTime     String // "HH:MM"
+  endTime       String // "HH:MM"
+  slotDuration  Int      @default(30) // minutes — kept for backward compat (clients now infer slot length from service durations)
   // Optional mid-day break. When both are set, the slot algorithm
   // skips any slot that overlaps [breakStart, breakEnd).
-  breakStart   String? // "HH:MM"
-  breakEnd     String? // "HH:MM"
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  breakStart    String? // "HH:MM"
+  breakEnd      String? // "HH:MM"
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
 
-  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  barber       Barber        @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  staffMember  StaffMember?  @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
 
   @@index([barberId, dayOfWeek])
+  @@index([staffMemberId])
 }
 
 model BarberUnavailable {
@@ -482,9 +517,11 @@ model StaffMember {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  barber  Barber      @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  entries TimeEntry[]
+  barber           Barber                  @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  user             User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  entries          TimeEntry[]
+  availabilities   BarberAvailability[]
+  appointments     Appointment[]
 
   @@index([barberId])
   @@index([isActive])
