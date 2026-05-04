@@ -12,6 +12,7 @@ import { staffRouter } from './routes/staff.js';
 import { notificationsRouter } from './routes/notifications.js';
 import { stripePublicRouter, stripeWebhookRouter } from './routes/stripe.js';
 import { barberShopRouter, clientShopRouter } from './routes/shop.js';
+import { supportRouter } from './routes/support.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp() {
@@ -66,6 +67,7 @@ export function createApp() {
   app.use('/api/client', clientRouter);
   app.use('/api/client/shop', clientShopRouter);
   app.use('/api/staff', staffRouter);
+  app.use('/api/support', supportRouter);
   app.use('/api/notifications', notificationsRouter);
 
   app.use(notFoundHandler);
