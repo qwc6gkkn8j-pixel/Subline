@@ -39,7 +39,7 @@ const refreshSchema = z.object({
 async function buildJwtPayload(userId: string): Promise<JwtPayload> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { barber: true, client: true },
+    include: { barber: true, client: true, staffMember: true },
   });
   if (!user) throw Unauthorized('User not found');
   if (user.status === 'inactive') throw Unauthorized('Account is inactive');
@@ -48,6 +48,8 @@ async function buildJwtPayload(userId: string): Promise<JwtPayload> {
     role: user.role,
     barberId: user.barber?.id,
     clientId: user.client?.id,
+    staffMemberId: user.staffMember?.id,
+    staffBarberId: user.staffMember?.barberId,
   };
 }
 
@@ -155,7 +157,11 @@ authRouter.get(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.auth!.userId },
-      include: { barber: true, client: true },
+      include: {
+        barber: true,
+        client: true,
+        staffMember: { include: { barber: { select: { id: true, name: true } } } },
+      },
     });
     if (!user) throw Unauthorized();
     res.json({
@@ -163,6 +169,7 @@ authRouter.get(
       role: user.role,
       barber: user.barber,
       client: user.client,
+      staffMember: user.staffMember ?? null,
     });
   }),
 );

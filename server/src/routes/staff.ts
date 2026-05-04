@@ -1,0 +1,180 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Staff badge routes — used by the staff member's own /staff/badge page.
+//
+// All routes require role='staff'. Each request resolves the StaffMember row
+// from the JWT (staffMemberId), so a staff user can only act on their own
+// time entries.
+//
+// Validation rules for POST /staff/badge:
+//   • clock_in    → no other open clock_in today
+//   • break_start → must have an open clock_in today, no open break
+//   • break_end   → must have an open break_start today
+//   • clock_out   → must have an open clock_in today, closes any open break
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Router } from 'express';
+import { z } from 'zod';
+import { prisma } from '../lib/db.js';
+import { BadRequest, Forbidden, NotFound } from '../lib/errors.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { asyncHandler } from '../middleware/error.js';
+import type { EntryType } from '@prisma/client';
+
+export const staffRouter = Router();
+staffRouter.use(requireAuth, requireRole('staff'));
+
+function ensureStaffId(req: { auth?: { staffMemberId?: string } }): string {
+  if (!req.auth?.staffMemberId) throw Forbidden('Staff profile not linked to this user');
+  return req.auth.staffMemberId;
+}
+
+function startOfToday(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+interface DaySummary {
+  staffMemberId: string;
+  state: 'out' | 'working' | 'on_break';
+  clockInAt: string | null;
+  clockOutAt: string | null;
+  totalMinutesWorked: number;
+  totalMinutesOnBreak: number;
+  entries: Array<{ id: string; type: EntryType; timestamp: string; note: string | null }>;
+}
+
+async function getTodaySummary(staffMemberId: string): Promise<DaySummary> {
+  const member = await prisma.staffMember.findUnique({ where: { id: staffMemberId } });
+  if (!member) throw NotFound('Staff member not found');
+  if (!member.isActive) throw Forbidden('Staff account is inactive');
+
+  const entries = await prisma.timeEntry.findMany({
+    where: { staffMemberId, timestamp: { gte: startOfToday() } },
+    orderBy: { timestamp: 'asc' },
+  });
+
+  let state: DaySummary['state'] = 'out';
+  let clockInAt: Date | null = null;
+  let clockOutAt: Date | null = null;
+  let workedMs = 0;
+  let breakMs = 0;
+  let openWorkSince: Date | null = null;
+  let openBreakSince: Date | null = null;
+
+  for (const e of entries) {
+    if (e.type === 'clock_in') {
+      clockInAt = e.timestamp;
+      openWorkSince = e.timestamp;
+      state = 'working';
+    } else if (e.type === 'break_start' && openWorkSince) {
+      workedMs += e.timestamp.getTime() - openWorkSince.getTime();
+      openWorkSince = null;
+      openBreakSince = e.timestamp;
+      state = 'on_break';
+    } else if (e.type === 'break_end' && openBreakSince) {
+      breakMs += e.timestamp.getTime() - openBreakSince.getTime();
+      openBreakSince = null;
+      openWorkSince = e.timestamp;
+      state = 'working';
+    } else if (e.type === 'clock_out') {
+      if (openBreakSince) {
+        breakMs += e.timestamp.getTime() - openBreakSince.getTime();
+        openBreakSince = null;
+      }
+      if (openWorkSince) {
+        workedMs += e.timestamp.getTime() - openWorkSince.getTime();
+        openWorkSince = null;
+      }
+      clockOutAt = e.timestamp;
+      state = 'out';
+    }
+  }
+
+  // Account for in-progress segments up to "now" so the dashboard reflects
+  // accurate elapsed time without waiting for the next event.
+  const now = Date.now();
+  if (openWorkSince) workedMs += now - openWorkSince.getTime();
+  if (openBreakSince) breakMs += now - openBreakSince.getTime();
+
+  return {
+    staffMemberId,
+    state,
+    clockInAt: clockInAt?.toISOString() ?? null,
+    clockOutAt: clockOutAt?.toISOString() ?? null,
+    totalMinutesWorked: Math.floor(workedMs / 60000),
+    totalMinutesOnBreak: Math.floor(breakMs / 60000),
+    entries: entries.map((e) => ({
+      id: e.id,
+      type: e.type,
+      timestamp: e.timestamp.toISOString(),
+      note: e.note,
+    })),
+  };
+}
+
+staffRouter.get(
+  '/me',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const member = await prisma.staffMember.findUnique({
+      where: { id: staffId },
+      include: {
+        barber: { select: { id: true, name: true, address: true } },
+        user: { select: { fullName: true, email: true } },
+      },
+    });
+    if (!member) throw NotFound('Staff member not found');
+    res.json({ staff: member });
+  }),
+);
+
+staffRouter.get(
+  '/today',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const summary = await getTodaySummary(staffId);
+    res.json(summary);
+  }),
+);
+
+const badgeSchema = z.object({
+  type: z.enum(['clock_in', 'break_start', 'break_end', 'clock_out']),
+  note: z.string().max(500).optional(),
+});
+
+staffRouter.post(
+  '/badge',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const data = badgeSchema.parse(req.body);
+
+    const summary = await getTodaySummary(staffId);
+
+    // Enforce sequencing rules.
+    if (data.type === 'clock_in' && summary.state !== 'out') {
+      throw BadRequest('Já estás em serviço hoje — marca saída primeiro.');
+    }
+    if (data.type === 'break_start') {
+      if (summary.state === 'out') throw BadRequest('Tens de marcar entrada antes da pausa.');
+      if (summary.state === 'on_break') throw BadRequest('Já estás em pausa.');
+    }
+    if (data.type === 'break_end' && summary.state !== 'on_break') {
+      throw BadRequest('Não estás em pausa.');
+    }
+    if (data.type === 'clock_out' && summary.state === 'out') {
+      throw BadRequest('Tens de marcar entrada antes de marcar saída.');
+    }
+
+    await prisma.timeEntry.create({
+      data: {
+        staffMemberId: staffId,
+        type: data.type,
+        note: data.note ?? null,
+      },
+    });
+
+    const updated = await getTodaySummary(staffId);
+    res.status(201).json(updated);
+  }),
+);

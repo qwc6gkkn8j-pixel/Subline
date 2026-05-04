@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Core enums
 // ─────────────────────────────────────────────────────────────────────────────
-export type Role = 'admin' | 'barber' | 'client';
+export type Role = 'admin' | 'barber' | 'client' | 'staff';
 export type UserStatus = 'active' | 'inactive';
 export type PlanType = 'bronze' | 'silver' | 'gold';
 export type SubscriptionStatus =
@@ -189,6 +189,41 @@ export interface Slot {
   available: boolean;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Staff (F3 — clock-in tracking)
+// ─────────────────────────────────────────────────────────────────────────────
+export type EntryType = 'clock_in' | 'break_start' | 'break_end' | 'clock_out';
+export type StaffState = 'out' | 'working' | 'on_break';
+
+export interface StaffMember {
+  id: string;
+  barberId: string;
+  userId: string | null;
+  name: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  user?: { id: string; email: string; fullName: string } | null;
+  barber?: { id: string; name: string; address?: string | null };
+}
+
+export interface TimeEntry {
+  id: string;
+  type: EntryType;
+  timestamp: string;
+  note: string | null;
+}
+
+export interface StaffDaySummary {
+  staffMemberId: string;
+  state: StaffState;
+  clockInAt: string | null;
+  clockOutAt: string | null;
+  totalMinutesWorked: number;
+  totalMinutesOnBreak: number;
+  entries: TimeEntry[];
+}
+
 export interface Conversation {
   id: string;
   type: ConversationType;
@@ -282,6 +317,7 @@ export interface MeResponse {
   role: Role;
   barber: Barber | null;
   client: Client | null;
+  staffMember?: StaffMember | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

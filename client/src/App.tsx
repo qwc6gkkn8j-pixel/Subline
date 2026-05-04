@@ -9,10 +9,12 @@ const Login = lazy(() => import('@/pages/Login'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const BarberDashboard = lazy(() => import('@/pages/BarberDashboard'));
 const ClientDashboard = lazy(() => import('@/pages/ClientDashboard'));
+const StaffDashboard = lazy(() => import('@/pages/StaffDashboard'));
 
 function rolePath(role: Role): string {
   if (role === 'admin') return '/admin';
   if (role === 'barber') return '/barber';
+  if (role === 'staff') return '/staff/badge';
   return '/client';
 }
 
@@ -122,6 +124,14 @@ export default function App() {
               element={
                 <RequireRole role="client">
                   <ClientDashboard />
+                </RequireRole>
+              }
+            />
+            <Route
+              path="/staff/*"
+              element={
+                <RequireRole role="staff">
+                  <StaffDashboard />
                 </RequireRole>
               }
             />

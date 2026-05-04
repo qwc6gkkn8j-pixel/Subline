@@ -273,6 +273,7 @@ function RoleBadge({ role }: { role: Role }) {
     admin: 'badge-accent',
     barber: 'badge-brand',
     client: 'badge-muted',
+    staff: 'badge-warning',
   };
   return <span className={map[role]}>{role}</span>;
 }

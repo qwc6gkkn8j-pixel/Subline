@@ -1167,6 +1167,169 @@ barberRouter.post(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// STAFF — barber's employees CRUD + entry history
+// ────────────────────────────────────────────────────────────────────────────
+barberRouter.get(
+  '/staff',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const includeInactive = req.query.includeInactive === 'true';
+    const staff = await prisma.staffMember.findMany({
+      where: { barberId, ...(includeInactive ? {} : { isActive: true }) },
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
+      include: {
+        user: { select: { id: true, email: true, fullName: true } },
+      },
+    });
+    res.json({ staff });
+  }),
+);
+
+const staffCreateSchema = z
+  .object({
+    name: z.string().min(2).max(120),
+    role: z.string().min(1).max(60),
+    createAccount: z.boolean().default(false),
+    email: z.string().email().optional(),
+    password: z.string().min(8).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.createAccount) {
+      if (!data.email) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['email'],
+          message: 'Email obrigatório quando se cria conta',
+        });
+      }
+      if (!data.password) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['password'],
+          message: 'Password obrigatória quando se cria conta',
+        });
+      }
+    }
+  });
+
+barberRouter.post(
+  '/staff',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = staffCreateSchema.parse(req.body);
+
+    const created = await prisma.$transaction(async (tx) => {
+      let userId: string | null = null;
+      if (data.createAccount && data.email && data.password) {
+        const existing = await tx.user.findUnique({
+          where: { email: data.email.toLowerCase() },
+        });
+        if (existing) throw Conflict('Email já registado');
+        const passwordHash = await bcrypt.hash(data.password, env.BCRYPT_ROUNDS);
+        const u = await tx.user.create({
+          data: {
+            email: data.email.toLowerCase(),
+            passwordHash,
+            role: 'staff',
+            fullName: data.name,
+          },
+        });
+        userId = u.id;
+      }
+      const member = await tx.staffMember.create({
+        data: {
+          barberId,
+          name: data.name,
+          role: data.role,
+          userId,
+        },
+        include: { user: { select: { id: true, email: true, fullName: true } } },
+      });
+      return member;
+    });
+
+    await logAudit({
+      userId: req.auth!.userId,
+      action: 'created',
+      entityType: 'staff_member',
+      entityId: created.id,
+      details: { name: created.name, hasAccount: Boolean(created.userId) },
+    });
+
+    res.status(201).json({ staff: created });
+  }),
+);
+
+const staffUpdateSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  role: z.string().min(1).max(60).optional(),
+  isActive: z.boolean().optional(),
+});
+
+barberRouter.put(
+  '/staff/:id',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const data = staffUpdateSchema.parse(req.body);
+    const existing = await prisma.staffMember.findFirst({
+      where: { id: req.params.id, barberId },
+    });
+    if (!existing) throw NotFound('Staff member not found');
+    const member = await prisma.staffMember.update({
+      where: { id: existing.id },
+      data,
+      include: { user: { select: { id: true, email: true, fullName: true } } },
+    });
+    res.json({ staff: member });
+  }),
+);
+
+barberRouter.delete(
+  '/staff/:id',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const existing = await prisma.staffMember.findFirst({
+      where: { id: req.params.id, barberId },
+    });
+    if (!existing) throw NotFound('Staff member not found');
+    // Soft-delete: deactivate (preserves history). Also flips the linked user's
+    // status to inactive so they can no longer log in.
+    await prisma.$transaction(async (tx) => {
+      await tx.staffMember.update({
+        where: { id: existing.id },
+        data: { isActive: false },
+      });
+      if (existing.userId) {
+        await tx.user.update({
+          where: { id: existing.userId },
+          data: { status: 'inactive' },
+        });
+      }
+    });
+    res.json({ message: 'Staff deactivated' });
+  }),
+);
+
+barberRouter.get(
+  '/staff/:id/entries',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const member = await prisma.staffMember.findFirst({
+      where: { id: req.params.id, barberId },
+    });
+    if (!member) throw NotFound('Staff member not found');
+    const days = Math.min(180, Math.max(1, Number(req.query.days ?? 30)));
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const entries = await prisma.timeEntry.findMany({
+      where: { staffMemberId: member.id, timestamp: { gte: since } },
+      orderBy: { timestamp: 'asc' },
+    });
+    res.json({ entries });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // STRIPE CONNECT — barber-side onboarding
 // ────────────────────────────────────────────────────────────────────────────
 barberRouter.get(

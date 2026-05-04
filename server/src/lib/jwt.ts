@@ -3,10 +3,14 @@ import { env } from './env.js';
 
 export interface JwtPayload {
   userId: string;
-  role: 'admin' | 'barber' | 'client';
-  // Convenience: barberId/clientId injected when role-specific record exists
+  role: 'admin' | 'barber' | 'client' | 'staff';
+  // Convenience: barberId/clientId/staffMemberId injected when role-specific
+  // record exists. staffMemberId also carries the barberId of the staff's
+  // employer for fast scoping in the badge endpoints.
   barberId?: string;
   clientId?: string;
+  staffMemberId?: string;
+  staffBarberId?: string;
 }
 
 export function signAccessToken(payload: JwtPayload): string {

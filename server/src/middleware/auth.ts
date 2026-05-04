@@ -25,7 +25,7 @@ export function requireAuth(req: Request, _res: Response, next: NextFunction): v
   }
 }
 
-export function requireRole(...roles: Array<'admin' | 'barber' | 'client'>) {
+export function requireRole(...roles: Array<'admin' | 'barber' | 'client' | 'staff'>) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.auth) throw Unauthorized();
     if (!roles.includes(req.auth.role)) throw Forbidden('Insufficient role');

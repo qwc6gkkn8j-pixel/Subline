@@ -19,7 +19,9 @@ export async function logAudit(opts: {
     | 'appointment'
     | 'ticket'
     | 'barber'
-    | 'cut';
+    | 'cut'
+    | 'staff_member'
+    | 'service';
   entityId: string;
   details?: Prisma.InputJsonValue;
 }): Promise<void> {

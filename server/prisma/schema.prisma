@@ -18,6 +18,15 @@ enum Role {
   admin
   barber
   client
+  staff
+}
+
+// StaffMember.TimeEntry — clock-in / break / clock-out events.
+enum EntryType {
+  clock_in
+  break_start
+  break_end
+  clock_out
 }
 
 enum UserStatus {
@@ -117,6 +126,7 @@ model User {
 
   barber               Barber?
   client               Client?
+  staffMember          StaffMember?
   auditLogs            AuditLog[]
   sentMessages         Message[]      @relation("MessageSender")
   notifications        Notification[]
@@ -149,6 +159,7 @@ model Barber {
   availability   BarberAvailability[]
   unavailable    BarberUnavailable[]
   conversations  Conversation[]        @relation("ConversationBarber")
+  staff          StaffMember[]
 }
 
 model Client {
@@ -412,6 +423,42 @@ model Notification {
 
   @@index([userId, isRead])
   @@index([createdAt])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// STAFF — barber's employees + clock-in/out tracking
+// ────────────────────────────────────────────────────────────────────────────
+
+model StaffMember {
+  id        String   @id @default(uuid())
+  barberId  String
+  // Optional User account — set when the staff member can sign in to the
+  // /staff/badge page. Null when the barber tracks them without a login.
+  userId    String?  @unique
+  name      String
+  // Free-form label: "Barbeiro", "Aprendiz", "Rececionista", etc.
+  role      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  barber  Barber      @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  entries TimeEntry[]
+
+  @@index([barberId])
+  @@index([isActive])
+}
+
+model TimeEntry {
+  id            String    @id @default(uuid())
+  staffMemberId String
+  type          EntryType
+  timestamp     DateTime  @default(now())
+  note          String?
+
+  staffMember StaffMember @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@index([staffMemberId, timestamp])
 }
 
 // ────────────────────────────────────────────────────────────────────────────
