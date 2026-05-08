@@ -67,7 +67,7 @@ export function buildConnectOAuthUrl(state: string): string {
   url.searchParams.set('client_id', env.STRIPE_CLIENT_ID);
   url.searchParams.set('scope', 'read_write');
   url.searchParams.set('state', state);
-  url.searchParams.set('redirect_uri', `${env.APP_URL}/api/public/stripe/callback`);
+  url.searchParams.set('redirect_uri', `${env.API_URL}/api/public/stripe/callback`);
   return url.toString();
 }
 
