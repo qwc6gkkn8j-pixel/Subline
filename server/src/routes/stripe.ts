@@ -164,32 +164,35 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session): Promise<vo
       subId = created.id;
     }
 
-    // Payment record
-    await tx.payment.create({
-      data: {
-        subscriptionId: subId,
-        amount: amountTotal / 100,
-        status: 'paid',
-        method: 'stripe',
-        stripePaymentIntentId: paymentIntent ?? undefined,
-      },
-    });
+        // Payment record — skip if this PaymentIntent was already recorded
+    const existingPayment = paymentIntent
+      ? await tx.payment.findFirst({ where: { stripePaymentIntentId: paymentIntent } })
+      : null;
 
-    // Notify client
-    const client = await tx.client.findUnique({ where: { id: clientId } });
-    if (client) {
-      await tx.notification.create({
+    if (!existingPayment) {
+      await tx.payment.create({
         data: {
-          userId: client.userId,
-          type: 'payment_success',
-          title: 'Pagamento confirmado',
-          body: `A tua subscrição ${plan.name} foi ativada com sucesso! ✅`,
+          subscriptionId: subId,
+          amount: amountTotal / 100,
+          status: 'paid',
+          method: 'stripe',
+          stripePaymentIntentId: paymentIntent ?? undefined,
         },
       });
-    }
-  });
-}
 
+      // Notify client
+      const client = await tx.client.findUnique({ where: { id: clientId } });
+      if (client) {
+        await tx.notification.create({
+          data: {
+            userId: client.userId,
+            type: 'payment_success',
+            title: 'Pagamento confirmado',
+            body: `A tua subscrição ${plan.name} foi ativada com sucesso! ✅`,
+          },
+        });
+      }
+    }
 // ── invoice.payment_succeeded ────────────────────────────────────────────────
 async function onInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
   // In Stripe API 2026-04-22.dahlia, subscription is at parent.subscription_details.subscription
@@ -242,32 +245,35 @@ async function onInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
   const subField = invoice.parent?.subscription_details?.subscription;
   const stripeSubscriptionId = typeof subField === 'string' ? subField : subField?.id ?? null;
   if (!stripeSubscriptionId) return;
+    // Payment record — skip if this PaymentIntent was already recorded
+    const existingPayment = paymentIntent
+      ? await tx.payment.findFirst({ where: { stripePaymentIntentId: paymentIntent } })
+      : null;
 
-  const sub = await prisma.subscription.findFirst({
-    where: { stripeSubscriptionId },
-    include: {
-      client: {
-        include: { barber: { include: { user: true } } },
-      },
-    },
-  });
-  if (!sub) return;
+    if (!existingPayment) {
+      await tx.payment.create({
+        data: {
+          subscriptionId: subId,
+          amount: amountTotal / 100,
+          status: 'paid',
+          method: 'stripe',
+          stripePaymentIntentId: paymentIntent ?? undefined,
+        },
+      });
 
-  await prisma.$transaction(async (tx) => {
-    await tx.subscription.update({
-      where: { id: sub.id },
-      data: { status: 'payment_failed' },
-    });
-
-    // Notify client
-    await tx.notification.create({
-      data: {
-        userId: sub.client.userId,
-        type: 'payment_failed',
-        title: 'Pagamento falhou',
-        body: 'O pagamento da tua subscrição falhou. Por favor atualiza o teu método de pagamento.',
-      },
-    });
+      // Notify client
+      const client = await tx.client.findUnique({ where: { id: clientId } });
+      if (client) {
+        await tx.notification.create({
+          data: {
+            userId: client.userId,
+            type: 'payment_success',
+            title: 'Pagamento confirmado',
+            body: `A tua subscrição ${plan.name} foi ativada com sucesso! ✅`,
+          },
+        });
+      }
+    }
 
     // Notify barber
     if (sub.client.barber) {
