@@ -10,6 +10,7 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   APP_URL: z.string().default('http://localhost:5173'),
+  API_URL: z.string().default('http://localhost:4000'),
   BCRYPT_ROUNDS: z.coerce.number().default(10),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   ADMIN_EMAIL: z.string().email().optional(),
