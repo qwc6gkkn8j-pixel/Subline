@@ -164,87 +164,6 @@ async function onCheckoutCompleted(session: Stripe.Checkout.Session): Promise<vo
       subId = created.id;
     }
 
-        // Payment record — skip if this PaymentIntent was already recorded
-    const existingPayment = paymentIntent
-      ? await tx.payment.findFirst({ where: { stripePaymentIntentId: paymentIntent } })
-      : null;
-
-    if (!existingPayment) {
-      await tx.payment.create({
-        data: {
-          subscriptionId: subId,
-          amount: amountTotal / 100,
-          status: 'paid',
-          method: 'stripe',
-          stripePaymentIntentId: paymentIntent ?? undefined,
-        },
-      });
-
-      // Notify client
-      const client = await tx.client.findUnique({ where: { id: clientId } });
-      if (client) {
-        await tx.notification.create({
-          data: {
-            userId: client.userId,
-            type: 'payment_success',
-            title: 'Pagamento confirmado',
-            body: `A tua subscrição ${plan.name} foi ativada com sucesso! ✅`,
-          },
-        });
-      }
-    }
-// ── invoice.payment_succeeded ────────────────────────────────────────────────
-async function onInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
-  // In Stripe API 2026-04-22.dahlia, subscription is at parent.subscription_details.subscription
-  const subField = invoice.parent?.subscription_details?.subscription;
-  const stripeSubscriptionId = typeof subField === 'string' ? subField : subField?.id ?? null;
-  if (!stripeSubscriptionId) return;
-
-  const sub = await prisma.subscription.findFirst({
-    where: { stripeSubscriptionId },
-    include: { client: true, plan: true },
-  });
-  if (!sub) return;
-
-  const periodEnd = invoice.lines?.data?.[0]?.period?.end;
-  const renewal = periodEnd ? new Date(periodEnd * 1000) : new Date(Date.now() + 30 * 86400_000);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.subscription.update({
-      where: { id: sub.id },
-      data: {
-        status: 'active',
-        cutsUsed: 0,
-        renewalDate: renewal,
-      },
-    });
-
-    await tx.payment.create({
-      data: {
-        subscriptionId: sub.id,
-        amount: (invoice.amount_paid ?? 0) / 100,
-        status: 'paid',
-        method: 'stripe',
-        stripeInvoiceId: invoice.id,
-      },
-    });
-
-    await tx.notification.create({
-      data: {
-        userId: sub.client.userId,
-        type: 'subscription_renewed',
-        title: 'Subscrição renovada',
-        body: `O teu plano ${sub.plan?.name ?? ''} foi renovado. Próxima renovação: ${renewal.toLocaleDateString('pt-PT')}.`,
-      },
-    });
-  });
-}
-
-// ── invoice.payment_failed ───────────────────────────────────────────────────
-async function onInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
-  const subField = invoice.parent?.subscription_details?.subscription;
-  const stripeSubscriptionId = typeof subField === 'string' ? subField : subField?.id ?? null;
-  if (!stripeSubscriptionId) return;
     // Payment record — skip if this PaymentIntent was already recorded
     const existingPayment = paymentIntent
       ? await tx.payment.findFirst({ where: { stripePaymentIntentId: paymentIntent } })
@@ -274,6 +193,94 @@ async function onInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
         });
       }
     }
+  });
+}
+
+// ── invoice.payment_succeeded ────────────────────────────────────────────────
+async function onInvoicePaymentSucceeded(invoice: Stripe.Invoice): Promise<void> {
+  // In Stripe API 2026-04-22.dahlia, subscription is at parent.subscription_details.subscription
+  const subField = invoice.parent?.subscription_details?.subscription;
+  const stripeSubscriptionId = typeof subField === 'string' ? subField : subField?.id ?? null;
+  if (!stripeSubscriptionId) return;
+
+  const sub = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId },
+    include: { client: true, plan: true },
+  });
+  if (!sub) return;
+
+  const periodEnd = invoice.lines?.data?.[0]?.period?.end;
+  const renewal = periodEnd ? new Date(periodEnd * 1000) : new Date(Date.now() + 30 * 86400_000);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.subscription.update({
+      where: { id: sub.id },
+      data: {
+        status: 'active',
+        cutsUsed: 0,
+        renewalDate: renewal,
+      },
+    });
+
+    // Payment record — skip if this invoice was already recorded
+    const existingPayment = invoice.id
+      ? await tx.payment.findFirst({ where: { stripeInvoiceId: invoice.id } })
+      : null;
+
+    if (!existingPayment) {
+      await tx.payment.create({
+        data: {
+          subscriptionId: sub.id,
+          amount: (invoice.amount_paid ?? 0) / 100,
+          status: 'paid',
+          method: 'stripe',
+          stripeInvoiceId: invoice.id,
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          userId: sub.client.userId,
+          type: 'subscription_renewed',
+          title: 'Subscrição renovada',
+          body: `O teu plano ${sub.plan?.name ?? ''} foi renovado. Próxima renovação: ${renewal.toLocaleDateString('pt-PT')}.`,
+        },
+      });
+    }
+  });
+}
+
+// ── invoice.payment_failed ───────────────────────────────────────────────────
+async function onInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
+  const subField = invoice.parent?.subscription_details?.subscription;
+  const stripeSubscriptionId = typeof subField === 'string' ? subField : subField?.id ?? null;
+  if (!stripeSubscriptionId) return;
+
+  const sub = await prisma.subscription.findFirst({
+    where: { stripeSubscriptionId },
+    include: {
+      client: {
+        include: { barber: { include: { user: true } } },
+      },
+    },
+  });
+  if (!sub) return;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.subscription.update({
+      where: { id: sub.id },
+      data: { status: 'payment_failed' },
+    });
+
+    // Notify client
+    await tx.notification.create({
+      data: {
+        userId: sub.client.userId,
+        type: 'payment_failed',
+        title: 'Pagamento falhou',
+        body: 'O pagamento da tua subscrição falhou. Por favor atualiza o teu método de pagamento.',
+      },
+    });
 
     // Notify barber
     if (sub.client.barber) {
