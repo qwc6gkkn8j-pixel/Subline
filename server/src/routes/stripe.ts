@@ -34,6 +34,11 @@ stripePublicRouter.get('/stripe/status', (_req, res) => {
 stripePublicRouter.get(
   '/stripe/callback',
   asyncHandler(async (req, res) => {
+    // Stripe sends ?error=access_denied when the user denies the OAuth prompt.
+    if (typeof req.query.error === 'string') {
+      return res.redirect(`${env.APP_URL}/barber?stripe=error`);
+    }
+
     const code = typeof req.query.code === 'string' ? req.query.code : null;
     const state = typeof req.query.state === 'string' ? req.query.state : null;
     if (!code || !state) throw BadRequest('Missing code or state');
