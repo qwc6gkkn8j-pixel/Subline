@@ -1683,6 +1683,7 @@ barberRouter.get(
     const barberId = ensureBarberId(req);
     if (!isStripeConfigured()) throw new StripeNotConfigured();
     const url = buildConnectOAuthUrl(barberId);
+    res.setHeader('Cache-Control', 'no-store');
     res.json({ url });
   }),
 );
