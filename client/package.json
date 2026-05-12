@@ -10,6 +10,8 @@
     "lint": "eslint src --ext .ts,.tsx"
   },
   "dependencies": {
+    "@stripe/connect-js": "^3.4.3",
+    "@stripe/react-connect-js": "^3.4.2",
     "@capacitor/android": "^8.3.1",
     "@capacitor/app": "^8.1.0",
     "@capacitor/browser": "^8.0.3",

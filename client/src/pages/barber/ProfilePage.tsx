@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Save, ExternalLink, Star } from 'lucide-react';
+import { Save, Star } from 'lucide-react';
 import { Banner } from '@/components/ui/Banner';
 import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { StripeConnect } from '@/components/stripe/StripeConnect';
 import type { Barber, StripeStatus } from '@/lib/types';
 
 export default function ProfilePage() {
@@ -17,7 +18,6 @@ export default function ProfilePage() {
   const [bio, setBio] = useState('');
   const [busy, setBusy] = useState(false);
   const [stripe, setStripe] = useState<StripeStatus | null>(null);
-  const [stripeBusy, setStripeBusy] = useState(false);
 
   const load = async () => {
     try {
@@ -60,25 +60,8 @@ export default function ProfilePage() {
     }
   };
 
-  const onConnect = async () => {
-    setStripeBusy(true);
-    try {
-      const { data } = await api.get<{ url: string }>('/barber/stripe/connect-url');
-      // On native (iOS/Android), Stripe blocks OAuth inside a WebView.
-      // Use @capacitor/browser to open in SFSafariViewController / Chrome Custom Tab.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isNative = Boolean((window as any).Capacitor?.isNativePlatform?.());
-      if (isNative) {
-        const { Browser } = await import('@capacitor/browser');
-        await Browser.open({ url: data.url });
-      } else {
-        window.location.href = data.url;
-      }
-    } catch (err) {
-      toast.error(apiErrorMessage(err));
-    } finally {
-      setStripeBusy(false);
-    }
+  const handleStripeConnected = () => {
+    void load();
   };
 
   if (!barber) {
@@ -111,22 +94,13 @@ export default function ProfilePage() {
             O administrador ainda não ativou Stripe. Ligas a tua conta assim que estiver disponível.
           </Banner>
         )}
-        {stripe?.configured && !stripe.barberConnected && (
-          <div className="space-y-3">
-            <p className="text-sm text-muted">
-              Liga a tua conta Stripe para receberes pagamentos diretamente. Cada barbeiro tem a sua
-              conta — a plataforma apenas reencaminha clientes.
-            </p>
-            <button className="btn-primary" onClick={() => void onConnect()} disabled={stripeBusy}>
-              {stripeBusy ? <Spinner /> : <ExternalLink size={16} />} Ligar conta Stripe
-            </button>
-          </div>
-        )}
-        {stripe?.barberConnected && (
-          <p className="text-sm text-muted">
-            Conta Stripe ligada (<code>{stripe.stripeAccountId?.slice(0, 12)}…</code>). Recebes
-            pagamentos diretamente quando os clientes subscrevem.
-          </p>
+        {stripe?.configured && stripe.publishableKey && (
+          <StripeConnect
+            publishableKey={stripe.publishableKey}
+            accountId={stripe.stripeAccountId ?? null}
+            connected={stripe.barberConnected ?? false}
+            onConnected={handleStripeConnected}
+          />
         )}
       </section>
 

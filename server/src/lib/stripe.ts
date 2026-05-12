@@ -32,7 +32,7 @@ export function isStripeConfigured(): boolean {
 }
 
 export function isStripeConnectConfigured(): boolean {
-  return isStripeConfigured() && Boolean(env.STRIPE_CLIENT_ID);
+  return isStripeConfigured();
 }
 
 export function assertStripeConfigured(): void {
@@ -52,38 +52,37 @@ export function stripeStatus() {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// Connect OAuth — barber connects their Stripe account to the platform
+// Connect Embedded — create accounts + account sessions (no OAuth redirect)
 // ────────────────────────────────────────────────────────────────────────────
 
-/**
- * Build the URL the barber clicks to authorize the platform.
- * @param state  barberId — returned verbatim in the OAuth callback so we know
- *               which barber is connecting.
- */
-export function buildConnectOAuthUrl(state: string): string {
-  if (!env.STRIPE_CLIENT_ID) throw new StripeNotConfigured();
-  const url = new URL('https://connect.stripe.com/oauth/authorize');
-  url.searchParams.set('response_type', 'code');
-  url.searchParams.set('client_id', env.STRIPE_CLIENT_ID);
-  url.searchParams.set('scope', 'read_write');
-  url.searchParams.set('state', state);
-  url.searchParams.set('redirect_uri', `${env.API_URL}/api/public/stripe/callback`);
-  return url.toString();
+/** Create an Express connected account for a barber (idempotent — call once). */
+export async function createConnectedAccount(email: string): Promise<string> {
+  const account = await getStripe().accounts.create({
+    type: 'express',
+    email,
+    capabilities: {
+      card_payments: { requested: true },
+      transfers: { requested: true },
+    },
+  });
+  return account.id;
 }
 
-/**
- * Exchange the OAuth code (from Stripe callback) for the barber's account id.
- * Save the returned string to barber.stripeAccountId.
- */
-export async function exchangeConnectCode(code: string): Promise<string> {
-  const result = await getStripe().oauth.token({
-    grant_type: 'authorization_code',
-    code,
+/** Create a short-lived Account Session for the frontend embedded components. */
+export async function createAccountSession(accountId: string): Promise<string> {
+  const session = await getStripe().accountSessions.create({
+    account: accountId,
+    components: {
+      account_onboarding: { enabled: true },
+      payouts: { enabled: true },
+    },
   });
-  if (!result.stripe_user_id) {
-    throw new Error('Stripe OAuth token response is missing stripe_user_id');
-  }
-  return result.stripe_user_id;
+  return session.client_secret;
+}
+
+/** Retrieve a connected account to check onboarding status. */
+export async function retrieveConnectedAccount(accountId: string): Promise<Stripe.Account> {
+  return getStripe().accounts.retrieve(accountId);
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -10,7 +10,9 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { asyncHandler } from '../middleware/error.js';
 import { computeAvailableSlots } from '../lib/calendar.js';
 import {
-  buildConnectOAuthUrl,
+  createConnectedAccount,
+  createAccountSession,
+  retrieveConnectedAccount,
   createPlanOnConnectedAccount,
   isStripeConfigured,
   StripeNotConfigured,
@@ -1671,20 +1673,86 @@ barberRouter.get(
     });
     res.json({
       configured: isStripeConfigured(),
+      publishableKey: env.STRIPE_PUBLISHABLE_KEY ?? null,
       barberConnected: barber?.stripeConnected ?? false,
       stripeAccountId: barber?.stripeAccountId ?? null,
     });
   }),
 );
 
-barberRouter.get(
-  '/stripe/connect-url',
+// POST /stripe/create-account — creates Express account if not yet created
+barberRouter.post(
+  '/stripe/create-account',
   asyncHandler(async (req, res) => {
     const barberId = ensureBarberId(req);
     if (!isStripeConfigured()) throw new StripeNotConfigured();
-    const url = buildConnectOAuthUrl(barberId);
+
+    const barber = await prisma.barber.findUnique({
+      where: { id: barberId },
+      include: { user: { select: { email: true } } },
+    });
+    if (!barber) throw new NotFound('Barber not found');
+
+    let accountId = barber.stripeAccountId;
+    if (!accountId) {
+      accountId = await createConnectedAccount(barber.user.email);
+      await prisma.barber.update({
+        where: { id: barberId },
+        data: { stripeAccountId: accountId },
+      });
+    }
+
+    res.json({ accountId });
+  }),
+);
+
+// POST /stripe/account-session — creates short-lived session for embedded components
+barberRouter.post(
+  '/stripe/account-session',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    if (!isStripeConfigured()) throw new StripeNotConfigured();
+
+    const barber = await prisma.barber.findUnique({
+      where: { id: barberId },
+      select: { stripeAccountId: true },
+    });
+    if (!barber?.stripeAccountId) {
+      throw new BadRequest('No Stripe account. Call /create-account first.');
+    }
+
+    const clientSecret = await createAccountSession(barber.stripeAccountId);
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ url });
+    res.json({ clientSecret });
+  }),
+);
+
+// POST /stripe/verify — checks if onboarding completed, marks stripeConnected
+barberRouter.post(
+  '/stripe/verify',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    if (!isStripeConfigured()) throw new StripeNotConfigured();
+
+    const barber = await prisma.barber.findUnique({
+      where: { id: barberId },
+      select: { stripeAccountId: true, stripeConnected: true },
+    });
+
+    if (!barber?.stripeAccountId) return res.json({ connected: false });
+    if (barber.stripeConnected) return res.json({ connected: true });
+
+    const account = await retrieveConnectedAccount(barber.stripeAccountId);
+    const connected = account.charges_enabled === true;
+
+    if (connected) {
+      await prisma.barber.update({
+        where: { id: barberId },
+        data: { stripeConnected: true },
+      });
+    }
+
+    res.json({ connected });
   }),
 );
 
