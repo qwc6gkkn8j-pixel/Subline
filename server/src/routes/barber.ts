@@ -1691,7 +1691,7 @@ barberRouter.post(
       where: { id: barberId },
       include: { user: { select: { email: true } } },
     });
-    if (!barber) throw new NotFound('Barber not found');
+    if (!barber) throw NotFound('Barber not found');
 
     let accountId = barber.stripeAccountId;
     if (!accountId) {
@@ -1718,7 +1718,7 @@ barberRouter.post(
       select: { stripeAccountId: true },
     });
     if (!barber?.stripeAccountId) {
-      throw new BadRequest('No Stripe account. Call /create-account first.');
+      throw BadRequest('No Stripe account. Call /create-account first.');
     }
 
     const clientSecret = await createAccountSession(barber.stripeAccountId);

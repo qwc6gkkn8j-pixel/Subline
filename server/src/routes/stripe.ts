@@ -6,7 +6,6 @@
 import { Router, raw } from 'express';
 import type Stripe from 'stripe';
 import {
-  exchangeConnectCode,
   isStripeConfigured,
   stripeStatus,
   verifyWebhookSignature,
@@ -48,12 +47,8 @@ stripePublicRouter.get(
     }
 
     try {
-      const stripeAccountId = await exchangeConnectCode(code);
-      await prisma.barber.update({
-        where: { id: state },
-        data: { stripeAccountId, stripeConnected: true },
-      });
-      res.redirect(`${env.APP_URL}/barber?stripe=connected`);
+      // OAuth flow removed — redirect to error (embedded onboarding replaced this)
+      res.redirect(`${env.APP_URL}/barber?stripe=error`);
     } catch {
       res.redirect(`${env.APP_URL}/barber?stripe=error`);
     }
