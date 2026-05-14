@@ -1,0 +1,834 @@
+================================================================================
+SUBLINE v3 — BARBERSHOP MANAGEMENT SYSTEM
+Prompt Completo para Claude Code — Pagamentos via EASYPAY (Portugal)
+================================================================================
+
+Build a full-stack barbershop management platform called SUBLINE.
+Payment processor: Easypay (Portuguese gateway — MBWay, Multibanco, credit card).
+No Stripe. No Connect. One Easypay account for the whole platform.
+
+================================================================================
+EASYPAY — COMO FUNCIONA (Lê antes de codificar)
+================================================================================
+
+CREDENCIAIS (sandbox gratuito para testar)
+- AccountId: 2b0f63e2-9fb5-4e52-aca0-b4bf0339bbe6  ← test only
+- ApiKey:    eae4aa59-8e5b-4ec2-887d-b02768481a92   ← test only
+- Base URL test:  https://api.sandbox.easypay.pt/2.0
+- Base URL prod:  https://api.prod.easypay.pt/2.0
+- Docs: https://docs.easypay.pt
+
+AUTENTICAÇÃO
+Todos os requests têm estes headers:
+  AccountId: <YOUR_ACCOUNT_ID>
+  ApiKey:    <YOUR_API_KEY>
+  Content-Type: application/json
+
+MÉTODOS DE PAGAMENTO SUPORTADOS
+- mb        → Multibanco (referência ATM)
+- mbway     → MBWay (telemóvel)
+- cc        → Cartão crédito/débito (Visa, Mastercard)
+- apple_pay → Apple Pay
+- google_pay→ Google Pay
+
+TIPOS DE PAGAMENTO
+- Single       → pagamento único
+- Frequent     → pagamentos recorrentes (subscrições)
+- Subscription → subscrição com intervalo fixo ← usar para planos SUBLINE
+
+--------------------------------------------------------------------------------
+FLUXO DE SUBSCRIÇÃO (o que implementar)
+--------------------------------------------------------------------------------
+
+PASSO 1 — Admin cria plano na BD (sem chamada à Easypay ainda)
+  Guardar: nome, preço, cortes/mês, descrição, barbeiro associado
+
+PASSO 2 — Barbeiro/Admin gera link de pagamento para cliente
+  POST https://api.sandbox.easypay.pt/2.0/subscription
+  Body:
+  {
+    "method": "mbway",           // ou "mb", "cc"
+    "currency": "EUR",
+    "customer": {
+      "name": "João Silva",
+      "email": "joao@email.com",
+      "phone": "912345678"       // obrigatório para MBWay
+    },
+    "value": 49.99,
+    "frequency": "1M",           // 1M = mensal, 1W = semanal, 1Y = anual
+    "capture": {
+      "descriptive": "Plano Gold SUBLINE"
+    }
+  }
+  
+  Resposta:
+  {
+    "id": "sub_xxxx",
+    "method": { "mbway": { "alias": "912345678" } },
+    "status": "active"
+  }
+  
+  Guardar na BD: easypay_subscription_id
+
+PASSO 3 — Webhook (Easypay notifica quando pago)
+  POST /api/webhooks/easypay
+  Easypay envia notification quando:
+  - pagamento confirmado (type: "capture")
+  - pagamento falhado   (type: "generic")
+  
+  Body do webhook:
+  {
+    "id": "notif_xxxx",
+    "type": "capture",
+    "status": "success",
+    "messages": ["capture"],
+    "date": "2025-06-10 14:00:00",
+    "transaction": { "id": "txn_xxxx" }
+  }
+
+PASSO 4 — App atualiza subscrição
+  Ao receber webhook type="capture" status="success":
+  → subscription.status = "active"
+  → subscription.currentPeriodStart = today
+  → subscription.currentPeriodEnd = today + 30 days
+  → subscription.cutsUsed = 0 (reset mensal)
+  → send email confirmação ao cliente
+
+PASSO 5 — Pagamento falhado
+  Ao receber webhook type="generic" (ou falha):
+  → subscription.status = "payment_failed"
+  → send email alerta ao cliente
+  → notify barbeiro
+
+--------------------------------------------------------------------------------
+GERAR LINK CHECKOUT (alternativa mais simples — sem subscrição automática)
+--------------------------------------------------------------------------------
+
+Se preferires links de checkout em vez de subscrição automática:
+
+POST /2.0/checkout
+Body:
+{
+  "type": "sale",
+  "payment": {
+    "methods": ["mbway", "mb", "cc"],
+    "type": "frequent",
+    "frequency": "1M",
+    "value": 49.99,
+    "currency": "EUR"
+  },
+  "customer": {
+    "name": "João Silva",
+    "email": "joao@email.com",
+    "phone": "912345678"
+  },
+  "capture": {
+    "descriptive": "Plano Gold SUBLINE"
+  }
+}
+
+Resposta inclui: { "payment": { "url": "https://pay.easypay.pt/..." } }
+→ Este URL é o link que o barbeiro envia ao cliente
+→ Cliente paga no browser, Easypay trata de tudo
+→ Webhook notifica o backend quando pago
+
+USAR ESTE MÉTODO (checkout link) para o MVP — é o mais simples.
+
+================================================================================
+DESIGN SYSTEM
+================================================================================
+
+CORES
+- Primary:   #0080D0
+- Dark:      #003D7A
+- Accent:    #8B5CF6
+- Success:   #4CAF50
+- Warning:   #F59E0B
+- Danger:    #EF4444
+- Text:      #1A1A1A
+- Surface:   #F5F5F5
+- Card:      #FFFFFF
+- Border:    #E5E7EB
+
+FONTES: Inter, Segoe UI, system-ui
+CARDS: white, radius 12px, shadow 0 2px 8px rgba(0,0,0,0.08)
+BOTÕES: 48px altura, radius 12px
+INPUTS: border-only, radius 8px
+MOBILE: bottom nav fixo com 5 ícones
+DESKTOP: sidebar 260px + main content
+
+================================================================================
+AUTENTICAÇÃO — index.html
+================================================================================
+
+- Split layout: esquerda = gradiente azul + logo SUBLINE, direita = form
+- Tabs: "Entrar" | "Criar conta"
+
+LOGIN: Email + Password + [Entrar]
+REGISTER: Nome + Email + Password + Confirmar + Role (Admin/Barbeiro/Cliente) + Termos
+
+POST-LOGIN REDIRECT:
+- Admin   → /admin.html
+- Barber  → /barber.html
+- Client  → /client.html
+
+JWT: access token (1h) + refresh token (7d) em localStorage
+Middleware: verifica token + role em todas as rotas protegidas
+
+================================================================================
+ADMIN DASHBOARD — admin.html
+================================================================================
+
+SIDEBAR: Dashboard | Utilizadores | Planos & Pagamentos | Tickets | Logs | Config
+
+KPI CARDS (4):
+- Total utilizadores   (roxo)
+- Subscrições ativas   (verde)
+- Receita este mês     (azul)
+- Tickets abertos      (âmbar)
+
+SECÇÃO 1 — GESTÃO DE UTILIZADORES
+- Tabela: Avatar | Nome | Email | Role | Status | Data | Ações
+- Ações por linha: [Editar] [Ativar/Desativar] [Eliminar]
+- Modal Add/Edit: Nome, Email, Password, Role, Status, Telefone
+- Paginação: 10 por página
+
+SECÇÃO 2 — PLANOS & PAGAMENTOS (EASYPAY)
+Form "Criar Plano":
+  - Barbeiro (dropdown)
+  - Nome do plano (ex: Bronze, Silver, Gold)
+  - Preço (€/mês)
+  - Cortes incluídos por mês (número)
+  - Método pagamento padrão (MBWay / Multibanco / Cartão)
+  - Descrição / benefícios
+  - [Criar Plano]
+
+Ao criar plano:
+  → Guarda plano na BD (SEM chamada à Easypay ainda)
+  → Easypay só é chamado quando barbeiro gera link para cliente específico
+
+Tabela de planos:
+  Colunas: Barbeiro | Plano | Preço | Cortes/mês | Método | Status | Ações
+  Ações: [Editar] [Desativar] [Ver assinantes]
+
+SECÇÃO 3 — TICKETS DE SUPORTE
+- Todos os tickets de barbeiros e clientes
+- Colunas: #ID | Utilizador | Assunto | Categoria | Prioridade | Status | Data
+- Filtros: Status | Categoria | Prioridade
+- Click → abre thread de mensagens
+- Admin responde e muda status
+
+SECÇÃO 4 — LOGS DE AUDITORIA
+- Tabela de todas as ações: Data | Utilizador | Ação | Entidade | Detalhes
+- Export: [CSV] [PDF]
+
+================================================================================
+BARBER DASHBOARD — barber.html
+================================================================================
+
+BOTTOM NAV (mobile): Dashboard | Clientes | Calendário | Chat | Perfil
+SIDEBAR (desktop): Dashboard | Clientes | Calendário | Mensagens | Perfil | Logout
+
+SECÇÃO 1 — DASHBOARD
+Stats (3 cards):
+- Clientes ativos    (azul)
+- Receita este mês   (roxo)
+- Marcações hoje     (verde)
+
+SECÇÃO 2 — CLIENTES
+
+Card de cliente:
+┌──────────────────────────────────────────────────────┐
+│ [Avatar] João Silva                    ● Ativo        │
+│          joao@email.com · 912 345 678                 │
+│          Plano: Gold · [■■■□] 3/4 cortes este mês    │
+│          Próx. pagamento: 15 Jun 2025                 │
+│  [Ver] [Chat] [Editar] [Gerar Link Pagamento]        │
+└──────────────────────────────────────────────────────┘
+
+Botão [Gerar Link Pagamento]:
+  → Abre modal:
+    - Confirma: cliente, plano, preço
+    - Método: MBWay (insere nº tel) / Multibanco / Cartão
+    - [Gerar Link]
+    → Backend chama POST /2.0/checkout da Easypay
+    → Retorna URL de pagamento
+    → Mostra link + botão [Copiar] + botão [Enviar por email]
+
+Botão [Registar Corte]:
+  → subscription.cutsUsed += 1
+  → Se cutsUsed >= cutsTotal → badge "Limite atingido"
+  → Regista no histórico de cortes
+
+DETALHE DO CLIENTE (modal ou página):
+- Dados pessoais
+- Subscrição: plano, status, cortes usados (progress bar)
+- Histórico de pagamentos (webhook data da Easypay)
+- Histórico de cortes/marcações
+- [Registar Corte Hoje]
+
+SECÇÃO 3 — CALENDÁRIO
+Vista: Semana (default) / Mês / Dia
+
+Marcação card:
+┌─────────────────┐
+│ 14:00 – 14:30   │
+│ João Silva      │
+│ Corte + Barba   │
+└─────────────────┘
+
+Cores por status:
+- pending   → âmbar
+- confirmed → azul
+- completed → verde
+- cancelled → cinza
+- no_show   → vermelho
+
+Modal Nova Marcação (barbeiro cria):
+- Cliente (dropdown dos seus clientes)
+- Data + Hora (date/time picker)
+- Duração (15 / 30 / 45 / 60 min)
+- Serviço (Corte / Barba / Corte+Barba / Outro)
+- Notas internas
+- [Confirmar] → cria marcação + notifica cliente
+
+Disponibilidade:
+- Barbeiro configura horários (Settings):
+  Ex: Seg–Sex 09:00–19:00, slots de 30 min
+- Slots já ocupados não aparecem ao cliente
+
+SECÇÃO 4 — CHAT (2 abas)
+
+Aba "Mensagens com Clientes":
+- Lista de conversas (esquerda) + janela de chat (direita)
+- Estilo WhatsApp Web
+- Balões de mensagem, timestamps, indicador "a escrever..."
+- Pode enviar texto + imagem (foto de corte)
+- Badge com nº mensagens não lidas
+
+Aba "Suporte":
+- Lista de tickets criados pelo barbeiro
+- [+ Novo Ticket]: Assunto, Categoria, Prioridade, Descrição
+- Click no ticket → thread com admin/suporte
+- Status badge: Novo | Em análise | Resolvido
+
+================================================================================
+CLIENT DASHBOARD — client.html
+================================================================================
+
+BOTTOM NAV (mobile): Início | Subscrição | Calendário | Chat | Perfil
+
+SECÇÃO 1 — INÍCIO
+Card hero de subscrição:
+┌────────────────────────────────────────────────┐
+│ SUBLINE                              ● Ativo    │
+│                                                 │
+│  Plano Gold · €49.99/mês                       │
+│  ████████████░░░░  3 de 4 cortes usados        │
+│  ↺ Renova: 15 Jun 2025                         │
+│  ✂ Barbeiro: João Silva                        │
+│                                                 │
+│  [Marcar Corte]        [Ver Plano]             │
+└────────────────────────────────────────────────┘
+
+Próxima marcação (se existir):
+┌────────────────────────────────────────────────┐
+│ Próxima marcação                               │
+│ Terça, 10 Jun · 14:00                         │
+│ Corte + Barba · Barbearia do João              │
+│ [Cancelar]    [Adicionar ao calendário]        │
+└────────────────────────────────────────────────┘
+
+SECÇÃO 2 — SUBSCRIÇÃO
+
+VER PLANO ATUAL:
+- Nome, preço, benefícios, data renovação
+- Progress bar: "X de Y cortes utilizados"
+- Reinicia em: X dias
+- Histórico de pagamentos:
+  Data | Plano | Valor | Método | Status (badge)
+- [Ver todos]
+
+ALTERAR PLANO:
+- Cards de todos os planos do barbeiro:
+  ┌─────────────────────────────┐
+  │ ★ GOLD (atual)              │
+  │ €49.99/mês · 4 cortes      │
+  │ [Plano Atual]               │
+  └─────────────────────────────┘
+  ┌─────────────────────────────┐
+  │ SILVER                      │
+  │ €29.99/mês · 2 cortes      │
+  │ [Mudar para Silver]         │
+  └─────────────────────────────┘
+
+Ao clicar "Mudar para X":
+  → Modal de confirmação
+  → Cliente escolhe método: MBWay (nº tel) / Multibanco / Cartão
+  → Backend cria checkout Easypay
+  → Abre URL de pagamento Easypay
+  → Webhook atualiza subscrição
+
+CANCELAMENTO:
+- [Pedir cancelamento] → cria ticket de suporte automaticamente
+
+SECÇÃO 3 — CALENDÁRIO
+- Vista mensal (default)
+- Só as marcações do próprio cliente
+- [+ Marcar Corte] → modal com slots disponíveis do barbeiro
+
+Modal Marcar Corte (cliente):
+- Serviço (Corte / Barba / Corte+Barba / Outro)
+- Data → mostra calendário, dias disponíveis a azul
+- Hora → grid de slots livres do barbeiro
+- Notas para o barbeiro (opcional)
+- [Confirmar marcação]
+  → Cria marcação
+  → Notifica barbeiro
+  → Email de confirmação ao cliente
+
+SECÇÃO 4 — CHAT (2 abas)
+Aba "O meu Barbeiro":
+- Chat direto com o barbeiro
+- WhatsApp-style: balões, timestamps, "a escrever..."
+- Pode enviar foto (referência de corte)
+
+Aba "Suporte":
+- Lista dos tickets do cliente
+- [+ Novo Ticket]
+- Thread por ticket
+- Categorias: Pagamento | Conta | Marcação | Outro
+
+SECÇÃO 5 — PERFIL
+- Upload foto de perfil
+- Editar: Nome, Email, Telefone
+- Alterar password
+- Info do barbeiro (nome, contacto, morada)
+- Notificações (toggles)
+- [Eliminar conta]
+
+================================================================================
+EASYPAY — IMPLEMENTAÇÃO BACKEND (Node.js)
+================================================================================
+
+INSTALAR:
+npm install axios  (para chamadas à API Easypay — não há SDK oficial Node.js)
+
+FICHEIRO: src/services/easypay.service.ts
+
+import axios from 'axios';
+
+const EASYPAY_BASE = process.env.EASYPAY_ENV === 'prod'
+  ? 'https://api.prod.easypay.pt/2.0'
+  : 'https://api.sandbox.easypay.pt/2.0';
+
+const headers = {
+  AccountId: process.env.EASYPAY_ACCOUNT_ID,
+  ApiKey:    process.env.EASYPAY_API_KEY,
+  'Content-Type': 'application/json',
+};
+
+// Gerar link de checkout (para barbeiro enviar ao cliente)
+export const createCheckoutLink = async (params: {
+  clientName:  string;
+  clientEmail: string;
+  clientPhone: string;  // obrigatório para MBWay
+  amount:      number;
+  planName:    string;
+  method:      'mbway' | 'mb' | 'cc';
+  frequency:   '1M';   // mensal
+}) => {
+  const response = await axios.post(`${EASYPAY_BASE}/checkout`, {
+    type: 'sale',
+    payment: {
+      methods: [params.method, 'cc'],
+      type: 'frequent',
+      frequency: params.frequency,
+      value: params.amount,
+      currency: 'EUR',
+    },
+    customer: {
+      name:  params.clientName,
+      email: params.clientEmail,
+      phone: params.clientPhone,
+    },
+    capture: {
+      descriptive: `${params.planName} - SUBLINE`,
+    },
+  }, { headers });
+
+  return {
+    checkoutId:  response.data.id,
+    paymentUrl:  response.data.payment?.url,
+    expiresAt:   response.data.expires_at,
+  };
+};
+
+// Cancelar subscrição (quando cliente pede cancelamento)
+export const cancelSubscription = async (easypaySubId: string) => {
+  await axios.delete(`${EASYPAY_BASE}/subscription/${easypaySubId}`, { headers });
+};
+
+// Verificar status de pagamento
+export const getPaymentStatus = async (paymentId: string) => {
+  const res = await axios.get(`${EASYPAY_BASE}/payment/${paymentId}`, { headers });
+  return res.data;
+};
+
+WEBHOOK HANDLER: POST /api/webhooks/easypay
+
+import { Request, Response } from 'express';
+import { prisma } from '../db';
+import { sendEmail } from '../services/email.service';
+
+export const easypayWebhook = async (req: Request, res: Response) => {
+  // Easypay não usa signature verification como Stripe
+  // Valida pelo IP ou segredo no URL: /api/webhooks/easypay?secret=xxx
+  const secret = req.query.secret;
+  if (secret !== process.env.WEBHOOK_SECRET) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
+  const event = req.body;
+
+  // Pagamento confirmado
+  if (event.type === 'capture' && event.status === 'success') {
+    const checkoutId = event.id; // corresponde ao checkoutId guardado na BD
+
+    const subscription = await prisma.subscription.findFirst({
+      where: { easypayCheckoutId: checkoutId },
+      include: { client: true, plan: true },
+    });
+
+    if (subscription) {
+      const now = new Date();
+      const nextMonth = new Date(now);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          status: 'active',
+          cutsUsed: 0,                    // reset mensal
+          currentPeriodStart: now,
+          currentPeriodEnd: nextMonth,
+        },
+      });
+
+      await prisma.payment.create({
+        data: {
+          subscriptionId: subscription.id,
+          amount: subscription.plan.price,
+          status: 'paid',
+          method: event.method || 'unknown',
+          easypayTransactionId: event.transaction?.id,
+          paymentDate: now,
+        },
+      });
+
+      // Notificações
+      await sendEmail({
+        to: subscription.client.email,
+        subject: 'Pagamento confirmado — SUBLINE',
+        template: 'payment_success',
+        data: { plan: subscription.plan.name, amount: subscription.plan.price },
+      });
+
+      await prisma.notification.create({
+        data: {
+          userId: subscription.client.userId,
+          type: 'payment_success',
+          title: 'Pagamento confirmado',
+          body: `O teu plano ${subscription.plan.name} foi renovado com sucesso.`,
+        },
+      });
+    }
+  }
+
+  // Pagamento falhado
+  if (event.type === 'generic' || event.status === 'failed') {
+    // Marcar como payment_failed, notificar cliente e barbeiro
+  }
+
+  res.status(200).json({ received: true });
+};
+
+ENV VARIABLES:
+EASYPAY_ACCOUNT_ID=2b0f63e2-9fb5-4e52-aca0-b4bf0339bbe6
+EASYPAY_API_KEY=eae4aa59-8e5b-4ec2-887d-b02768481a92
+EASYPAY_ENV=sandbox
+WEBHOOK_SECRET=gera-um-segredo-aleatorio-aqui
+
+Para prod:
+EASYPAY_ACCOUNT_ID=<o teu account id real>
+EASYPAY_API_KEY=<a tua api key real>
+EASYPAY_ENV=prod
+
+WEBHOOK URL para registar na Easypay:
+https://teu-dominio.com/api/webhooks/easypay?secret=<WEBHOOK_SECRET>
+
+================================================================================
+CHAT SYSTEM (Real-time com Socket.io)
+================================================================================
+
+TABELAS BD:
+conversations (id, type ENUM('barber_client','support'), barberId, clientId, adminId, createdAt)
+messages      (id, conversationId, senderId, senderRole, content, type ENUM('text','image'), imageUrl, isRead, createdAt)
+support_tickets (id, requesterId, requesterRole, conversationId, subject, category, priority, status ENUM('open','in_progress','resolved'), createdAt, resolvedAt)
+
+SOCKET.IO EVENTS:
+Client → Server:
+  join_room     { conversationId }
+  send_message  { conversationId, content, type }
+  typing_start  { conversationId }
+  typing_stop   { conversationId }
+  mark_read     { conversationId }
+
+Server → Client:
+  new_message   { message }
+  user_typing   { userId }
+  user_stopped  { userId }
+  message_read  { conversationId }
+
+BACKEND SETUP:
+import { Server } from 'socket.io';
+const io = new Server(server, { cors: { origin: process.env.FRONTEND_URL } });
+
+io.use((socket, next) => {
+  // Verificar JWT no handshake
+  const token = socket.handshake.auth.token;
+  const user = verifyJWT(token);
+  if (!user) return next(new Error('Unauthorized'));
+  socket.data.user = user;
+  next();
+});
+
+io.on('connection', (socket) => {
+  socket.on('join_room', ({ conversationId }) => {
+    socket.join(`conv_${conversationId}`);
+  });
+  socket.on('send_message', async ({ conversationId, content, type }) => {
+    const msg = await prisma.message.create({
+      data: { conversationId, senderId: socket.data.user.id,
+              senderRole: socket.data.user.role, content, type }
+    });
+    io.to(`conv_${conversationId}`).emit('new_message', msg);
+  });
+  socket.on('typing_start', ({ conversationId }) => {
+    socket.to(`conv_${conversationId}`).emit('user_typing', { userId: socket.data.user.id });
+  });
+  socket.on('typing_stop', ({ conversationId }) => {
+    socket.to(`conv_${conversationId}`).emit('user_stopped', { userId: socket.data.user.id });
+  });
+});
+
+================================================================================
+CALENDAR SYSTEM
+================================================================================
+
+TABELAS BD:
+appointments          (id, barberId, clientId, service, date, startTime, endTime, durationMinutes, status, notes, clientNotes, cancelledBy, createdAt)
+barber_availability   (id, barberId, dayOfWeek 0-6, startTime, endTime, slotDuration, isActive)
+barber_unavailable    (id, barberId, dateFrom, dateTo, reason)
+
+ALGORITMO DE SLOTS DISPONÍVEIS:
+GET /api/calendar/slots?barberId=xxx&date=2025-06-10
+1. Busca horário do barbeiro para esse day_of_week
+2. Busca appointments existentes nessa data
+3. Busca unavailable_dates que incluem essa data
+4. Calcula slots livres (horário - ocupados - indisponíveis)
+5. Retorna array de slots: [{ time: "09:00", available: true }, ...]
+
+BIBLIOTECA FRONTEND: @fullcalendar/react
+npm install @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction
+
+================================================================================
+SISTEMA DE NOTIFICAÇÕES
+================================================================================
+
+TABELA BD:
+notifications (id, userId, type, title, body, isRead, data JSONB, createdAt)
+
+TRIGGERS:
+- appointment.created     → email + in_app (ambos)
+- appointment.reminder24h → email + in_app (cliente) [cron job]
+- appointment.cancelled   → email + in_app (ambos)
+- appointment.completed   → in_app (barbeiro)
+- payment.success         → email + in_app (cliente)
+- payment.failed          → email + in_app (cliente + barbeiro)
+- subscription.expiring   → email 3 dias antes (cliente)
+- cuts.limit_reached      → in_app (cliente + barbeiro)
+- message.received        → in_app badge
+
+EMAIL: usar Nodemailer com Gmail SMTP (gratuito para MVP) ou SendGrid
+CRON: node-cron para reminder 24h antes das marcações
+
+================================================================================
+STACK TÉCNICO COMPLETO
+================================================================================
+
+FRONTEND:
+npm create vite@latest subline-frontend -- --template react-ts
+npm install tailwindcss react-router-dom axios
+npm install socket.io-client lucide-react react-hot-toast
+npm install @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction
+
+BACKEND:
+npm install express prisma @prisma/client
+npm install jsonwebtoken bcryptjs cors dotenv zod
+npm install axios socket.io node-cron nodemailer
+npm install -D typescript @types/express ts-node nodemon
+
+DATABASE: PostgreSQL (recomendo Supabase — gratuito, fácil)
+
+ENV COMPLETO:
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/subline
+
+# Auth
+JWT_SECRET=secret-longo-e-aleatorio
+JWT_REFRESH_SECRET=outro-secret-diferente
+
+# Easypay (usar credenciais sandbox para testar)
+EASYPAY_ACCOUNT_ID=2b0f63e2-9fb5-4e52-aca0-b4bf0339bbe6
+EASYPAY_API_KEY=eae4aa59-8e5b-4ec2-887d-b02768481a92
+EASYPAY_ENV=sandbox
+WEBHOOK_SECRET=segredo-webhook-aleatorio
+
+# Email
+EMAIL_FROM=noreply@subline.pt
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=teu@gmail.com
+EMAIL_PASS=app-password-gmail
+
+# App
+APP_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
+
+================================================================================
+BASE DE DADOS — SCHEMA PRISMA COMPLETO
+================================================================================
+
+Pede ao Claude Code para gerar o schema.prisma com estes modelos:
+
+User           (id, email, passwordHash, role ENUM(admin,barber,client), status, createdAt)
+Barber         (id, userId, name, phone, address, bio, rating, createdAt)
+Client         (id, userId, name, email, phone, barberId, createdAt)
+Plan           (id, barberId, name, description, price, cutsPerMonth, method, isActive, createdAt)
+Subscription   (id, clientId, planId, status, cutsUsed, cutsTotal,
+                easypayCheckoutId, currentPeriodStart, currentPeriodEnd, createdAt)
+Payment        (id, subscriptionId, amount, status, method,
+                easypayTransactionId, paymentDate, createdAt)
+Appointment    (id, barberId, clientId, service, date, startTime, endTime,
+                durationMinutes, status, notes, clientNotes, cancelledBy, createdAt)
+BarberAvailability (id, barberId, dayOfWeek, startTime, endTime, slotDuration, isActive)
+BarberUnavailable  (id, barberId, dateFrom, dateTo, reason)
+Conversation   (id, type ENUM(barber_client,support), barberId, clientId, adminId, createdAt)
+Message        (id, conversationId, senderId, senderRole, content, type, imageUrl, isRead, createdAt)
+SupportTicket  (id, requesterId, requesterRole, conversationId, subject,
+                category, priority, status, createdAt, resolvedAt)
+Notification   (id, userId, type, title, body, isRead, data Json, createdAt)
+AuditLog       (id, userId, action, entityType, entityId, details Json, createdAt)
+
+================================================================================
+ORDEM DE DESENVOLVIMENTO (MVP)
+================================================================================
+
+SPRINT 1 — Base (1 semana)
+✅ Setup projeto (React + Node + PostgreSQL + Prisma)
+✅ Schema Prisma + migração + seed
+✅ Auth: register, login, logout, JWT, refresh
+✅ Role-based routing + guards
+✅ UI shell: sidebar (desktop), bottom nav (mobile), header
+
+SPRINT 2 — Core (1 semana)
+✅ Admin: dashboard KPIs + gestão de utilizadores (CRUD)
+✅ Admin: criação de planos (sem Easypay ainda, só BD)
+✅ Barber: lista de clientes + CRUD
+✅ Barber: gerar link Easypay para cliente (POST /2.0/checkout)
+✅ Webhook Easypay: receber + processar pagamentos
+✅ Client: dashboard + ver subscrição + cortes restantes
+
+SPRINT 3 — Features (1 semana)
+✅ Sistema de cortes: register-cut + progress bar + reset webhook
+✅ Calendário: barber week view + client month view
+✅ Booking: cliente marca corte nos slots livres
+✅ Chat: Socket.io + barber-client DM + suporte tickets
+✅ Notificações: in-app + email básico
+
+SPRINT 4 — Polish (3-4 dias)
+✅ Design SUBLINE completo (cores, logo, responsivo)
+✅ Mobile: bottom nav, touch-friendly
+✅ Error handling + loading states + toasts
+✅ Testes end-to-end
+
+FASE 2 (Depois de lançar)
+📅 Avaliações & reviews
+📅 Perfil público do barbeiro
+📅 Analytics/gráficos avançados
+📅 Vouchers e descontos
+📅 Relatórios PDF/Excel
+📅 Dark mode
+
+================================================================================
+TESTAR EASYPAY (Sandbox)
+================================================================================
+
+As credenciais de sandbox já estão incluídas no .env acima.
+Não precisas de criar conta para testar — usa as credenciais de teste.
+
+Para criar conta real (produção):
+1. Vai a easypay.pt
+2. Clica "Começar" ou "Contacte-nos"
+3. Preenches dados da empresa/atividade
+4. Recbes AccountId + ApiKey para produção
+
+TESTAR PAGAMENTO MBWAY (sandbox):
+- Usa nº de telefone fictício: 910000000
+- O pagamento fica em "pending" até o webhook ser chamado
+- Usa Easypay sandbox dashboard para confirmar manualmente
+
+TESTAR PAGAMENTO CARTÃO (sandbox):
+- Cartão: 4012001038443335
+- Validade: qualquer data futura
+- CVV: 123
+
+TESTAR WEBHOOK LOCAL (desenvolvimento):
+Usa ngrok para expor o localhost:
+  npx ngrok http 3001
+  → Copia o URL: https://xxxx.ngrok.io
+  → Webhook URL: https://xxxx.ngrok.io/api/webhooks/easypay?secret=xxx
+  → Regista este URL no painel Easypay sandbox
+
+================================================================================
+PROMPT FINAL PARA DAR AO CLAUDE CODE
+================================================================================
+
+"Build SUBLINE — a full-stack barbershop management platform with:
+
+Tech: React 18 + TypeScript + Tailwind CSS (frontend),
+      Node.js + Express + PostgreSQL + Prisma (backend),
+      Socket.io (real-time chat), FullCalendar (calendar),
+      Easypay REST API (payments — PT gateway, MBWay + Multibanco + card)
+
+Payment flow:
+  - Admin creates plans (name, price, cuts/month) stored in DB
+  - Barber generates Easypay checkout link per client (POST /2.0/checkout)
+  - Client pays via MBWay/Multibanco/card on Easypay hosted page
+  - Webhook (POST /api/webhooks/easypay) activates subscription + resets cuts
+
+Features:
+  1. Auth: JWT login/register, 3 roles (admin/barber/client)
+  2. Admin: user management, plan management, support tickets, audit logs
+  3. Barber: client list, cut tracking (cutsUsed/cutsTotal), Easypay link generation, calendar, chat
+  4. Client: subscription dashboard, cuts remaining (progress bar), plan change, booking, chat
+
+Design: Primary #0080D0, Accent #8B5CF6, mobile-first with bottom nav,
+        SUBLINE logo in all headers, cards with 12px radius and subtle shadows.
+
+Start with: project structure, Prisma schema, auth system, then build each dashboard."
+
+================================================================================
+FIM DO PROMPT — SUBLINE v3 com EASYPAY
+================================================================================

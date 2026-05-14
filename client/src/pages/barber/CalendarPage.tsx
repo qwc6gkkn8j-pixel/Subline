@@ -44,7 +44,7 @@ export default function CalendarPage() {
     const from = isoDate(weekStart);
     const to = isoDate(addDays(weekStart, 6));
     try {
-      const { data } = await api.get<{ appointments: Appointment[] }>('/barber/appointments', {
+      const { data } = await api.get<{ appointments: Appointment[] }>('/pro/appointments', {
         params: { from, to },
       });
       setAppointments(data.appointments ?? []);
@@ -58,10 +58,10 @@ export default function CalendarPage() {
       const [av, cl, sv] = await Promise.all([
         // Server returns `{ rules, unavailable }`.
         api.get<{ rules: BarberAvailability[]; unavailable: BarberUnavailable[] }>(
-          '/barber/availability',
+          '/pro/availability',
         ),
-        api.get<{ clients: ClientLite[] }>('/barber/clients'),
-        api.get<{ services: Service[] }>('/barber/services'),
+        api.get<{ clients: ClientLite[] }>('/pro/clients'),
+        api.get<{ services: Service[] }>('/pro/services'),
       ]);
       setAvailability(av.data.rules ?? []);
       setUnavailable(av.data.unavailable ?? []);
@@ -197,7 +197,7 @@ function AppointmentModal({
     let cancelled = false;
     setLoadingSlots(true);
     api
-      .get<{ date: string; slots: Slot[] }>('/barber/calendar/slots', { params: { date } })
+      .get<{ date: string; slots: Slot[] }>('/pro/calendar/slots', { params: { date } })
       .then((r) => {
         if (!cancelled) setSlots(r.data.slots ?? []);
       })
@@ -237,11 +237,11 @@ function AppointmentModal({
         notes: notes || undefined,
       };
       if (existing) {
-        await api.put(`/barber/appointments/${existing.id}`, { ...base, status });
+        await api.put(`/pro/appointments/${existing.id}`, { ...base, status });
         toast.success('Marcação atualizada');
       } else {
         // Don't send status on create — server defaults to 'pending'.
-        await api.post('/barber/appointments', base);
+        await api.post('/pro/appointments', base);
         toast.success('Marcação criada');
       }
       onSaved();
@@ -259,7 +259,7 @@ function AppointmentModal({
     try {
       // Dedicated status route — auto-tracks the cut on the client's
       // active subscription when newStatus === 'completed'.
-      await api.put(`/barber/appointments/${existing.id}/status`, {
+      await api.put(`/pro/appointments/${existing.id}/status`, {
         status: newStatus,
       });
       toast.success(
@@ -280,7 +280,7 @@ function AppointmentModal({
     if (!existing) return;
     setBusy(true);
     try {
-      await api.delete(`/barber/appointments/${existing.id}`);
+      await api.delete(`/pro/appointments/${existing.id}`);
       toast.success('Marcação removida');
       onSaved();
       onClose();
@@ -531,7 +531,7 @@ function AvailabilityModal({
   }) => {
     const existing = draftRules.find((r) => r.dayOfWeek === rule.dayOfWeek);
     if (existing && !existing.id.startsWith('temp-')) {
-      await api.put(`/barber/availability/${existing.id}`, {
+      await api.put(`/pro/availability/${existing.id}`, {
         startTime: rule.startTime,
         endTime: rule.endTime,
         breakStart: rule.breakStart,
@@ -539,7 +539,7 @@ function AvailabilityModal({
         isActive: rule.isActive,
       });
     } else {
-      await api.post('/barber/availability', {
+      await api.post('/pro/availability', {
         dayOfWeek: rule.dayOfWeek,
         startTime: rule.startTime,
         endTime: rule.endTime,
@@ -627,7 +627,7 @@ function AvailabilityModal({
     setSavingRange(true);
     try {
       const { data } = await api.post<{ range: BarberUnavailable }>(
-        '/barber/availability/unavailable',
+        '/pro/availability/unavailable',
         {
           dateFrom: newRange.dateFrom,
           dateTo: newRange.dateTo,
@@ -648,7 +648,7 @@ function AvailabilityModal({
   const removeRange = async (id: string) => {
     setSavingRange(true);
     try {
-      await api.delete(`/barber/availability/unavailable/${id}`);
+      await api.delete(`/pro/availability/unavailable/${id}`);
       setRanges((prev) => prev.filter((r) => r.id !== id));
       toast.success('Período removido');
       onSaved();

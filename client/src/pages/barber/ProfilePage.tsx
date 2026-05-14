@@ -22,8 +22,8 @@ export default function ProfilePage() {
   const load = async () => {
     try {
       const [p, s] = await Promise.all([
-        api.get<{ barber: Barber }>('/barber/profile'),
-        api.get<StripeStatus>('/barber/stripe/status'),
+        api.get<{ barber: Barber }>('/pro/profile'),
+        api.get<StripeStatus>('/pro/stripe/status'),
       ]);
       setBarber(p.data.barber);
       setName(p.data.barber.name);
@@ -44,7 +44,7 @@ export default function ProfilePage() {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.put('/barber/profile', {
+      await api.put('/pro/profile', {
         name,
         phone: phone || null,
         address: address || null,

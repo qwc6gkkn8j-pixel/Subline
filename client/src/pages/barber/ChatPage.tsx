@@ -25,8 +25,8 @@ export default function ChatPage() {
     setLoading(true);
     try {
       const [c, t] = await Promise.all([
-        api.get<{ conversations: Conversation[] }>('/barber/conversations'),
-        api.get<{ tickets: SupportTicket[] }>('/barber/tickets'),
+        api.get<{ conversations: Conversation[] }>('/pro/conversations'),
+        api.get<{ tickets: SupportTicket[] }>('/pro/tickets'),
       ]);
       setConversations(c.data.conversations);
       setTickets(t.data.tickets);
@@ -40,7 +40,7 @@ export default function ChatPage() {
   useEffect(() => {
     void load();
     api
-      .get<{ clients: Client[] }>('/barber/clients')
+      .get<{ clients: Client[] }>('/pro/clients')
       .then((r) => setClients(r.data.clients))
       .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,7 +114,7 @@ export default function ChatPage() {
           {active ? (
             <ChatWindow
               conversation={active}
-              endpointBase="/barber/conversations"
+              endpointBase="/pro/conversations"
               title={active.client?.name ?? active.ticket?.subject ?? 'Conversa'}
               subtitle={active.type === 'support' ? 'Suporte' : active.client?.email ?? ''}
               onBack={() => setActive(null)}
@@ -168,7 +168,7 @@ function NewConversationModal({
     if (!clientId) return;
     setBusy(true);
     try {
-      const { data } = await api.post<{ conversation: Conversation }>('/barber/conversations', {
+      const { data } = await api.post<{ conversation: Conversation }>('/pro/conversations', {
         clientId,
       });
       toast.success('Conversa criada');
@@ -230,7 +230,7 @@ function NewTicketModal({
     if (!subject.trim() || !message.trim()) return;
     setBusy(true);
     try {
-      await api.post('/barber/tickets', { subject, message, category, priority });
+      await api.post('/pro/tickets', { subject, message, category, priority });
       toast.success('Ticket aberto');
       onCreated();
       onClose();

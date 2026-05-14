@@ -108,7 +108,7 @@ export default function HomePage() {
                 <CreditCard size={14} /> Detalhes
               </Link>
               <Link to="/client/chat" className="btn-outline btn-sm">
-                <MessageSquare size={14} /> Falar com barbeiro
+                <MessageSquare size={14} /> Falar com profissional
               </Link>
             </div>
           </>
@@ -172,7 +172,7 @@ export default function HomePage() {
 
       {barber && (
         <section className="card">
-          <p className="text-xs uppercase tracking-wide text-muted mb-3">O teu barbeiro</p>
+          <p className="text-xs uppercase tracking-wide text-muted mb-3">Mon professionnel</p>
           <div className="flex items-start gap-4">
             <Avatar name={barber.name} size={60} />
             <div className="flex-1 min-w-0">

@@ -296,7 +296,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <label className="label">I am a…</label>
         <div className="grid grid-cols-2 gap-2">
           <RoleRadio value="client" current={role} onChange={setRole} label="Client" />
-          <RoleRadio value="barber" current={role} onChange={setRole} label="Professional" />
+          <RoleRadio value="barber" current={role} onChange={setRole} label="Professionnel" />
         </div>
       </div>
 

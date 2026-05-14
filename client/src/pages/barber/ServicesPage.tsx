@@ -38,7 +38,7 @@ export default function ServicesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<{ services: Service[] }>('/barber/services/all');
+      const { data } = await api.get<{ services: Service[] }>('/pro/services/all');
       setServices(data.services);
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -55,10 +55,10 @@ export default function ServicesPage() {
   const toggleActive = async (s: Service) => {
     try {
       if (s.isActive) {
-        await api.delete(`/barber/services/${s.id}`);
+        await api.delete(`/pro/services/${s.id}`);
         toast.success('Serviço desativado');
       } else {
-        await api.put(`/barber/services/${s.id}`, { isActive: true });
+        await api.put(`/pro/services/${s.id}`, { isActive: true });
         toast.success('Serviço reativado');
       }
       void load();
@@ -234,10 +234,10 @@ function ServiceFormModal({
         isActive,
       };
       if (isEdit) {
-        await api.put(`/barber/services/${existing!.id}`, payload);
+        await api.put(`/pro/services/${existing!.id}`, payload);
         toast.success('Serviço atualizado');
       } else {
-        await api.post('/barber/services', payload);
+        await api.post('/pro/services', payload);
         toast.success('Serviço criado');
       }
       onSaved();

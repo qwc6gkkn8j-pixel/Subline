@@ -58,7 +58,7 @@ function StripeConnectFeedback() {
 export default function BarberLayout() {
   return (
     <RoleShell
-      title="Professional"
+      title="Professionnel"
       navItems={[
         { to: '/barber', icon: LayoutDashboard, label: 'Dashboard', end: true },
         { to: '/barber/clients', icon: UsersIcon, label: 'Clientes' },

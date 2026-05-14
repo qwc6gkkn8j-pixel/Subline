@@ -48,10 +48,10 @@ export default function ClientsPage() {
     setLoading(true);
     try {
       const [c, p] = await Promise.all([
-        api.get<{ clients: ClientWithSub[] }>('/barber/clients', {
+        api.get<{ clients: ClientWithSub[] }>('/pro/clients', {
           params: { q: q || undefined, status: statusFilter || undefined },
         }),
-        api.get<{ plans: Plan[] }>('/barber/plans'),
+        api.get<{ plans: Plan[] }>('/pro/plans'),
       ]);
       setClients(c.data.clients);
       setPlans(p.data.plans);
@@ -325,7 +325,7 @@ function ClientFormModal({
     setBusy(true);
     try {
       if (isNew) {
-        await api.post('/barber/clients', {
+        await api.post('/pro/clients', {
           fullName: form.fullName,
           email: form.email,
           phone: form.phone || undefined,
@@ -335,7 +335,7 @@ function ClientFormModal({
         toast.success('Cliente criado');
       } else {
         const c = editing as ClientWithSub;
-        await api.put(`/barber/clients/${c.id}`, {
+        await api.put(`/pro/clients/${c.id}`, {
           fullName: form.fullName,
           email: form.email,
           phone: form.phone || null,
@@ -441,7 +441,7 @@ function DeleteClientModal({
     if (!client) return;
     setBusy(true);
     try {
-      await api.delete(`/barber/clients/${client.id}`);
+      await api.delete(`/pro/clients/${client.id}`);
       toast.success('Cliente eliminado');
       onDeleted();
       onClose();
@@ -495,7 +495,7 @@ function RegisterCutModal({
     if (!client) return;
     setNotes('');
     api
-      .get<{ cuts: Cut[] }>(`/barber/clients/${client.id}/cuts`)
+      .get<{ cuts: Cut[] }>(`/pro/clients/${client.id}/cuts`)
       .then((r) => setHistory(r.data.cuts))
       .catch(() => setHistory([]));
   }, [client]);
@@ -504,7 +504,7 @@ function RegisterCutModal({
     if (!client) return;
     setBusy(true);
     try {
-      await api.post(`/barber/clients/${client.id}/register-cut`, {
+      await api.post(`/pro/clients/${client.id}/register-cut`, {
         notes: notes || undefined,
       });
       toast.success('Corte registado');
@@ -594,7 +594,7 @@ function PaymentLinkModal({
     setLink(null);
     try {
       const { data } = await api.post<{ url: string }>(
-        `/barber/clients/${client.id}/payment-link`,
+        `/pro/clients/${client.id}/payment-link`,
         { planId },
       );
       setLink(data.url);

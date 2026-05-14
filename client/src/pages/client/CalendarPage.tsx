@@ -72,7 +72,7 @@ export default function CalendarPage() {
                 <EmptyState
                   icon={CalendarIcon}
                   title="Sem marcações futuras"
-                  description="Marca um corte com o teu barbeiro."
+                  description="Marque un service avec votre professionnel."
                 />
               </div>
             ) : (
@@ -141,7 +141,7 @@ function AppointmentRow({
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <AppointmentStatusBadge status={appt.status} />
           <span className="text-xs text-muted">
-            {appt.durationMinutes} min · com {appt.barber?.name ?? 'professional'}
+            {appt.durationMinutes} min · com {appt.barber?.name ?? 'professionnel'}
           </span>
         </div>
       </div>
@@ -360,7 +360,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Algo que o barbeiro deva saber?"
+            placeholder="Quelque chose à préciser?"
           />
         </div>
       </div>

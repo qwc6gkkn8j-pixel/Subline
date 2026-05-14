@@ -30,7 +30,7 @@ export default function ReviewsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const response = await api.get<ReviewsResponse>('/barber/reviews', {
+      const response = await api.get<ReviewsResponse>('/pro/reviews', {
         params: { skip, take },
       });
       setData(response.data);

@@ -1,0 +1,347 @@
+================================================================================
+SUBLINE — RESUMO DO PROJETO
+Cola isto no início do teu Project no Claude para dar contexto completo
+================================================================================
+
+## O QUE É O SUBLINE
+
+Plataforma de gestão de barbearias com 3 roles:
+- Admin       → controlo total da plataforma
+- Barbeiro    → gere os seus clientes e subscrições
+- Cliente     → vê a sua subscrição e marca cortes
+
+---
+
+## STACK TÉCNICO ESCOLHIDO
+
+Frontend:  React 18 + TypeScript + Tailwind CSS
+Backend:   Node.js + Express + TypeScript
+Database:  PostgreSQL + Prisma ORM
+Pagamentos: Easypay (gateway PT — MBWay, Multibanco, Cartão)
+Chat:      Socket.io (real-time)
+Calendário: FullCalendar
+Emails:    Nodemailer (Gmail SMTP)
+Auth:      JWT (access 1h + refresh 7d) + bcrypt
+
+---
+
+## ESTADO ATUAL DO PROJETO
+
+- Esqueleto da app iniciado (estrutura base)
+- Conta Easypay: ainda não criada (sandbox gratuito em backoffice.test.easypay.pt)
+- Design system definido (ver abaixo)
+- Prompts completos já gerados (ver ficheiros anexos no Project)
+
+---
+
+## DESIGN SYSTEM
+
+Cores:
+  Primary:  #0080D0  (azul)
+  Dark:     #003D7A  (navy)
+  Accent:   #8B5CF6  (roxo)
+  Success:  #4CAF50  (verde)
+  Warning:  #F59E0B  (âmbar)
+  Danger:   #EF4444  (vermelho)
+  Text:     #1A1A1A
+  Surface:  #F5F5F5
+  Card:     #FFFFFF
+
+Componentes:
+  Cards:    white, radius 12px, shadow 0 2px 8px rgba(0,0,0,0.08)
+  Botões:   48px altura, radius 12px
+  Inputs:   border-only, radius 8px
+  Mobile:   bottom nav fixo com 5 ícones
+  Desktop:  sidebar 260px + main content
+
+Font: Inter, Segoe UI, system-ui
+
+---
+
+## PÁGINAS DA APP
+
+1. index.html   → Login / Register (seleção de role)
+2. admin.html   → Dashboard admin
+3. barber.html  → Dashboard barbeiro
+4. client.html  → Dashboard cliente
+
+---
+
+## FUNCIONALIDADES POR ROLE
+
+ADMIN:
+- Dashboard com KPIs (utilizadores, subscrições, receita, tickets)
+- Gestão de utilizadores (CRUD completo)
+- Criar planos de subscrição por barbeiro (nome, preço, cortes/mês)
+- Gestão de tickets de suporte
+- Logs de auditoria + exportar CSV/PDF
+
+BARBEIRO:
+- Dashboard com stats pessoais (clientes, receita, marcações)
+- Gerir clientes (adicionar, editar, eliminar)
+- Gerar link de pagamento Easypay para cliente específico
+- Ver cortes usados/restantes por cliente (progress bar)
+- Registar corte feito (decrementa contador do cliente)
+- Calendário semanal com todas as marcações
+- Chat direto com clientes (Socket.io)
+- Chat com suporte (tickets)
+
+CLIENTE:
+- Card de subscrição (plano, status, cortes restantes, data renovação)
+- Progress bar: X de Y cortes usados este mês
+- Ver e alterar plano (redireciona para link Easypay)
+- Histórico de pagamentos
+- Calendário mensal — só as suas marcações
+- Marcar corte (escolhe slot disponível do barbeiro)
+- Chat com barbeiro
+- Chat com suporte (tickets)
+
+---
+
+## FLUXO DE PAGAMENTO (EASYPAY)
+
+1. Admin cria plano na BD (nome, preço, cortes/mês, barbeiro)
+2. Barbeiro seleciona cliente + plano → clica "Gerar Link"
+3. Backend chama POST https://api.sandbox.easypay.pt/2.0/checkout
+4. Retorna URL de pagamento → barbeiro copia e envia ao cliente
+5. Cliente paga via MBWay/Multibanco/Cartão na página Easypay
+6. Easypay envia webhook → POST /api/webhooks/easypay?secret=xxx
+7. Backend ativa subscrição + reset cortes + notifica cliente
+
+Credenciais sandbox (para testar, gratuitas):
+  AccountId: 2b0f63e2-9fb5-4e52-aca0-b4bf0339bbe6
+  ApiKey:    eae4aa59-8e5b-4ec2-887d-b02768481a92
+  Base URL:  https://api.sandbox.easypay.pt/2.0
+  Cartão teste: 4012001038443335 / data futura / CVV 123
+
+---
+
+## FICHEIRO .ENV COMPLETO
+
+# Database
+DATABASE_URL=postgresql://user:pass@host:5432/subline
+
+# Auth
+JWT_SECRET=gera-um-secret-longo-aleatorio
+JWT_REFRESH_SECRET=outro-secret-diferente
+
+# Easypay
+EASYPAY_ACCOUNT_ID=2b0f63e2-9fb5-4e52-aca0-b4bf0339bbe6
+EASYPAY_API_KEY=eae4aa59-8e5b-4ec2-887d-b02768481a92
+EASYPAY_ENV=sandbox
+WEBHOOK_SECRET=gera-outro-secret-aleatorio
+
+# Email
+EMAIL_FROM=noreply@subline.pt
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=teu@gmail.com
+EMAIL_PASS=app-password-gmail
+
+# URLs
+APP_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:3000
+
+---
+
+## SCHEMA PRISMA — MODELOS NECESSÁRIOS
+
+User           (id, email, passwordHash, role, status, createdAt)
+Barber         (id, userId, name, phone, address, bio, rating)
+Client         (id, userId, name, email, phone, barberId)
+Plan           (id, barberId, name, description, price, cutsPerMonth, method, isActive)
+Subscription   (id, clientId, planId, status, cutsUsed, cutsTotal,
+                easypayCheckoutId, currentPeriodStart, currentPeriodEnd)
+Payment        (id, subscriptionId, amount, status, method,
+                easypayTransactionId, paymentDate)
+Appointment    (id, barberId, clientId, service, date, startTime, endTime,
+                durationMinutes, status, notes, clientNotes, cancelledBy)
+BarberAvailability (id, barberId, dayOfWeek, startTime, endTime, slotDuration, isActive)
+BarberUnavailable  (id, barberId, dateFrom, dateTo, reason)
+Conversation   (id, type, barberId, clientId, adminId)
+Message        (id, conversationId, senderId, senderRole, content, type, imageUrl, isRead)
+SupportTicket  (id, requesterId, requesterRole, conversationId, subject,
+                category, priority, status)
+Notification   (id, userId, type, title, body, isRead, data)
+AuditLog       (id, userId, action, entityType, entityId, details)
+
+---
+
+## EASYPAY — CHAMADA PRINCIPAL (criar link de pagamento)
+
+POST https://api.sandbox.easypay.pt/2.0/checkout
+Headers:
+  AccountId: <EASYPAY_ACCOUNT_ID>
+  ApiKey:    <EASYPAY_API_KEY>
+  Content-Type: application/json
+
+Body:
+{
+  "type": "sale",
+  "payment": {
+    "methods": ["mbway", "mb", "cc"],
+    "type": "frequent",
+    "frequency": "1M",
+    "value": 49.99,
+    "currency": "EUR"
+  },
+  "customer": {
+    "name": "João Silva",
+    "email": "joao@email.com",
+    "phone": "912345678"
+  },
+  "capture": {
+    "descriptive": "Plano Gold — SUBLINE"
+  }
+}
+
+Resposta: { "id": "checkout_xxx", "payment": { "url": "https://pay.easypay.pt/..." } }
+→ Guarda o id como easypayCheckoutId na Subscription
+→ Envia o url ao cliente
+
+---
+
+## WEBHOOK EASYPAY — LÓGICA
+
+POST /api/webhooks/easypay?secret=WEBHOOK_SECRET
+
+Pagamento confirmado:
+  event.type === "capture" && event.status === "success"
+  → subscription.status = "active"
+  → subscription.cutsUsed = 0
+  → subscription.currentPeriodStart = hoje
+  → subscription.currentPeriodEnd = hoje + 30 dias
+  → criar Payment (status: "paid")
+  → enviar email ao cliente
+  → criar Notification
+
+Pagamento falhado:
+  → subscription.status = "payment_failed"
+  → notificar cliente + barbeiro
+
+Responder sempre: 200 { received: true }
+
+---
+
+## SISTEMA DE CORTES
+
+- Cada plano tem cutsPerMonth (ex: Gold = 4 cortes/mês)
+- Subscription guarda cutsUsed (começa em 0, reset no webhook de renovação)
+- Barbeiro regista corte: POST /api/barber/clients/:id/register-cut
+  → cutsUsed += 1
+  → se cutsUsed >= cutsTotal → notificação "limite atingido"
+- Cliente vê progress bar: "3 de 4 cortes usados — renova em 5 dias"
+
+---
+
+## CALENDÁRIO — LÓGICA DE SLOTS
+
+GET /api/calendar/slots?barberId=xxx&date=2025-06-10
+1. Busca horário do barbeiro para esse dia da semana (BarberAvailability)
+2. Busca marcações existentes nessa data (Appointment)
+3. Busca datas indisponíveis (BarberUnavailable)
+4. Calcula slots livres
+5. Retorna array de slots disponíveis
+
+---
+
+## CHAT — SOCKET.IO EVENTS
+
+Client → Server:
+  join_room     { conversationId }
+  send_message  { conversationId, content, type }
+  typing_start  { conversationId }
+  typing_stop   { conversationId }
+  mark_read     { conversationId }
+
+Server → Client:
+  new_message   { message }
+  user_typing   { userId }
+  user_stopped  { userId }
+  message_read  { conversationId }
+
+---
+
+## ORDEM DE DESENVOLVIMENTO (MVP)
+
+SPRINT 1 — Base
+  Schema Prisma + migração + seed
+  Auth: register, login, logout, JWT, refresh token
+  Role-based routing + guards
+  UI shell: sidebar (desktop), bottom nav (mobile)
+
+SPRINT 2 — Core
+  Admin: KPIs + gestão utilizadores + criação de planos
+  Barbeiro: lista de clientes + CRUD + gerar link Easypay
+  Webhook Easypay: receber + processar + ativar subscrição
+  Cliente: dashboard + subscrição + cortes restantes
+
+SPRINT 3 — Features
+  Sistema de cortes (register-cut + progress bar + reset)
+  Calendário (barbeiro semana + cliente mês + booking)
+  Chat (Socket.io + DM barbeiro-cliente + tickets suporte)
+  Notificações (in-app + email)
+
+SPRINT 4 — Polish
+  Design SUBLINE completo (cores, logo, responsivo)
+  Mobile: bottom nav, touch-friendly
+  Error handling + loading states + toasts
+  Testes end-to-end
+
+---
+
+## PASSOS IMEDIATOS (o que fazer agora)
+
+PASSO 1 — Criar conta Easypay sandbox (20 min, fora do código)
+  → backoffice.test.easypay.pt
+  → Criar conta → copiar AccountId + ApiKey → guardar no .env
+  → Configurações → Notificações → adicionar URL webhook
+
+PASSO 2 — Instalar ngrok (para testar webhooks localmente)
+  → npx ngrok http 3001
+  → URL ngrok → colar no backoffice Easypay como webhook URL
+
+PASSO 3 — Completar o esqueleto da app
+  → Confirmar auth a funcionar (register + login + JWT)
+  → Adicionar modelos Plan, Subscription, Payment ao schema.prisma
+  → npx prisma migrate dev --name add_payments
+
+PASSO 4 — Integrar Easypay (3 ficheiros)
+  → src/services/easypay.service.ts (createCheckoutLink, cancelSubscription)
+  → POST /api/barber/clients/:id/payment-link
+  → POST /api/webhooks/easypay
+
+PASSO 5 — Frontend pagamentos
+  → Modal "Gerar Link" no dashboard do barbeiro
+  → Card subscrição + progress bar no dashboard do cliente
+
+---
+
+## DEPENDÊNCIAS NPM
+
+Backend:
+  npm install express prisma @prisma/client
+  npm install jsonwebtoken bcryptjs cors dotenv zod
+  npm install axios socket.io node-cron nodemailer
+  npm install -D typescript @types/express ts-node nodemon
+
+Frontend:
+  npm create vite@latest subline-frontend -- --template react-ts
+  npm install tailwindcss react-router-dom axios
+  npm install socket.io-client lucide-react react-hot-toast
+  npm install @fullcalendar/react @fullcalendar/daygrid @fullcalendar/timegrid @fullcalendar/interaction
+
+---
+
+## NOTAS IMPORTANTES
+
+- Easypay não tem SDK Node.js oficial → usa axios para chamadas REST
+- Webhook não tem assinatura (como Stripe) → protege com ?secret= no URL
+- Cada barbeiro NÃO tem conta Easypay própria → só UMA conta (a tua)
+- Admin gere os planos, barbeiro gera os links, Easypay processa tudo
+- Para produção: criar conta real em easypay.pt (requer documentos empresa)
+- NUNCA commitar o .env para o GitHub
+
+================================================================================
+FIM DO RESUMO — SUBLINE PROJECT CONTEXT
+================================================================================

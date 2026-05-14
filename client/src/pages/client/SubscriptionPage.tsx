@@ -150,8 +150,8 @@ export default function SubscriptionPage() {
             ))}
           </div>
           <Banner tone="info" className="mt-4">
-            Para mudar de plano, contacta o teu barbeiro pelo chat. Pagamentos via Stripe ativam
-            automaticamente quando o barbeiro tem a conta ligada.
+            Para mudar de plano, contacte o seu profissional pelo chat. Pagamentos via Stripe ativam
+            automaticamente quando o profissional tem a conta ligada.
           </Banner>
         </section>
       )}

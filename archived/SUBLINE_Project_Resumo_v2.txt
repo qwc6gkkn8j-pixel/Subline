@@ -1,0 +1,188 @@
+================================================================================
+SUBLINE — RESUMO DO PROJETO v2
+Cola isto no início do teu Project no Claude para dar contexto completo
+Atualizado: Maio 2026 — Gateway oficial migrado para Stripe Connect
+================================================================================
+
+## O QUE É O SUBLINE
+
+Plataforma SaaS de gestão de barbearias com 3 roles:
+- Admin       → controlo total da plataforma
+- Barbeiro    → gere os seus clientes, subscrições e recebimentos
+- Cliente     → vê a sua subscrição e marca cortes
+
+Em produção em: https://subline-client-production.up.railway.app
+
+---
+
+## STACK TÉCNICO
+
+Frontend:   React 18 + TypeScript + Tailwind CSS
+Backend:    Node.js + Express + TypeScript
+Database:   PostgreSQL + Prisma ORM
+Pagamentos: Stripe Connect (Express accounts, embedded onboarding)
+Auth:       JWT (access 1h + refresh 7d) + bcrypt
+Deploy:     Railway (2 serviços: subline-server + subline-client)
+Repo:       github.com/qwc6gkkn8j-pixel/Subline (branch main)
+
+---
+
+## GATEWAY DE PAGAMENTOS — STRIPE CONNECT (OFICIAL)
+
+### Decisão de arquitetura
+Easypay foi avaliado e descartado. O gateway oficial é Stripe Connect com
+Express accounts e Embedded Components. Cada barbeiro tem a sua própria
+conta Stripe — a plataforma não toca no dinheiro.
+
+### Como funciona
+1. Barbeiro clica "Configurar recebimentos" no Perfil
+2. Backend cria automaticamente uma conta Stripe Express para ele
+3. Onboarding KYC feito dentro da app (sem sair para stripe.com)
+4. Clientes pagam diretamente ao barbeiro via Payment Links Stripe
+5. Subline cobra fee ao barbeiro (application_fee_amount)
+
+### Fluxo técnico
+- POST /api/barber/stripe/create-account  → cria Express account
+- POST /api/barber/stripe/account-session → cria Account Session (embedded UI)
+- POST /api/barber/stripe/verify          → verifica charges_enabled
+- GET  /api/barber/stripe/status          → estado da conta do barbeiro
+- Frontend: @stripe/connect-js + @stripe/react-connect-js
+
+### Env vars necessárias (Railway subline-server)
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+(STRIPE_CLIENT_ID já não é necessário — OAuth removido)
+
+---
+
+## INFRAESTRUTURA RAILWAY
+
+### subline-server (backend)
+URL:    https://subline-server-production.up.railway.app
+Branch: main
+Build:  npm --workspace server run build
+Start:  npx prisma migrate deploy --schema server/prisma/schema.prisma && node server/dist/index.js
+Health: GET /api/health → { ok: true }
+
+Env vars chave:
+  DATABASE_URL, JWT_ACCESS_SECRET, JWT_REFRESH_SECRET
+  APP_URL=https://subline-client-production.up.railway.app
+  API_URL=https://subline-server-production.up.railway.app
+  CORS_ORIGIN=https://subline-client-production.up.railway.app
+  STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
+
+### subline-client (frontend)
+URL:         https://subline-client-production.up.railway.app
+Branch:      main
+Root dir:    client
+Build:       npm run build
+Start:       npx vite preview --host --port $PORT
+
+---
+
+## ESTADO ATUAL DO PROJETO (Maio 2026)
+
+### Implementado e em produção
+- Auth completo (JWT, refresh, RBAC, 3 roles)
+- Dashboard Admin (KPIs, gestão utilizadores, planos, logs)
+- Dashboard Barbeiro (clientes, serviços, calendário, staff, planos, reviews, loja, chat, suporte)
+- Dashboard Cliente (subscrição, cortes, marcações, chat, suporte)
+- Dashboard Staff (badge, check-in)
+- Sistema de subscrições + planos
+- Stripe Connect embedded (onboarding + payouts sem sair da app)
+- Webhooks Stripe (checkout.completed, invoice.payment_succeeded/failed, subscription.deleted)
+- Sistema de notificações in-app
+- Chat barbeiro-cliente
+- Tickets de suporte
+- Calendário + marcações
+- Sistema de cortes (cutsUsed/cutsTotal + progress bar)
+- Reviews e avaliações
+- Gestão de staff
+- Loja (ShopPage)
+- Multi-role architecture
+
+### Migrações aplicadas na DB Railway
+- 20260508212734_add_staff_member_id
+
+---
+
+## DESIGN SYSTEM
+
+Cores:
+  Primary:  #0080D0  (azul)
+  Dark:     #003D7A  (navy)
+  Accent:   #8B5CF6  (roxo)
+  Success:  #4CAF50  (verde)
+  Warning:  #F59E0B  (âmbar)
+  Danger:   #EF4444  (vermelho)
+  Text:     #1A1A1A
+  Surface:  #F5F5F5
+  Card:     #FFFFFF
+
+Componentes:
+  Cards:    white, radius 12px, shadow 0 2px 8px rgba(0,0,0,0.08)
+  Botões:   48px altura, radius 12px
+  Inputs:   border-only, radius 8px
+  Mobile:   bottom nav fixo com 5 ícones
+  Desktop:  sidebar 260px + main content
+
+Font: Inter, Segoe UI, system-ui
+
+---
+
+## SCHEMA PRISMA — MODELOS PRINCIPAIS
+
+User           (id, email, passwordHash, role, status, createdAt)
+Barber         (id, userId, name, phone, address, bio, rating,
+                stripeAccountId, stripeConnected)
+Client         (id, userId, name, email, phone, barberId)
+Plan           (id, barberId, name, description, price, cutsPerMonth,
+                stripeProductId, stripePriceId, stripePaymentLink, isActive)
+Subscription   (id, clientId, planId, status, cutsUsed, renewalDate,
+                stripeSubscriptionId, stripeCustomerId)
+Payment        (id, subscriptionId, amount, status, method,
+                stripePaymentIntentId, stripeInvoiceId)
+Appointment    (id, barberId, clientId, staffMemberId, service, date,
+                startTime, endTime, durationMinutes, status, notes)
+BarberAvailability (id, barberId, staffMemberId, dayOfWeek, startTime,
+                    endTime, slotDuration, breakStart, breakEnd, isActive)
+BarberUnavailable  (id, barberId, dateFrom, dateTo, reason)
+Conversation   (id, type, barberId, clientId, adminId)
+Message        (id, conversationId, senderId, senderRole, content, type, isRead)
+SupportTicket  (id, requesterId, requesterRole, conversationId, subject,
+                category, priority, status)
+Notification   (id, userId, type, title, body, isRead, data)
+AuditLog       (id, userId, action, entityType, entityId, details)
+StaffMember    (id, barberId, userId, name, role, isActive)
+Review         (id, barberId, clientId, rating, comment)
+
+---
+
+## FICHEIROS CHAVE
+
+server/src/lib/stripe.ts          → createConnectedAccount, createAccountSession,
+                                     retrieveConnectedAccount, createPlanOnConnectedAccount,
+                                     cancelSubscription, verifyWebhookSignature
+server/src/routes/barber.ts       → todas as rotas do barbeiro incl. Stripe Connect
+server/src/routes/stripe.ts       → webhook handler + /api/public/stripe/status
+server/src/lib/env.ts             → validação de env vars (zod)
+client/src/components/stripe/     → StripeConnect.tsx (embedded onboarding + payouts)
+client/src/pages/barber/          → ProfilePage, PlansPage, DashboardPage, etc.
+railway.toml                      → config build/start do servidor Railway
+client/railway.toml               → config build/start do cliente Railway
+
+---
+
+## NOTAS IMPORTANTES
+
+- OAuth Stripe (Standard accounts) foi removido — usar apenas Embedded Components
+- STRIPE_CLIENT_ID não é necessário na nova arquitetura
+- Cada barbeiro tem a sua própria conta Express → recebe diretamente
+- A plataforma usa application_fee_amount para cobrar fee aos barbeiros
+- Webhooks idempotentes: verificam stripePaymentIntentId / stripeInvoiceId antes de criar Payment
+- O client usa vite preview para servir o SPA no Railway
+
+================================================================================
+FIM DO RESUMO v2 — SUBLINE PROJECT CONTEXT
+================================================================================

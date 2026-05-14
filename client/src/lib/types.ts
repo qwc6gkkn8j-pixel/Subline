@@ -72,6 +72,9 @@ export interface Barber {
   user?: { email: string; fullName?: string };
 }
 
+/** Alias for the generic professional role (formerly barber-specific). */
+export type Pro = Barber;
+
 export interface Client {
   id: string;
   userId: string;

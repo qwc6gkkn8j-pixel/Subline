@@ -25,7 +25,7 @@ export default function PlansPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<{ plans: (Plan & { _count?: { subscriptions: number } })[] }>('/barber/plans');
+      const { data } = await api.get<{ plans: (Plan & { _count?: { subscriptions: number } })[] }>('/pro/plans');
       setPlans(data.plans);
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -42,10 +42,10 @@ export default function PlansPage() {
   const toggleActive = async (p: Plan) => {
     try {
       if (p.isActive) {
-        await api.delete(`/barber/plans/${p.id}`);
+        await api.delete(`/pro/plans/${p.id}`);
         toast.success('Plano desativado');
       } else {
-        await api.put(`/barber/plans/${p.id}`, { isActive: true });
+        await api.put(`/pro/plans/${p.id}`, { isActive: true });
         toast.success('Plano reativado');
       }
       void load();
@@ -217,10 +217,10 @@ function PlanFormModal({
         isActive,
       };
       if (isEdit) {
-        await api.put(`/barber/plans/${existing!.id}`, payload);
+        await api.put(`/pro/plans/${existing!.id}`, payload);
         toast.success('Plano atualizado');
       } else {
-        await api.post('/barber/plans', payload);
+        await api.post('/pro/plans', payload);
         toast.success('Plano criado');
       }
       onSaved();

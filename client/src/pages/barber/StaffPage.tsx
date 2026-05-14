@@ -100,7 +100,7 @@ export default function StaffPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<{ staff: StaffMember[] }>('/barber/staff', {
+      const { data } = await api.get<{ staff: StaffMember[] }>('/pro/staff', {
         params: showInactive ? { includeInactive: true } : undefined,
       });
       setStaff(data.staff);
@@ -189,7 +189,7 @@ export default function StaffPage() {
                       onClick={() => {
                         if (!confirm(`Desativar ${s.name}?`)) return;
                         void api
-                          .delete(`/barber/staff/${s.id}`)
+                          .delete(`/pro/staff/${s.id}`)
                           .then(() => {
                             toast.success('Staff desativado');
                             void load();
@@ -263,10 +263,10 @@ function StaffFormModal({
     setBusy(true);
     try {
       if (isEdit) {
-        await api.put(`/barber/staff/${existing!.id}`, { name, role });
+        await api.put(`/pro/staff/${existing!.id}`, { name, role });
         toast.success('Staff atualizado');
       } else {
-        await api.post('/barber/staff', {
+        await api.post('/pro/staff', {
           name,
           role,
           createAccount,
@@ -364,7 +364,7 @@ function HistoryModal({ staff, onClose }: { staff: StaffMember; onClose: () => v
     (async () => {
       try {
         const { data } = await api.get<{ entries: TimeEntry[] }>(
-          `/barber/staff/${staff.id}/entries`,
+          `/pro/staff/${staff.id}/entries`,
           { params: { days: 30 } },
         );
         if (!cancelled) setEntries(data.entries);

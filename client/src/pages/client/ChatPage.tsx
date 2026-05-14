@@ -67,7 +67,7 @@ export default function ChatPage() {
             <LifeBuoy size={16} /> Suporte
           </button>
           <button className="btn-primary" onClick={() => void startBarberConv()}>
-            <Plus size={16} /> Falar com barbeiro
+            <Plus size={16} /> Falar com profissional
           </button>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function ChatPage() {
                 setActive(null);
               }}
             >
-              Barbeiro
+              Professionnel
             </button>
             <button
               className={`py-3 text-sm font-medium ${
@@ -108,7 +108,7 @@ export default function ChatPage() {
               title={tab === 'barber' ? 'Sem conversas' : 'Sem tickets'}
               description={
                 tab === 'barber'
-                  ? 'Inicia uma conversa com o teu barbeiro.'
+                  ? 'Inicie uma conversa com o seu profissional.'
                   : 'Abre um ticket de suporte se precisares de ajuda.'
               }
             />

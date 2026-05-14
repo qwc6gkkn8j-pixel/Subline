@@ -29,7 +29,7 @@ export function StripeConnect({ publishableKey, accountId, connected, onConnecte
   });
 
   const fetchClientSecret = async () => {
-    const { data } = await api.post<{ clientSecret: string }>('/barber/stripe/account-session');
+    const { data } = await api.post<{ clientSecret: string }>('/pro/stripe/account-session');
     return data.clientSecret;
   };
 
@@ -58,7 +58,7 @@ export function StripeConnect({ publishableKey, accountId, connected, onConnecte
   const handleStart = async () => {
     setMode('loading');
     try {
-      await api.post('/barber/stripe/create-account');
+      await api.post('/pro/stripe/create-account');
       await initInstance();
       setMode('onboarding');
     } catch (err) {
@@ -80,7 +80,7 @@ export function StripeConnect({ publishableKey, accountId, connected, onConnecte
 
   const handleExit = async () => {
     try {
-      const { data } = await api.post<{ connected: boolean }>('/barber/stripe/verify');
+      const { data } = await api.post<{ connected: boolean }>('/pro/stripe/verify');
       if (data.connected) {
         toast.success('Conta Stripe ativada com sucesso! ✅');
         onConnected();

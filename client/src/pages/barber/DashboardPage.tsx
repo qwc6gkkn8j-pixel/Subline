@@ -30,8 +30,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const todayStr = isoDate(new Date());
     Promise.all([
-      api.get<Stats>('/barber/statistics'),
-      api.get<{ appointments: Appointment[] }>('/barber/appointments', {
+      api.get<Stats>('/pro/statistics'),
+      api.get<{ appointments: Appointment[] }>('/pro/appointments', {
         params: { from: todayStr, to: todayStr },
       }),
     ])

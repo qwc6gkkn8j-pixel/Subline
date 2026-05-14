@@ -63,7 +63,9 @@ export function createApp() {
   app.use('/api/public', stripePublicRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/barber', barberRouter);
+  app.use('/api/pro', barberRouter);
   app.use('/api/barber/shop', barberShopRouter);
+  app.use('/api/pro/shop', barberShopRouter);
   app.use('/api/client', clientRouter);
   app.use('/api/client/shop', clientShopRouter);
   app.use('/api/staff', staffRouter);

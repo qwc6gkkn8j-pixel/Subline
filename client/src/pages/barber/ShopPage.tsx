@@ -25,7 +25,7 @@ export default function ShopPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get<{ products: Product[] }>('/barber/shop/products');
+      const { data } = await api.get<{ products: Product[] }>('/pro/shop/products');
       setProducts(data.products);
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -42,10 +42,10 @@ export default function ShopPage() {
   const toggleActive = async (p: Product) => {
     try {
       if (p.isActive) {
-        await api.delete(`/barber/shop/products/${p.id}`);
+        await api.delete(`/pro/shop/products/${p.id}`);
         toast.success('Produto desativado');
       } else {
-        await api.put(`/barber/shop/products/${p.id}`, { isActive: true });
+        await api.put(`/pro/shop/products/${p.id}`, { isActive: true });
         toast.success('Produto reativado');
       }
       void load();
@@ -196,10 +196,10 @@ function ProductFormModal({
         isActive,
       };
       if (isEdit) {
-        await api.put(`/barber/shop/products/${existing!.id}`, payload);
+        await api.put(`/pro/shop/products/${existing!.id}`, payload);
         toast.success('Produto atualizado');
       } else {
-        await api.post('/barber/shop/products', payload);
+        await api.post('/pro/shop/products', payload);
         toast.success('Produto criado');
       }
       onSaved();
