@@ -60,6 +60,7 @@ export async function createConnectedAccount(email: string): Promise<string> {
   const account = await getStripe().accounts.create({
     type: 'express',
     email,
+    country: 'LU',
     capabilities: {
       card_payments: { requested: true },
       transfers: { requested: true },

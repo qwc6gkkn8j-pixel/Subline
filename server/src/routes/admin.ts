@@ -25,7 +25,7 @@ adminRouter.get(
         _sum: { amount: true },
         where: {
           status: 'paid',
-          paymentDate: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
+          createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
         },
       }),
       prisma.user.count({

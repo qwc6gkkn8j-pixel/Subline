@@ -10,7 +10,6 @@ import { formatRelative } from '@/lib/utils';
 import type {
   SupportTicket,
   TicketCategory,
-  Conversation,
 } from '@/lib/types';
 import {
   TICKET_CATEGORY_LABEL,
@@ -191,8 +190,8 @@ export default function SupportPage() {
               </div>
             </div>
             <ChatWindow
-              conversation={(active.conversation as Conversation) ?? {
-                id: active.conversationId,
+              conversation={{
+                id: active.id,
                 type: 'support' as const,
                 barberId: null,
                 clientId: null,

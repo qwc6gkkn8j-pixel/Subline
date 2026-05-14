@@ -503,14 +503,21 @@ clientRouter.get(
     const dayEnd = new Date(date);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const [rules, appointments, unavailable] = await Promise.all([
-      prisma.barberAvailability.findMany({
-        where: {
-          barberId: client.barberId,
-          isActive: true,
-          ...(staffId && { staffMemberId: staffId }),
-        },
-      }),
+    // When staffId is given, prefer staff-specific rules; fall back to general (null) rules.
+    let availabilityRules = await prisma.barberAvailability.findMany({
+      where: {
+        barberId: client.barberId,
+        isActive: true,
+        ...(staffId ? { staffMemberId: staffId } : {}),
+      },
+    });
+    if (staffId && availabilityRules.length === 0) {
+      availabilityRules = await prisma.barberAvailability.findMany({
+        where: { barberId: client.barberId, isActive: true, staffMemberId: null },
+      });
+    }
+
+    const [appointments, unavailable] = await Promise.all([
       prisma.appointment.findMany({
         where: {
           barberId: client.barberId,
@@ -527,7 +534,7 @@ clientRouter.get(
 
     const slots = computeAvailableSlots({
       date,
-      rules,
+      rules: availabilityRules,
       booked: appointments,
       unavailable,
     });
