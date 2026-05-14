@@ -18,10 +18,9 @@ export function BottomNav({ items }: BottomNavProps) {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-line sm:hidden"
+      className="fixed bottom-0 inset-x-0 z-30 bg-[#0A0E1A] border-t border-line sm:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      {/* Min height 64px + generous touch targets for iOS/Android */}
       <ul className="flex items-center justify-around h-16">
         {items.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + '/');
@@ -31,23 +30,22 @@ export function BottomNav({ items }: BottomNavProps) {
               <Link
                 to={item.to}
                 className={cn(
-                  // 44px minimum tap target (Apple HIG + Material guidelines)
-                  'flex flex-col items-center justify-center gap-1 w-full h-full min-h-[44px] text-xs select-none',
+                  'flex flex-col items-center justify-center gap-1 w-full h-full min-h-[44px] text-[9.5px] font-semibold select-none transition-colors',
                   active ? 'text-brand' : 'text-muted',
                   item.primary && 'relative',
                 )}
               >
                 {item.primary ? (
-                  <span className="absolute -top-4 w-12 h-12 rounded-full bg-brand-gradient text-white shadow-card-lg flex items-center justify-center">
+                  <span className="absolute -top-4 w-12 h-12 rounded-pill bg-brand-gradient text-white shadow-blue flex items-center justify-center">
                     <Icon size={24} />
                   </span>
                 ) : (
                   <>
-                    <Icon size={22} strokeWidth={active ? 2.2 : 1.8} />
-                    <span className="leading-none font-medium">{item.label}</span>
+                    <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
+                    <span className="leading-none">{item.label}</span>
                   </>
                 )}
-                {item.primary && <span className="mt-7 leading-none font-medium">{item.label}</span>}
+                {item.primary && <span className="mt-7 leading-none">{item.label}</span>}
               </Link>
             </li>
           );

@@ -36,12 +36,12 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
   };
 
   return (
-    <div className="min-h-screen bg-surface flex">
+    <div className="min-h-screen bg-bg flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 bg-white border-r border-line sticky top-0 h-screen">
+      <aside className="hidden lg:flex lg:flex-col w-64 bg-surface border-r border-line sticky top-0 h-screen">
         <div className="h-16 px-6 flex items-center gap-2 border-b border-line">
           <Logo size={32} />
-          <span className="font-bold text-ink">SUBLINE</span>
+          <span className="font-bold text-ink tracking-widest text-sm">SUBLINE</span>
         </div>
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map(({ to, icon: Icon, label, end }) => (
@@ -53,8 +53,8 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                 cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand/10 text-brand'
-                    : 'text-ink hover:bg-surface',
+                    ? 'bg-brand/15 text-brand'
+                    : 'text-muted hover:bg-card hover:text-ink',
                 )
               }
             >
@@ -67,7 +67,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/5 rounded-button"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10 rounded-button transition-colors"
           >
             <LogOut size={16} /> Logout
           </button>
@@ -77,13 +77,13 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
       {/* Main column */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 bg-white border-b border-line">
+        <header className="sticky top-0 z-30 bg-surface border-b border-line">
           <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(true)}
-                className="lg:hidden p-2 -ml-2 rounded-button hover:bg-surface"
+                className="lg:hidden p-2 -ml-2 rounded-button hover:bg-card text-muted"
                 aria-label="Open navigation"
               >
                 <Menu size={20} />
@@ -91,7 +91,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
               <Link to="/" className="lg:hidden flex items-center">
                 <Logo size={32} />
               </Link>
-              <h1 className="text-lg font-semibold text-ink truncate">{title}</h1>
+              <h1 className="text-base font-semibold text-ink truncate">{title}</h1>
             </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
@@ -99,7 +99,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                 <button
                   type="button"
                   onClick={() => setProfileOpen((v) => !v)}
-                  className="flex items-center gap-2 hover:bg-surface rounded-button p-1 pr-2"
+                  className="flex items-center gap-2 hover:bg-card rounded-button p-1 pr-2 transition-colors"
                 >
                   <Avatar name={user?.fullName ?? '?'} size={32} />
                   <span className="hidden sm:inline text-sm font-medium text-ink max-w-[140px] truncate">
@@ -115,7 +115,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                       aria-label="Close menu"
                       onClick={() => setProfileOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-line rounded-card shadow-card-lg overflow-hidden z-40">
+                    <div className="absolute right-0 mt-2 w-56 bg-card border border-line rounded-card shadow-card-lg overflow-hidden z-40">
                       <div className="px-4 py-3 border-b border-line">
                         <p className="text-sm font-medium text-ink truncate">{user?.fullName}</p>
                         <p className="text-xs text-muted truncate">{user?.email}</p>
@@ -123,7 +123,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                       <button
                         type="button"
                         onClick={onLogout}
-                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-danger hover:bg-surface"
+                        className="w-full flex items-center gap-2 px-4 py-3 text-sm text-danger hover:bg-danger/10 transition-colors"
                       >
                         <LogOut size={16} /> Logout
                       </button>
@@ -140,20 +140,20 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
           <div className="lg:hidden fixed inset-0 z-40">
             <button
               type="button"
-              className="absolute inset-0 bg-black/40"
+              className="absolute inset-0 bg-black/60"
               aria-label="Close menu"
               onClick={() => setMobileNavOpen(false)}
             />
-            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-white shadow-card-lg flex flex-col">
+            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface shadow-card-lg flex flex-col border-r border-line">
               <div className="h-16 px-4 flex items-center justify-between border-b border-line">
                 <div className="flex items-center gap-2">
                   <Logo size={28} />
-                  <span className="font-bold text-ink">SUBLINE</span>
+                  <span className="font-bold text-ink tracking-widest text-sm">SUBLINE</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(false)}
-                  className="p-2 rounded-button hover:bg-surface"
+                  className="p-2 rounded-button hover:bg-card text-muted"
                   aria-label="Close"
                 >
                   <X size={20} />
@@ -168,8 +168,8 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                     onClick={() => setMobileNavOpen(false)}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium',
-                        isActive ? 'bg-brand/10 text-brand' : 'text-ink hover:bg-surface',
+                        'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
+                        isActive ? 'bg-brand/15 text-brand' : 'text-muted hover:bg-card hover:text-ink',
                       )
                     }
                   >
@@ -182,7 +182,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/5 rounded-button"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger hover:bg-danger/10 rounded-button transition-colors"
                 >
                   <LogOut size={16} /> Logout
                 </button>

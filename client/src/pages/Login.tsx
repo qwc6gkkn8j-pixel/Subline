@@ -21,15 +21,15 @@ export default function Login() {
   const [tab, setTab] = useState<Tab>('login');
 
   return (
-    <div className="min-h-screen bg-brand-gradient-soft flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-6">
-          <Logo size={80} showText />
-          <p className="text-sm text-muted mt-2">Business management, simplified.</p>
+        <div className="flex flex-col items-center mb-8">
+          <Logo size={84} showText />
+          <p className="text-xs text-muted mt-3 tracking-widest uppercase">Everything you need</p>
         </div>
 
-        <div className="bg-white rounded-card shadow-card p-6 sm:p-8">
-          <div className="grid grid-cols-2 bg-surface rounded-button p-1 mb-6">
+        <div className="bg-card rounded-card border border-line p-6 sm:p-8">
+          <div className="grid grid-cols-2 bg-surface rounded-button border border-line p-1 mb-6">
             <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
               Sign In
             </TabButton>
@@ -63,8 +63,8 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'h-10 rounded-button text-sm font-medium transition-all',
-        active ? 'bg-white text-ink shadow-card' : 'text-muted hover:text-ink',
+        'h-10 rounded-button text-sm font-semibold transition-all',
+        active ? 'bg-brand text-white shadow-blue' : 'text-muted hover:text-ink',
       )}
     >
       {children}
@@ -386,8 +386,8 @@ function RoleRadio({
       className={cn(
         'h-12 rounded-button border text-sm font-medium transition-all',
         active
-          ? 'border-brand bg-brand/10 text-brand'
-          : 'border-line bg-white text-muted hover:text-ink',
+          ? 'border-brand bg-brand/15 text-brand'
+          : 'border-line bg-card text-muted hover:text-ink',
       )}
       aria-pressed={active}
     >
