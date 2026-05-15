@@ -626,3 +626,212 @@ adminRouter.post(
     res.json({ message: `Sent ${count} appointment reminders` });
   }),
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// GESTÃO DE PROS — Feature #1
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET /api/admin/pros — Lista todos os Pros com filtros e estado Stripe
+adminRouter.get(
+  '/pros',
+  asyncHandler(async (req, res) => {
+    const q = typeof req.query.q === 'string' ? req.query.q : undefined;
+    const proStatus = typeof req.query.proStatus === 'string' ? req.query.proStatus : undefined;
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = {};
+    if (proStatus && ['active', 'suspended', 'pending_onboarding'].includes(proStatus)) {
+      where.proStatus = proStatus;
+    }
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { user: { email: { contains: q, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [pros, total] = await Promise.all([
+      prisma.barber.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { id: true, email: true, status: true, createdAt: true } },
+          _count: { select: { clients: true, appointments: true } },
+        },
+      }),
+      prisma.barber.count({ where }),
+    ]);
+
+    res.json({
+      pros: pros.map((p) => ({
+        id: p.id,
+        userId: p.userId,
+        name: p.name,
+        email: p.user.email,
+        phone: p.phone,
+        address: p.address,
+        city: p.city,
+        country: p.country,
+        categories: p.categories,
+        rating: p.rating,
+        proStatus: p.proStatus,
+        stripeConnected: p.stripeConnected,
+        stripeAccountId: p.stripeAccountId,
+        userStatus: p.user.status,
+        clientCount: p._count.clients,
+        appointmentCount: p._count.appointments,
+        createdAt: p.createdAt,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  }),
+);
+
+// GET /api/admin/pros/:barberId — Detalhes de um Pro
+adminRouter.get(
+  '/pros/:barberId',
+  asyncHandler(async (req, res) => {
+    const pro = await prisma.barber.findUnique({
+      where: { id: req.params.barberId },
+      include: {
+        user: { select: { id: true, email: true, status: true, createdAt: true } },
+        _count: { select: { clients: true, appointments: true, plans: true, reviews: true } },
+        plans: { where: { isActive: true }, select: { id: true, name: true, price: true } },
+      },
+    });
+    if (!pro) throw NotFound('Pro não encontrado');
+
+    res.json({
+      id: pro.id,
+      userId: pro.userId,
+      name: pro.name,
+      email: pro.user.email,
+      phone: pro.phone,
+      bio: pro.bio,
+      address: pro.address,
+      city: pro.city,
+      country: pro.country,
+      categories: pro.categories,
+      rating: pro.rating,
+      proStatus: pro.proStatus,
+      stripeConnected: pro.stripeConnected,
+      stripeAccountId: pro.stripeAccountId,
+      userStatus: pro.user.status,
+      counts: pro._count,
+      activePlans: pro.plans,
+      createdAt: pro.createdAt,
+    });
+  }),
+);
+
+// PATCH /api/admin/pros/:barberId/status — Alterar estado do Pro
+adminRouter.patch(
+  '/pros/:barberId/status',
+  asyncHandler(async (req, res) => {
+    const schema = z.object({
+      proStatus: z.enum(['active', 'suspended', 'pending_onboarding']),
+      userStatus: z.enum(['active', 'inactive']).optional(),
+    });
+    const data = schema.parse(req.body);
+
+    const pro = await prisma.barber.findUnique({
+      where: { id: req.params.barberId },
+      select: { id: true, userId: true, name: true },
+    });
+    if (!pro) throw NotFound('Pro não encontrado');
+
+    await prisma.$transaction(async (tx) => {
+      await tx.barber.update({
+        where: { id: pro.id },
+        data: { proStatus: data.proStatus },
+      });
+      if (data.userStatus) {
+        await tx.user.update({
+          where: { id: pro.userId },
+          data: { status: data.userStatus },
+        });
+      }
+    });
+
+    await logAudit({
+      userId: (req as { user?: { id: string } }).user?.id ?? 'system',
+      action: 'updated',
+      entityType: 'barber',
+      entityId: pro.id,
+      details: { ...data, action: 'status_change' },
+    });
+
+    res.json({ message: 'Estado atualizado' });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// GESTÃO DE PAGAMENTOS — Feature #3
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET /api/admin/payments — Vista consolidada de todos os pagamentos
+adminRouter.get(
+  '/payments',
+  asyncHandler(async (req, res) => {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Number(req.query.limit) || 30);
+    const skip = (page - 1) * limit;
+    const status = req.query.status as string | undefined;
+    const from = req.query.from ? new Date(req.query.from as string) : undefined;
+    const to = req.query.to ? new Date(req.query.to as string) : undefined;
+
+    const where: Record<string, unknown> = {};
+    if (status && ['pending', 'paid', 'failed', 'refunded'].includes(status)) {
+      where.status = status;
+    }
+    if (from || to) {
+      where.createdAt = {
+        ...(from ? { gte: from } : {}),
+        ...(to ? { lte: to } : {}),
+      };
+    }
+
+    const [payments, total, aggregate] = await Promise.all([
+      prisma.payment.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          subscription: {
+            select: {
+              id: true,
+              client: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  barber: { select: { id: true, name: true } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.payment.count({ where }),
+      prisma.payment.aggregate({
+        where: { ...where, status: 'paid' },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    res.json({
+      payments,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      totalRevenue: aggregate._sum.amount ?? 0,
+    });
+  }),
+);

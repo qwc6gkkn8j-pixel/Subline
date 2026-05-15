@@ -114,6 +114,21 @@ enum OrderStatus {
   cancelled
 }
 
+// Pro status in the platform (managed by admin).
+enum ProStatus {
+  pending_onboarding  // registered but Stripe Connect not completed
+  active              // fully onboarded
+  suspended           // suspended by admin
+}
+
+// Automatic client segment calculated from visit frequency.
+enum ClientSegment {
+  vip        // active subscription + ≥3 visits in last 30 days
+  mensal     // active subscription + 1-2 visits in last 30 days
+  ocasional  // some activity but no active subscription
+  inativo    // no appointment in last 60 days
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // CORE — User / Barber / Client (v1 + Stripe additions)
 // ────────────────────────────────────────────────────────────────────────────
@@ -138,6 +153,7 @@ model User {
   notifications        Notification[]
   ticketsRequested     SupportTicket[] @relation("TicketRequester")
   conversationsAsAdmin Conversation[]  @relation("ConversationAdmin")
+  favorites            Favorite[]
 
   @@index([email])
   @@index([role])
@@ -152,9 +168,14 @@ model Barber {
   bio       String?
   rating    Decimal  @default(0) @db.Decimal(2, 1)
   // Stripe Connect — populated when barber connects their account via OAuth.
-  // Until then, stripeAccountId is null and stripeConnected is false.
   stripeAccountId  String?
   stripeConnected  Boolean  @default(false)
+  // Pro platform status (managed by admin).
+  proStatus        ProStatus @default(active)
+  // Discovery — professional categories and location.
+  categories       String[]
+  city             String?
+  country          String   @default("LU")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -170,6 +191,7 @@ model Barber {
   products       Product[]
   productOrders  ProductOrder[]
   reviews        Review[]
+  favorites      Favorite[]
 }
 
 model Client {
@@ -181,6 +203,10 @@ model Client {
   phone     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Calculated segment — refreshed on appointment completion.
+  segment          ClientSegment?
+  segmentUpdatedAt DateTime?
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   barber        Barber?        @relation(fields: [barberId], references: [id], onDelete: SetNull)
@@ -581,6 +607,24 @@ model ProductOrder {
   @@index([clientId])
   @@index([productId])
   @@index([status])
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// FAVOURITES — clients saving pros for quick rebooking
+// ────────────────────────────────────────────────────────────────────────────
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  barberId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, barberId])
+  @@index([userId])
+  @@index([barberId])
 }
 
 // ────────────────────────────────────────────────────────────────────────────

@@ -56,6 +56,7 @@ export interface User {
   status: UserStatus;
   fullName: string;
   phone: string | null;
+  avatarUrl?: string | null;
   createdAt?: string;
 }
 
@@ -75,6 +76,22 @@ export interface Barber {
 /** Alias for the generic professional role (formerly barber-specific). */
 export type Pro = Barber;
 
+export type ClientSegment = 'vip' | 'mensal' | 'ocasional' | 'inativo';
+
+export const CLIENT_SEGMENT_LABEL: Record<ClientSegment, string> = {
+  vip: 'VIP',
+  mensal: 'Mensal',
+  ocasional: 'Ocasional',
+  inativo: 'Inativo',
+};
+
+export const CLIENT_SEGMENT_BADGE: Record<ClientSegment, string> = {
+  vip: 'badge-brand',
+  mensal: 'badge-success',
+  ocasional: 'badge-warning',
+  inativo: 'badge-muted',
+};
+
 export interface Client {
   id: string;
   userId: string;
@@ -82,6 +99,8 @@ export interface Client {
   name: string;
   email: string;
   phone: string | null;
+  segment?: ClientSegment | null;
+  segmentUpdatedAt?: string | null;
   createdAt: string;
   subscriptions?: Subscription[];
   user?: { email: string; fullName?: string; createdAt?: string };

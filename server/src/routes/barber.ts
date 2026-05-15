@@ -18,6 +18,7 @@ import {
   StripeNotConfigured,
 } from '../lib/stripe.js';
 import { applyCancellationCutLogic } from '../lib/appointmentLifecycle.js';
+import { recalculateClientSegment } from '../lib/clientSegment.js';
 
 export const barberRouter = Router();
 barberRouter.use(requireAuth, requireRole('barber'));
@@ -787,6 +788,23 @@ barberRouter.put(
         },
       });
     });
+
+    // Recalcular segmento do cliente após conclusão (fire-and-forget)
+    if (data.status === 'completed') {
+      recalculateClientSegment(existing.client.id).catch((e) =>
+        console.warn('[segment] recalc failed', e),
+      );
+      // Notificar cliente para avaliar (Feature #14 — Feedback Automático)
+      await prisma.notification.create({
+        data: {
+          userId: existing.client.userId,
+          type: 'review_request',
+          title: 'Como foi a visita?',
+          body: 'Deixa a tua avaliação e ajuda outros clientes a encontrar o melhor serviço.',
+          data: { appointmentId: existing.id, barberId: existing.barberId },
+        },
+      });
+    }
 
     res.json({ message: 'Status updated' });
   }),
@@ -1790,5 +1808,74 @@ barberRouter.get(
         totalReviews: stats._count,
       },
     });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// UPSELL AUTOMÁTICO — Feature #12
+// GET /api/barber/upsell/:appointmentId — sugestões pós-confirmação
+// Retorna serviços complementares e produtos da loja do Pro ordenados por relevância.
+// ────────────────────────────────────────────────────────────────────────────
+barberRouter.get(
+  '/upsell/:appointmentId',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const appt = await prisma.appointment.findFirst({
+      where: { id: req.params.appointmentId, barberId },
+      select: { id: true, serviceId: true, service: true },
+    });
+    if (!appt) throw NotFound('Marcação não encontrada');
+
+    const [services, products] = await Promise.all([
+      // Outros serviços activos do Pro (excluindo o já marcado)
+      prisma.service.findMany({
+        where: {
+          barberId,
+          isActive: true,
+          ...(appt.serviceId ? { id: { not: appt.serviceId } } : {}),
+        },
+        orderBy: { price: 'asc' },
+        take: 5,
+        select: { id: true, name: true, price: true, durationMinutes: true, category: true, imageUrl: true },
+      }),
+      // Produtos activos em stock do Pro
+      prisma.product.findMany({
+        where: { barberId, isActive: true },
+        orderBy: { createdAt: 'desc' },
+        take: 4,
+        select: { id: true, name: true, price: true, imageUrl: true, type: true },
+      }),
+    ]);
+
+    // Mistura serviços e produtos intercalados, ordenados por tipo relevância
+    const suggestions = [
+      ...services.map((s) => ({ ...s, kind: 'service' as const })),
+      ...products.map((p) => ({ ...p, kind: 'product' as const })),
+    ];
+
+    res.json({ suggestions, appointmentId: appt.id });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// ATUALIZAR PERFIL DO PRO — inclui categories e city (para descoberta)
+// PATCH /api/barber/profile/discovery
+// ────────────────────────────────────────────────────────────────────────────
+barberRouter.patch(
+  '/profile/discovery',
+  asyncHandler(async (req, res) => {
+    const barberId = ensureBarberId(req);
+    const schema = z.object({
+      categories: z.array(z.string().min(1).max(50)).max(10).optional(),
+      city: z.string().max(100).optional(),
+      country: z.string().length(2).default('LU').optional(),
+    });
+    const data = schema.parse(req.body);
+    const updated = await prisma.barber.update({
+      where: { id: barberId },
+      data: { ...data },
+      select: { id: true, categories: true, city: true, country: true },
+    });
+    res.json(updated);
   }),
 );

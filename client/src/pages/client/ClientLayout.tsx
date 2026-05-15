@@ -7,6 +7,7 @@ import {
   User as UserIcon,
   ShoppingBag,
   LifeBuoy,
+  Compass,
 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
 import { RoleShell } from '@/components/layout/RoleShell';
@@ -14,6 +15,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
 
 const HomePage = lazy(() => import('./HomePage'));
+const DiscoverPage = lazy(() => import('./DiscoverPage'));
 const SubscriptionPage = lazy(() => import('./SubscriptionPage'));
 const CalendarPage = lazy(() => import('./CalendarPage'));
 const ChatPage = lazy(() => import('./ChatPage'));
@@ -27,6 +29,7 @@ export default function ClientLayout() {
       title="Cliente"
       navItems={[
         { to: '/client', icon: Home, label: 'Início', end: true },
+        { to: '/client/discover', icon: Compass, label: 'Descobrir' },
         { to: '/client/subscription', icon: CreditCard, label: 'Subscrição' },
         { to: '/client/calendar', icon: CalendarDays, label: 'Calendário' },
         { to: '/client/shop', icon: ShoppingBag, label: 'Loja' },
@@ -38,7 +41,7 @@ export default function ClientLayout() {
         <BottomNav
           items={[
             { to: '/client', icon: Home, label: 'Início' },
-            { to: '/client/subscription', icon: CreditCard, label: 'Plano' },
+            { to: '/client/discover', icon: Compass, label: 'Descobrir' },
             { to: '/client/calendar', icon: CalendarDays, label: 'Marcar', primary: true },
             { to: '/client/chat', icon: MessageSquare, label: 'Chat' },
             { to: '/client/profile', icon: UserIcon, label: 'Perfil' },
@@ -49,6 +52,7 @@ export default function ClientLayout() {
       <Suspense fallback={<FullPageSpinner />}>
         <Routes>
           <Route index element={<HomePage />} />
+          <Route path="discover" element={<DiscoverPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="shop" element={<ShopPage />} />

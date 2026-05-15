@@ -53,7 +53,7 @@ async function buildJwtPayload(userId: string): Promise<JwtPayload> {
   };
 }
 
-function publicUser(user: { id: string; email: string; role: string; status: string; fullName: string; phone: string | null }) {
+function publicUser(user: { id: string; email: string; role: string; status: string; fullName: string; phone: string | null; avatarUrl?: string | null }) {
   return {
     id: user.id,
     email: user.email,
@@ -61,6 +61,7 @@ function publicUser(user: { id: string; email: string; role: string; status: str
     status: user.status,
     fullName: user.fullName,
     phone: user.phone,
+    avatarUrl: user.avatarUrl ?? null,
   };
 }
 

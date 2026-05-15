@@ -4,16 +4,27 @@ interface AvatarProps {
   name: string;
   size?: number;
   className?: string;
+  imageUrl?: string | null;
 }
 
-const PALETTE = ['bg-brand', 'bg-accent', 'bg-success', 'bg-warning', 'bg-brand-dark'];
+const PALETTE = ['bg-surface', 'bg-surface', 'bg-surface', 'bg-surface', 'bg-surface'];
 
-export function Avatar({ name, size = 40, className }: AvatarProps) {
+export function Avatar({ name, size = 40, className, imageUrl }: AvatarProps) {
+  if (imageUrl) {
+    return (
+      <img
+        src={imageUrl}
+        alt={name}
+        className={cn('rounded-full object-cover shrink-0', className)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   const idx = name.charCodeAt(0) % PALETTE.length;
   return (
     <div
       className={cn(
-        'rounded-full text-white font-semibold flex items-center justify-center shrink-0',
+        'rounded-full font-semibold flex items-center justify-center shrink-0 text-ink',
         PALETTE[idx],
         className,
       )}

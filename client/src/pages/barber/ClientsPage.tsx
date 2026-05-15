@@ -25,7 +25,7 @@ import type {
   Subscription,
   SubscriptionStatus,
 } from '@/lib/types';
-import { PLAN_LABEL, PLAN_PRICE } from '@/lib/types';
+import { PLAN_LABEL, PLAN_PRICE, CLIENT_SEGMENT_LABEL, CLIENT_SEGMENT_BADGE } from '@/lib/types';
 
 type ClientWithSub = Client & { subscriptions: Subscription[] };
 
@@ -216,6 +216,11 @@ function ClientCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
+        {client.segment && (
+          <span className={CLIENT_SEGMENT_BADGE[client.segment]}>
+            {CLIENT_SEGMENT_LABEL[client.segment]}
+          </span>
+        )}
         {sub ? (
           <>
             <span className="badge-brand">{sub.plan?.name ?? sub.planType}</span>

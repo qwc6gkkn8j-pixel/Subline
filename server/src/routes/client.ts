@@ -749,6 +749,76 @@ clientRouter.post(
 );
 
 // ────────────────────────────────────────────────────────────────────────────
+// FAVORITOS — Feature #18
+// ────────────────────────────────────────────────────────────────────────────
+
+// GET /api/client/favorites
+clientRouter.get(
+  '/favorites',
+  asyncHandler(async (req, res) => {
+    const userId = (req as { user?: { id: string } }).user!.id;
+    const favorites = await prisma.favorite.findMany({
+      where: { userId },
+      include: {
+        barber: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            city: true,
+            categories: true,
+            rating: true,
+            bio: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.json({ favorites });
+  }),
+);
+
+// POST /api/client/favorites/:barberId — toggle (add se não existe, remove se existe)
+clientRouter.post(
+  '/favorites/:barberId',
+  asyncHandler(async (req, res) => {
+    const userId = (req as { user?: { id: string } }).user!.id;
+    const { barberId } = req.params;
+
+    const barber = await prisma.barber.findUnique({ where: { id: barberId } });
+    if (!barber) throw NotFound('Profissional não encontrado');
+
+    const existing = await prisma.favorite.findUnique({
+      where: { userId_barberId: { userId, barberId } },
+    });
+
+    if (existing) {
+      await prisma.favorite.delete({ where: { id: existing.id } });
+      res.json({ favorited: false });
+    } else {
+      await prisma.favorite.create({ data: { userId, barberId } });
+      res.json({ favorited: true });
+    }
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// FOTO DE PERFIL — Feature #15
+// ────────────────────────────────────────────────────────────────────────────
+
+// PATCH /api/client/avatar — update avatar URL (stored externally or as data URL)
+clientRouter.patch(
+  '/avatar',
+  asyncHandler(async (req, res) => {
+    const userId = (req as { user?: { id: string } }).user!.id;
+    const schema = z.object({ avatarUrl: z.string().max(2 * 1024 * 1024) }); // URL or data URL
+    const { avatarUrl } = schema.parse(req.body);
+    await prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
+    res.json({ avatarUrl });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
 // Public: GET /api/public/barbers — used by signup form to pick a barber
 // ────────────────────────────────────────────────────────────────────────────
 export const publicRouter = Router();
@@ -776,5 +846,96 @@ publicRouter.get(
       orderBy: [{ category: 'asc' }, { name: 'asc' }],
     });
     res.json({ services });
+  }),
+);
+
+// ────────────────────────────────────────────────────────────────────────────
+// DESCOBERTA — Feature #16 & #17
+// Public: GET /api/public/discover — pesquisa e descoberta de Pros
+// Query params: q (nome/bio), category, city, sortBy (rating|name|recent)
+// ────────────────────────────────────────────────────────────────────────────
+publicRouter.get(
+  '/discover',
+  asyncHandler(async (req, res) => {
+    const q = typeof req.query.q === 'string' ? req.query.q.trim() : undefined;
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : undefined;
+    const city = typeof req.query.city === 'string' ? req.query.city.trim() : undefined;
+    const sortBy = req.query.sortBy === 'name' ? 'name' : req.query.sortBy === 'recent' ? 'createdAt' : 'rating';
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Number(req.query.limit) || 20);
+    const skip = (page - 1) * limit;
+
+    const where: Record<string, unknown> = { proStatus: 'active' };
+
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { bio: { contains: q, mode: 'insensitive' } },
+        { address: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+    if (category) {
+      where.categories = { has: category };
+    }
+    if (city) {
+      where.city = { contains: city, mode: 'insensitive' };
+    }
+
+    const orderBy =
+      sortBy === 'name'
+        ? { name: 'asc' as const }
+        : sortBy === 'createdAt'
+          ? { createdAt: 'desc' as const }
+          : { rating: 'desc' as const };
+
+    const [pros, total] = await Promise.all([
+      prisma.barber.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select: {
+          id: true,
+          name: true,
+          bio: true,
+          address: true,
+          city: true,
+          country: true,
+          categories: true,
+          rating: true,
+          _count: { select: { reviews: true } },
+          services: {
+            where: { isActive: true },
+            take: 3,
+            select: { id: true, name: true, price: true, durationMinutes: true },
+          },
+        },
+      }),
+      prisma.barber.count({ where }),
+    ]);
+
+    res.json({
+      pros: pros.map((p) => ({
+        ...p,
+        reviewCount: p._count.reviews,
+      })),
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  }),
+);
+
+// GET /api/public/categories — lista de categorias únicas dos Pros activos
+publicRouter.get(
+  '/categories',
+  asyncHandler(async (_req, res) => {
+    const pros = await prisma.barber.findMany({
+      where: { proStatus: 'active' },
+      select: { categories: true },
+    });
+    const allCats = pros.flatMap((p) => p.categories);
+    const unique = [...new Set(allCats)].sort();
+    res.json({ categories: unique });
   }),
 );
