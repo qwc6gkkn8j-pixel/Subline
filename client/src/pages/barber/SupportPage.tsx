@@ -25,7 +25,7 @@ interface TicketsResp {
 const CATEGORY_OPTIONS: TicketCategory[] = ['payment', 'account', 'booking', 'other'];
 
 export default function SupportPage() {
-    const { t } = useTranslation('pro');
+    const { t } = useTranslation(['pro', 'client']);
   const toast = useToast();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);

@@ -21,6 +21,7 @@ import type {
 import { useTranslation } from 'react-i18next';
 
 export default function CalendarPage() {
+  const { t } = useTranslation('client');
   const toast = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +55,9 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-ink">As minhas marcações</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('calendar.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
-          <Plus size={16} /> Nova marcação
+          <Plus size={16} /> {t('calendar.new_booking')}
         </button>
       </div>
 
@@ -67,13 +68,13 @@ export default function CalendarPage() {
       ) : (
         <>
           <section>
-            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">Próximas</h2>
+            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">{t('calendar.upcoming')}</h2>
             {upcoming.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={CalendarIcon}
-                  title="Sem marcações futuras"
-                  description="Marque un service avec votre professionnel."
+                  title={t('calendar.no_appointments')}
+                  description={t('calendar.no_upcoming_desc')}
                 />
               </div>
             ) : (
@@ -88,7 +89,7 @@ export default function CalendarPage() {
           {past.length > 0 && (
             <section>
               <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">
-                Anteriores
+                {t('calendar.past')}
               </h2>
               <ul className="space-y-3">
                 {past.slice(0, 8).map((a) => (
@@ -129,6 +130,7 @@ function AppointmentRow({
   onCancel?: () => void;
   canCancel?: boolean;
 }) {
+  const { t } = useTranslation('client');
   return (
     <li className="card flex items-center gap-4">
       <div className="w-16 text-center shrink-0">
@@ -142,7 +144,7 @@ function AppointmentRow({
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           <AppointmentStatusBadge status={appt.status} />
           <span className="text-xs text-muted">
-            {appt.durationMinutes} min · com {appt.barber?.name ?? 'professionnel'}
+            {appt.durationMinutes} min · {appt.barber?.name ?? t('calendar.professional_label')}
           </span>
         </div>
       </div>
@@ -151,7 +153,7 @@ function AppointmentRow({
           className="btn-outline btn-sm !text-danger !border-danger/30 hover:!bg-danger/5"
           onClick={onCancel}
         >
-          <X size={14} /> Cancelar
+          <X size={14} /> {t('calendar.cancel_booking')}
         </button>
       )}
     </li>
@@ -165,6 +167,7 @@ interface StaffMember {
 }
 
 function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { t } = useTranslation('client');
   const toast = useToast();
   const [date, setDate] = useState(isoDate(new Date(Date.now() + 24 * 3600 * 1000)));
   const [services, setServices] = useState<Service[]>([]);
@@ -179,7 +182,6 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [staffId, setStaffId] = useState<string>('');
 
-  // Load barber's service catalog and staff members once when the modal opens.
   useEffect(() => {
     Promise.all([
       api
@@ -210,7 +212,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 
   const onCreate = async () => {
     if (!time) {
-      toast.error('Escolhe um horário');
+      toast.error(t('calendar.choose_time_error'));
       return;
     }
     setBusy(true);
@@ -224,7 +226,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
         durationMinutes: duration,
         notes: notes || undefined,
       });
-      toast.success('Marcação criada (a aguardar confirmação)');
+      toast.success(t('calendar.booking_pending'));
       onCreated();
       onClose();
     } catch (err) {
@@ -238,15 +240,15 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
     <Modal
       open
       onClose={onClose}
-      title="Nova marcação"
+      title={t('calendar.new_booking')}
       size="lg"
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button className="btn-primary" onClick={() => void onCreate()} disabled={busy || !time}>
-            {busy ? <Spinner /> : 'Marcar'}
+            {busy ? <Spinner /> : t('calendar.book_btn')}
           </button>
         </>
       }
@@ -254,9 +256,9 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
       <div className="space-y-4">
         {staffMembers.length > 0 && (
           <div>
-            <label className="label">Profissional (opcional)</label>
+            <label className="label">{t('calendar.professional_optional')}</label>
             <select value={staffId} onChange={(e) => setStaffId(e.target.value)}>
-              <option value="">— Qualquer um —</option>
+              <option value="">{t('calendar.any_professional')}</option>
               {staffMembers.map((staff) => (
                 <option key={staff.id} value={staff.id}>
                   {staff.name} ({staff.role})
@@ -268,7 +270,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Serviço</label>
+            <label className="label">{t('calendar.service_label')}</label>
             {hasCatalog ? (
               <select
                 value={serviceId}
@@ -281,7 +283,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
                   }
                 }}
               >
-                <option value="">— escolher —</option>
+                <option value="">— {t('calendar.choose_service')} —</option>
                 {services.map((sv) => (
                   <option key={sv.id} value={sv.id}>
                     {sv.name} · {sv.durationMinutes}min · {Number(sv.price).toFixed(2)}€
@@ -306,31 +308,31 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
             )}
           </div>
           <div>
-            <label className="label">Duração (min)</label>
+            <label className="label">{t('calendar.duration_label')}</label>
             <input
               type="number"
               min={5}
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               disabled={Boolean(serviceId)}
-              title={serviceId ? 'Definida pelo serviço escolhido' : undefined}
+              title={serviceId ? t('calendar.service_label') : undefined}
             />
           </div>
         </div>
 
         <div>
-          <label className="label">Data</label>
+          <label className="label">{t('calendar.date_label')}</label>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
 
         <div>
-          <label className="label">Hora</label>
+          <label className="label">{t('calendar.time_label')}</label>
           {loadingSlots ? (
             <div className="text-center py-6">
               <Spinner />
             </div>
           ) : slots.length === 0 ? (
-            <Banner tone="warning">Nenhum slot disponível neste dia.</Banner>
+            <Banner tone="warning">{t('calendar.no_slots')}</Banner>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-56 overflow-y-auto">
               {slots.map((s) => (
@@ -356,12 +358,12 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
         </div>
 
         <div>
-          <label className="label">Notas (opcional)</label>
+          <label className="label">{t('calendar.notes_label')}</label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Quelque chose à préciser?"
+            placeholder={t('calendar.notes_placeholder')}
           />
         </div>
       </div>
@@ -400,22 +402,21 @@ function CancelAppointmentModal({
     <Modal
       open
       onClose={onClose}
-      title="Cancelar marcação?"
+      title={t('calendar.cancel_title')}
       size="sm"
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Manter
+            {t('calendar.keep_btn')}
           </button>
           <button className="btn-danger" onClick={() => void onCancel()} disabled={busy}>
-            {busy ? <Spinner /> : 'Cancelar'}
+            {busy ? <Spinner /> : t('calendar.cancel_booking')}
           </button>
         </>
       }
     >
       <p className="text-sm text-ink">
-        Marcação em <span className="font-semibold">{formatDate(appointment.date)}</span> às{' '}
-        <span className="font-semibold">{appointment.startTime}</span>?
+        {t('calendar.cancel_confirm_msg', { date: formatDate(appointment.date), time: appointment.startTime })}
       </p>
     </Modal>
   );

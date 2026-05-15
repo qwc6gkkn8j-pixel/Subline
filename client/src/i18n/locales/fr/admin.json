@@ -27,7 +27,14 @@
     "stripe_dashboard": "Stripe",
     "status_updated": "Statut mis à jour",
     "no_pros": "Aucun professionnel trouvé",
-    "categories": "Catégories"
+    "categories": "Catégories",
+    "status_active": "Actif",
+    "status_suspended": "Suspendu",
+    "status_pending": "En attente",
+    "manage": "Gérer",
+    "pro_status": "Statut professionnel",
+    "stripe_label": "Stripe",
+    "registered": "Inscrit"
   },
   "users": {
     "title": "Utilisateurs",

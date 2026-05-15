@@ -23,7 +23,12 @@
   "required": "required",
   "language": "Language",
   "language_select": "Select language",
-  "languages": { "fr": "Français", "de": "Deutsch", "en": "English", "pt": "Português" },
+  "languages": {
+    "fr": "Français",
+    "de": "Deutsch",
+    "en": "English",
+    "pt": "Português"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "clients": "Clients",
@@ -77,15 +82,36 @@
     "refunded": "Refunded",
     "pending_onboarding": "Activation pending"
   },
-  "segment": { "vip": "VIP", "mensal": "Monthly", "ocasional": "Occasional", "inativo": "Inactive" },
+  "segment": {
+    "vip": "VIP",
+    "mensal": "Monthly",
+    "ocasional": "Occasional",
+    "inativo": "Inactive"
+  },
   "fields": {
-    "name": "Name", "email": "Email", "phone": "Phone",
-    "password": "Password", "current_password": "Current password",
-    "new_password": "New password", "confirm_password": "Confirm password",
-    "address": "Address", "city": "City", "description": "Description",
-    "price": "Price", "date": "Date", "time": "Time", "duration": "Duration",
-    "category": "Category", "notes": "Notes", "subject": "Subject",
-    "message": "Message", "bio": "Bio", "rating": "Rating", "quantity": "Quantity"
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "confirm_password": "Confirm password",
+    "address": "Address",
+    "city": "City",
+    "description": "Description",
+    "price": "Price",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "category": "Category",
+    "notes": "Notes",
+    "subject": "Subject",
+    "message": "Message",
+    "bio": "Bio",
+    "rating": "Rating",
+    "quantity": "Quantity",
+    "status": "Status",
+    "priority": "Priority"
   },
   "validation": {
     "required": "Required field",
@@ -94,13 +120,37 @@
     "passwords_mismatch": "Passwords do not match",
     "phone_invalid": "Invalid phone number"
   },
-  "empty": { "no_results": "No results", "no_data": "No data available", "no_items": "No items" },
-  "time": {
-    "today": "Today", "yesterday": "Yesterday",
-    "days_ago": "{{count}} day ago", "days_ago_plural": "{{count}} days ago",
-    "minutes_ago": "{{count}} min ago", "hours_ago": "{{count}}h ago", "just_now": "just now"
+  "empty": {
+    "no_results": "No results",
+    "no_data": "No data available",
+    "no_items": "No items"
   },
-  "errors": { "generic": "An error occurred", "network": "Connection error", "unauthorized": "Unauthorized", "not_found": "Not found" },
-  "notifications": { "saved": "Saved", "deleted": "Deleted", "created": "Created", "updated": "Updated", "error": "Error" },
-  "stripe": { "connected": "Connected", "not_connected": "Not connected", "connect": "Connect Stripe" }
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "days_ago": "{{count}} day ago",
+    "days_ago_plural": "{{count}} days ago",
+    "minutes_ago": "{{count}} min ago",
+    "hours_ago": "{{count}}h ago",
+    "just_now": "just now"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Connection error",
+    "unauthorized": "Unauthorized",
+    "not_found": "Not found"
+  },
+  "notifications": {
+    "saved": "Saved",
+    "deleted": "Deleted",
+    "created": "Created",
+    "updated": "Updated",
+    "error": "Error"
+  },
+  "stripe": {
+    "connected": "Connected",
+    "not_connected": "Not connected",
+    "connect": "Connect Stripe"
+  },
+  "actions": "Actions"
 }

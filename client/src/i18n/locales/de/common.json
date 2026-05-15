@@ -23,7 +23,12 @@
   "required": "erforderlich",
   "language": "Sprache",
   "language_select": "Sprache wählen",
-  "languages": { "fr": "Français", "de": "Deutsch", "en": "English", "pt": "Português" },
+  "languages": {
+    "fr": "Français",
+    "de": "Deutsch",
+    "en": "English",
+    "pt": "Português"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "clients": "Kunden",
@@ -77,15 +82,36 @@
     "refunded": "Erstattet",
     "pending_onboarding": "Aktivierung ausstehend"
   },
-  "segment": { "vip": "VIP", "mensal": "Monatlich", "ocasional": "Gelegentlich", "inativo": "Inaktiv" },
+  "segment": {
+    "vip": "VIP",
+    "mensal": "Monatlich",
+    "ocasional": "Gelegentlich",
+    "inativo": "Inaktiv"
+  },
   "fields": {
-    "name": "Name", "email": "E-Mail", "phone": "Telefon",
-    "password": "Passwort", "current_password": "Aktuelles Passwort",
-    "new_password": "Neues Passwort", "confirm_password": "Passwort bestätigen",
-    "address": "Adresse", "city": "Stadt", "description": "Beschreibung",
-    "price": "Preis", "date": "Datum", "time": "Uhrzeit", "duration": "Dauer",
-    "category": "Kategorie", "notes": "Notizen", "subject": "Betreff",
-    "message": "Nachricht", "bio": "Biografie", "rating": "Bewertung", "quantity": "Menge"
+    "name": "Name",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "password": "Passwort",
+    "current_password": "Aktuelles Passwort",
+    "new_password": "Neues Passwort",
+    "confirm_password": "Passwort bestätigen",
+    "address": "Adresse",
+    "city": "Stadt",
+    "description": "Beschreibung",
+    "price": "Preis",
+    "date": "Datum",
+    "time": "Uhrzeit",
+    "duration": "Dauer",
+    "category": "Kategorie",
+    "notes": "Notizen",
+    "subject": "Betreff",
+    "message": "Nachricht",
+    "bio": "Biografie",
+    "rating": "Bewertung",
+    "quantity": "Menge",
+    "status": "Status",
+    "priority": "Priorität"
   },
   "validation": {
     "required": "Pflichtfeld",
@@ -94,13 +120,37 @@
     "passwords_mismatch": "Passwörter stimmen nicht überein",
     "phone_invalid": "Ungültige Telefonnummer"
   },
-  "empty": { "no_results": "Keine Ergebnisse", "no_data": "Keine Daten verfügbar", "no_items": "Keine Einträge" },
-  "time": {
-    "today": "Heute", "yesterday": "Gestern",
-    "days_ago": "vor {{count}} Tag", "days_ago_plural": "vor {{count}} Tagen",
-    "minutes_ago": "vor {{count}} Min", "hours_ago": "vor {{count}}h", "just_now": "gerade eben"
+  "empty": {
+    "no_results": "Keine Ergebnisse",
+    "no_data": "Keine Daten verfügbar",
+    "no_items": "Keine Einträge"
   },
-  "errors": { "generic": "Ein Fehler ist aufgetreten", "network": "Verbindungsfehler", "unauthorized": "Nicht autorisiert", "not_found": "Nicht gefunden" },
-  "notifications": { "saved": "Gespeichert", "deleted": "Gelöscht", "created": "Erstellt", "updated": "Aktualisiert", "error": "Fehler" },
-  "stripe": { "connected": "Verbunden", "not_connected": "Nicht verbunden", "connect": "Stripe verbinden" }
+  "time": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "days_ago": "vor {{count}} Tag",
+    "days_ago_plural": "vor {{count}} Tagen",
+    "minutes_ago": "vor {{count}} Min",
+    "hours_ago": "vor {{count}}h",
+    "just_now": "gerade eben"
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten",
+    "network": "Verbindungsfehler",
+    "unauthorized": "Nicht autorisiert",
+    "not_found": "Nicht gefunden"
+  },
+  "notifications": {
+    "saved": "Gespeichert",
+    "deleted": "Gelöscht",
+    "created": "Erstellt",
+    "updated": "Aktualisiert",
+    "error": "Fehler"
+  },
+  "stripe": {
+    "connected": "Verbunden",
+    "not_connected": "Nicht verbunden",
+    "connect": "Stripe verbinden"
+  },
+  "actions": "Aktionen"
 }

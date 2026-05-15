@@ -23,7 +23,12 @@
   "required": "obrigatório",
   "language": "Idioma",
   "language_select": "Escolher idioma",
-  "languages": { "fr": "Français", "de": "Deutsch", "en": "English", "pt": "Português" },
+  "languages": {
+    "fr": "Français",
+    "de": "Deutsch",
+    "en": "English",
+    "pt": "Português"
+  },
   "nav": {
     "dashboard": "Painel",
     "clients": "Clientes",
@@ -77,15 +82,36 @@
     "refunded": "Reembolsado",
     "pending_onboarding": "Activação pendente"
   },
-  "segment": { "vip": "VIP", "mensal": "Mensal", "ocasional": "Ocasional", "inativo": "Inactivo" },
+  "segment": {
+    "vip": "VIP",
+    "mensal": "Mensal",
+    "ocasional": "Ocasional",
+    "inativo": "Inactivo"
+  },
   "fields": {
-    "name": "Nome", "email": "Email", "phone": "Telefone",
-    "password": "Password", "current_password": "Password actual",
-    "new_password": "Nova password", "confirm_password": "Confirmar password",
-    "address": "Morada", "city": "Cidade", "description": "Descrição",
-    "price": "Preço", "date": "Data", "time": "Hora", "duration": "Duração",
-    "category": "Categoria", "notes": "Notas", "subject": "Assunto",
-    "message": "Mensagem", "bio": "Bio", "rating": "Avaliação", "quantity": "Quantidade"
+    "name": "Nome",
+    "email": "Email",
+    "phone": "Telefone",
+    "password": "Password",
+    "current_password": "Password actual",
+    "new_password": "Nova password",
+    "confirm_password": "Confirmar password",
+    "address": "Morada",
+    "city": "Cidade",
+    "description": "Descrição",
+    "price": "Preço",
+    "date": "Data",
+    "time": "Hora",
+    "duration": "Duração",
+    "category": "Categoria",
+    "notes": "Notas",
+    "subject": "Assunto",
+    "message": "Mensagem",
+    "bio": "Bio",
+    "rating": "Avaliação",
+    "quantity": "Quantidade",
+    "status": "Estado",
+    "priority": "Prioridade"
   },
   "validation": {
     "required": "Campo obrigatório",
@@ -94,13 +120,37 @@
     "passwords_mismatch": "As passwords não coincidem",
     "phone_invalid": "Número de telefone inválido"
   },
-  "empty": { "no_results": "Sem resultados", "no_data": "Sem dados disponíveis", "no_items": "Sem elementos" },
-  "time": {
-    "today": "Hoje", "yesterday": "Ontem",
-    "days_ago": "há {{count}} dia", "days_ago_plural": "há {{count}} dias",
-    "minutes_ago": "há {{count}} min", "hours_ago": "há {{count}}h", "just_now": "agora mesmo"
+  "empty": {
+    "no_results": "Sem resultados",
+    "no_data": "Sem dados disponíveis",
+    "no_items": "Sem elementos"
   },
-  "errors": { "generic": "Ocorreu um erro", "network": "Erro de ligação", "unauthorized": "Não autorizado", "not_found": "Não encontrado" },
-  "notifications": { "saved": "Guardado", "deleted": "Eliminado", "created": "Criado", "updated": "Actualizado", "error": "Erro" },
-  "stripe": { "connected": "Ligado", "not_connected": "Não ligado", "connect": "Ligar Stripe" }
+  "time": {
+    "today": "Hoje",
+    "yesterday": "Ontem",
+    "days_ago": "há {{count}} dia",
+    "days_ago_plural": "há {{count}} dias",
+    "minutes_ago": "há {{count}} min",
+    "hours_ago": "há {{count}}h",
+    "just_now": "agora mesmo"
+  },
+  "errors": {
+    "generic": "Ocorreu um erro",
+    "network": "Erro de ligação",
+    "unauthorized": "Não autorizado",
+    "not_found": "Não encontrado"
+  },
+  "notifications": {
+    "saved": "Guardado",
+    "deleted": "Eliminado",
+    "created": "Criado",
+    "updated": "Actualizado",
+    "error": "Erro"
+  },
+  "stripe": {
+    "connected": "Ligado",
+    "not_connected": "Não ligado",
+    "connect": "Ligar Stripe"
+  },
+  "actions": "Acções"
 }

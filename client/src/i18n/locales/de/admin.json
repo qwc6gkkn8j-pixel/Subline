@@ -27,7 +27,14 @@
     "stripe_dashboard": "Stripe",
     "status_updated": "Status aktualisiert",
     "no_pros": "Keine Fachkraft gefunden",
-    "categories": "Kategorien"
+    "categories": "Kategorien",
+    "status_active": "Aktiv",
+    "status_suspended": "Gesperrt",
+    "status_pending": "Ausstehend",
+    "manage": "Verwalten",
+    "pro_status": "Profistatus",
+    "stripe_label": "Stripe",
+    "registered": "Registriert"
   },
   "users": {
     "title": "Nutzer",

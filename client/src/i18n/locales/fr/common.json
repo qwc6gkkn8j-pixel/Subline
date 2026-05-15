@@ -109,7 +109,9 @@
     "message": "Message",
     "bio": "Biographie",
     "rating": "Note",
-    "quantity": "Quantité"
+    "quantity": "Quantité",
+    "status": "État",
+    "priority": "Priorité"
   },
   "validation": {
     "required": "Champ obligatoire",
@@ -149,5 +151,6 @@
     "connected": "Connecté",
     "not_connected": "Non connecté",
     "connect": "Connecter Stripe"
-  }
+  },
+  "actions": "Actions"
 }

@@ -74,7 +74,7 @@ export default function TicketsPage() {
           onChange={(e) => setStatusFilter(e.target.value as TicketStatus | '')}
           className="!h-9 !py-1 text-sm"
         >
-          <option value="">{t('common:fields.category').replace('Catégorie','État')}</option>
+          <option value="">{t('common:fields.status')}</option>
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {TICKET_STATUS_LABEL[s]}
@@ -98,7 +98,7 @@ export default function TicketsPage() {
           onChange={(e) => setPriorityFilter(e.target.value as TicketPriority | '')}
           className="!h-9 !py-1 text-sm"
         >
-          <option value="">{t('common:fields.category').replace('Catégorie','Priorité')}</option>
+          <option value="">{t('common:fields.priority')}</option>
           {PRIORITY_OPTIONS.map((p) => (
             <option key={p} value={p}>
               {TICKET_PRIORITY_LABEL[p]}
@@ -194,7 +194,6 @@ function TicketDetailModal({
   const [busy, setBusy] = useState(false);
 
   const onSave = async () => {
-    const { t } = useTranslation('admin');
     setBusy(true);
     try {
       await api.put(`/admin/tickets/${ticket.id}`, {

@@ -35,9 +35,9 @@ interface ProsResp {
 }
 
 const STATUS_LABELS: Record<ProStatus, string> = {
-  active: '',
-  suspended: '',
-  pending_onboarding: '',
+  active: 'Activo',
+  suspended: 'Suspenso',
+  pending_onboarding: 'Pendente',
 };
 
 const STATUS_BADGE: Record<ProStatus, string> = {
@@ -122,9 +122,9 @@ export default function ProsPage() {
             className="w-40"
           >
             <option value="">{t('pros.all_statuses')}</option>
-            <option value="active">Activo</option>
-            <option value="pending_onboarding">Pendente</option>
-            <option value="suspended">Suspenso</option>
+            <option value="active">{t('pros.status_active')}</option>
+            <option value="pending_onboarding">{t('pros.status_pending')}</option>
+            <option value="suspended">{t('pros.status_suspended')}</option>
           </select>
           <button type="submit" className="btn-primary btn-sm">{t('common:search')}</button>
         </form>
@@ -143,10 +143,10 @@ export default function ProsPage() {
               <tr className="text-left">
                 <th className="px-4 py-3 font-semibold text-muted">{t('common:nav.pros')}</th>
                 <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">{t('pros.categories')}</th>
-                <th className="px-4 py-3 font-semibold text-muted">{t('common:fields.category').replace('Catégorie','État') === 'État' ? t('common:fields.category') : 'État'}</th>
-                <th className="px-4 py-3 font-semibold text-muted">{t('common:stripe.connected').split(' ')[0]}</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('common:fields.status')}</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('common:stripe.connected')}</th>
                 <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">{t('common:nav.clients')}</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">Registo</th>
+                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">{t('pros.registered')}</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -185,7 +185,7 @@ export default function ProsPage() {
                       onClick={() => setSelected(pro)}
                       className="btn-ghost btn-sm flex items-center gap-1"
                     >
-                      Gerir <ChevronDown size={14} />
+                      {t('pros.manage')} <ChevronDown size={14} />
                     </button>
                   </td>
                 </tr>
@@ -200,21 +200,21 @@ export default function ProsPage() {
           open
           onClose={() => setSelected(null)}
           title={selected.name}
-          footer={<button className="btn-ghost" onClick={() => setSelected(null)}>Fechar</button>}
+          footer={<button className="btn-ghost" onClick={() => setSelected(null)}>{t('common:close')}</button>}
         >
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><p className="text-muted">Email</p><p className="font-medium">{selected.email}</p></div>
-              <div><p className="text-muted">Estado plataforma</p><span className={STATUS_BADGE[selected.proStatus]}>{STATUS_LABELS[selected.proStatus]}</span></div>
-              <div><p className="text-muted">Stripe Connect</p><p className="font-medium">{selected.stripeConnected ? 'Ligado' : 'Não ligado'}</p></div>
-              <div><p className="text-muted">Clientes</p><p className="font-medium">{selected.clientCount}</p></div>
-              <div><p className="text-muted">Avaliação</p><p className="font-medium">{Number(selected.rating).toFixed(1)} ★</p></div>
-              <div><p className="text-muted">Registado</p><p className="font-medium text-xs">{formatRelative(selected.createdAt)}</p></div>
+              <div><p className="text-muted">{t('pros.pro_status')}</p><span className={STATUS_BADGE[selected.proStatus]}>{STATUS_LABELS[selected.proStatus]}</span></div>
+              <div><p className="text-muted">Stripe Connect</p><p className="font-medium">{selected.stripeConnected ? t('common:stripe.connected') : t('common:stripe.not_connected')}</p></div>
+              <div><p className="text-muted">{t('common:nav.clients')}</p><p className="font-medium">{selected.clientCount}</p></div>
+              <div><p className="text-muted">{t('common:fields.rating')}</p><p className="font-medium">{Number(selected.rating).toFixed(1)} ★</p></div>
+              <div><p className="text-muted">{t('pros.registered')}</p><p className="font-medium text-xs">{formatRelative(selected.createdAt)}</p></div>
             </div>
 
             {selected.categories.length > 0 && (
               <div>
-                <p className="text-sm text-muted mb-2">Categorias</p>
+                <p className="text-sm text-muted mb-2">{t('pros.categories')}</p>
                 <div className="flex flex-wrap gap-2">
                   {selected.categories.map((c) => <span key={c} className="badge-muted">{c}</span>)}
                 </div>
@@ -222,7 +222,7 @@ export default function ProsPage() {
             )}
 
             <div className="border-t border-lineSoft pt-4">
-              <p className="text-sm font-semibold mb-3">Acções</p>
+              <p className="text-sm font-semibold mb-3">{t('common:actions')}</p>
               <div className="flex flex-wrap gap-2">
                 {selected.proStatus !== 'active' && (
                   <button
@@ -230,7 +230,7 @@ export default function ProsPage() {
                     disabled={changing}
                     onClick={() => void handleStatusChange(selected, 'active')}
                   >
-                    <CheckCircle size={14} /> Activar
+                    <CheckCircle size={14} /> {t('pros.activate')}
                   </button>
                 )}
                 {selected.proStatus !== 'suspended' && (
@@ -239,7 +239,7 @@ export default function ProsPage() {
                     disabled={changing}
                     onClick={() => void handleStatusChange(selected, 'suspended')}
                   >
-                    <XCircle size={14} /> Suspender
+                    <XCircle size={14} /> {t('pros.suspend')}
                   </button>
                 )}
                 {selected.proStatus !== 'pending_onboarding' && (
@@ -248,7 +248,7 @@ export default function ProsPage() {
                     disabled={changing}
                     onClick={() => void handleStatusChange(selected, 'pending_onboarding')}
                   >
-                    <Clock size={14} /> Pôr pendente
+                    <Clock size={14} /> {t('pros.set_pending')}
                   </button>
                 )}
                 {selected.stripeConnected && selected.stripeAccountId && (
@@ -258,7 +258,7 @@ export default function ProsPage() {
                     rel="noreferrer"
                     className="btn-ghost btn-sm"
                   >
-                    <ExternalLink size={14} /> Stripe
+                    <ExternalLink size={14} /> {t('pros.stripe_dashboard')}
                   </a>
                 )}
               </div>
