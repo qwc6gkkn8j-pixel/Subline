@@ -73,7 +73,7 @@ export default function SupportPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('support.title')}</h1>
+        <h1 className="page-title mr-auto">{t('support.title')}</h1>
         <button className="btn-primary text-sm" onClick={() => setCreating(true)}>
           <MessageSquare size={14} /> Novo ticket
         </button>

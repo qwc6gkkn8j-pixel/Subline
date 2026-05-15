@@ -40,7 +40,7 @@ export default function LogsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ink mb-5">{t('logs.title')}</h1>
+      <h1 className="page-title mb-5">{t('logs.title')}</h1>
       {loading ? (
         <div className="card text-center py-10">
           <Spinner />

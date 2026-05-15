@@ -65,7 +65,7 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">{t('reviews.title')}</h1>
+        <h1 className="page-title">{t('reviews.title')}</h1>
       </div>
 
       {loading ? (

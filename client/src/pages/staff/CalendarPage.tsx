@@ -76,7 +76,7 @@ export default function CalendarPage() {
     <div>
       <div className="flex items-center gap-3 mb-5">
         <Calendar size={24} className="text-brand" />
-        <h1 className="text-2xl font-bold text-ink">{t('calendar.title')}</h1>
+        <h1 className="page-title">{t('calendar.title')}</h1>
       </div>
 
       {loading ? (

@@ -68,7 +68,7 @@ export default function TicketsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('tickets.title')}</h1>
+        <h1 className="page-title mr-auto">{t('tickets.title')}</h1>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as TicketStatus | '')}

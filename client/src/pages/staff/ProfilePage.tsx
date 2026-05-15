@@ -96,7 +96,7 @@ export default function StaffProfilePage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h1 className="text-2xl font-bold text-ink">{t('profile.title')}</h1>
+      <h1 className="page-title">{t('profile.title')}</h1>
 
       {/* Employeur */}
       <div className="card bg-surface text-sm">

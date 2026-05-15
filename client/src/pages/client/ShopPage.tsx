@@ -80,7 +80,7 @@ export default function ShopPage() {
     <div>
       <div className="flex items-center gap-3 mb-5">
         <ShoppingBag size={24} className="text-brand" />
-        <h1 className="text-2xl font-bold text-ink">{t('shop.title')}</h1>
+        <h1 className="page-title">{t('shop.title')}</h1>
       </div>
 
       {loading ? (

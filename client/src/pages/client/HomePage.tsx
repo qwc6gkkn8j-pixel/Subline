@@ -5,28 +5,25 @@ import {
   CalendarDays,
   CreditCard,
   MessageSquare,
-  CheckCircle2,
-  XCircle,
   Star,
   MapPin,
-  Phone,
+  ChevronRight,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/context/AuthContext';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import { Spinner } from '@/components/ui/Spinner';
 import { Avatar } from '@/components/ui/Avatar';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import type {
-  Appointment,
-  Barber,
-  Cut,
-  Subscription,
-} from '@/lib/types';
+import { formatDate } from '@/lib/utils';
+import type { Appointment, Barber, Cut, Subscription } from '@/lib/types';
 import { PLAN_LABEL, SERVICE_LABEL } from '@/lib/types';
 
 export default function HomePage() {
   const toast = useToast();
   const { t } = useTranslation('client');
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [barber, setBarber] = useState<Barber | null>(null);
   const [upcoming, setUpcoming] = useState<Appointment[]>([]);
@@ -47,153 +44,140 @@ export default function HomePage() {
         setUpcoming(a.data.appointments.slice(0, 3));
         setCuts(c.data.cuts);
       })
-      .catch((err) => toast.error(apiErrorMessage(err)));
+      .catch((err) => toast.error(apiErrorMessage(err)))
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const used = subscription?.cutsUsed ?? 0;
+  const firstName = user?.fullName?.split(' ')[0] ?? 'Olá';
+  const used  = subscription?.cutsUsed ?? 0;
   const total = subscription?.cutsTotal ?? subscription?.plan?.cutsPerMonth ?? null;
-  const remaining = total !== null && total !== undefined ? Math.max(0, total - used) : null;
+  const pct   = total ? Math.min(100, (used / total) * 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <section className="card relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-1 bg-brand-gradient" />
-        <p className="text-xs uppercase tracking-wide text-muted">{t('home.subscription_card')}</p>
-        {subscription ? (
-          <>
-            <div className="flex items-baseline gap-3 mt-2 flex-wrap">
-              <h2 className="text-3xl font-bold text-ink">
-                {subscription.plan?.name ?? PLAN_LABEL[subscription.planType]}
-              </h2>
-              <span className="text-muted">{formatCurrency(subscription.price)}/mês</span>
-            </div>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {subscription.status === 'active' ? (
-                <>
-                  <CheckCircle2 size={16} className="text-success" />
-                  <span className="text-success font-medium">{t('home.active_label')}</span>
-                </>
-              ) : (
-                <>
-                  <XCircle size={16} className="text-muted" />
-                  <span className="text-muted font-medium">{subscription.status}</span>
-                </>
-              )}
-              <span className="text-muted text-sm">
-                · {t('home.renews_on', { date: formatDate(subscription.renewalDate) })}
-              </span>
-            </div>
+    <div className="space-y-6 pb-4">
+      {/* Greeting */}
+      <div>
+        <h1 className="page-title">{t('home.greeting', { name: firstName })}</h1>
+        <p className="text-[13px] text-muted mt-1">
+          {new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: '2-digit', month: 'long' })}
+        </p>
+      </div>
 
-            {remaining !== null && (
-              <div className="mt-4">
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted">{t('home.cuts_label')}</span>
-                  <span className="text-ink font-medium">
-                    {used}/{total}
-                  </span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-surface overflow-hidden">
-                  <div
-                    className="h-full bg-brand-gradient transition-all"
-                    style={{ width: `${total ? (used / total) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-wrap gap-3 mt-5">
-              <Link to="/client/calendar" className="btn-primary btn-sm">
-                <CalendarDays size={14} /> {t('home.book_btn')}
-              </Link>
-              <Link to="/client/subscription" className="btn-outline btn-sm">
-                <CreditCard size={14} /> {t('home.details_btn')}
-              </Link>
-              <Link to="/client/chat" className="btn-outline btn-sm">
-                <MessageSquare size={14} /> {t('home.chat_pro')}
-              </Link>
+      {/* Subscription card */}
+      {subscription ? (
+        <div className="bg-surface rounded-card p-[18px]">
+          <span className="pill-premium">
+            {subscription.plan?.name ?? PLAN_LABEL[subscription.planType]}
+          </span>
+          <p className="section-title mt-3">
+            {total !== null
+              ? t('home.cuts_used', { used, total })
+              : t('home.subscription_card')}
+          </p>
+          {subscription.renewalDate && (
+            <p className="text-[13px] text-muted mt-1">
+              {t('home.renews_on', { date: formatDate(subscription.renewalDate) })}
+            </p>
+          )}
+          {total !== null && (
+            <div className="sub-track mt-4">
+              <div className="sub-fill" style={{ width: `${pct}%` }} />
             </div>
-          </>
+          )}
+          <div className="flex gap-3 mt-5 flex-wrap">
+            <Link to="/client/calendar" className="btn-primary btn-sm">
+              <CalendarDays size={14} /> {t('home.book_btn')}
+            </Link>
+            <Link to="/client/subscription" className="btn-ghost btn-sm">
+              <CreditCard size={14} /> {t('home.details_btn')}
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-surface rounded-card p-[18px]">
+          <p className="section-title">{t('home.no_subscription')}</p>
+          <p className="text-[13px] text-muted mt-1">{t('home.no_subscription_desc')}</p>
+          <Link to="/client/subscription" className="btn-primary btn-sm mt-4 inline-flex">
+            {t('subscription.subscribe_btn')}
+          </Link>
+        </div>
+      )}
+
+      {/* Upcoming appointments */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="section-title">{t('home.upcoming')}</h2>
+          <Link to="/client/calendar" className="text-[13px] font-semibold text-brand flex items-center gap-0.5">
+            {t('home.view_all')} <ChevronRight size={14} />
+          </Link>
+        </div>
+        {upcoming.length === 0 ? (
+          <p className="text-[13px] text-muted">{t('home.no_upcoming')}</p>
         ) : (
-          <p className="mt-4 text-muted">{t('home.no_subscription_desc')}</p>
+          <ul className="space-y-2">
+            {upcoming.map((a) => (
+              <li key={a.id} className="bg-surface rounded-card p-4 flex items-center gap-4">
+                <div className="text-center shrink-0 w-14">
+                  <p className="text-[22px] font-bold text-brand leading-none">{a.startTime}</p>
+                  <p className="text-[11px] text-muted mt-0.5 uppercase">{formatDate(a.date).split(',')[0]}</p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="card-title truncate">{SERVICE_LABEL[a.service]}</p>
+                  <p className="text-[13px] text-muted mt-0.5">{a.durationMinutes} min</p>
+                </div>
+                <ChevronRight size={16} className="text-faint shrink-0" />
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-ink flex items-center gap-2">
-              <CalendarDays size={18} className="text-brand" /> {t('home.upcoming')}
-            </h3>
-            <Link to="/client/calendar" className="text-xs text-brand hover:underline">
-              {t('home.view_all')}
-            </Link>
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="text-sm text-muted text-center py-4">{t('home.no_upcoming')}</p>
-          ) : (
-            <ul className="divide-y divide-line">
-              {upcoming.map((a) => (
-                <li key={a.id} className="py-2 flex items-center gap-3">
-                  <div className="w-14 text-center">
-                    <p className="text-base font-bold text-ink">{a.startTime}</p>
-                    <p className="text-[10px] text-muted">{formatDate(a.date)}</p>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">
-                      {SERVICE_LABEL[a.service]}
-                    </p>
-                    <p className="text-xs text-muted">{a.status}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      {/* Recent cuts */}
+      {cuts.length > 0 && (
+        <section>
+          <h2 className="section-title mb-4">{t('home.recent_cuts')}</h2>
+          <ul className="space-y-2">
+            {cuts.slice(0, 4).map((c) => (
+              <li key={c.id} className="flex items-center gap-3 py-3 border-b border-lineSoft last:border-0">
+                <Scissors size={16} className="text-faint shrink-0" />
+                <span className="text-[14px] text-ink flex-1">{formatDate(c.date)}</span>
+                {c.notes && <span className="text-[13px] text-muted truncate max-w-[120px]">{c.notes}</span>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-        <div className="card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-ink flex items-center gap-2">
-              <Scissors size={18} className="text-brand" /> {t('home.recent_cuts')}
-            </h3>
-          </div>
-          {cuts.length === 0 ? (
-            <p className="text-sm text-muted text-center py-4">{t('home.no_cuts')}</p>
-          ) : (
-            <ul className="divide-y divide-line max-h-48 overflow-y-auto">
-              {cuts.slice(0, 8).map((c) => (
-                <li key={c.id} className="py-2 flex items-center justify-between text-sm">
-                  <span className="text-ink">{formatDate(c.date)}</span>
-                  <span className="text-muted truncate ml-2">{c.notes ?? '—'}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
+      {/* My professional */}
       {barber && (
-        <section className="card">
-          <p className="text-xs uppercase tracking-wide text-muted mb-3">{t('home.my_professional')}</p>
-          <div className="flex items-start gap-4">
-            <Avatar name={barber.name} size={60} />
+        <section>
+          <h2 className="section-title mb-4">{t('home.my_professional')}</h2>
+          <div className="bg-surface rounded-card p-4 flex items-center gap-4">
+            <Avatar name={barber.name} size={56} />
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-semibold text-ink">{barber.name}</p>
-              <div className="flex items-center gap-1 text-sm text-muted">
-                <Star size={14} className="text-warning fill-warning" />
-                <span>{Number(barber.rating ?? 0).toFixed(1)}/5</span>
+              <p className="card-title">{barber.name}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <Star size={13} className="fill-ink text-ink" />
+                <span className="text-[13px] font-bold">{Number(barber.rating ?? 0).toFixed(1)}</span>
               </div>
               {barber.address && (
-                <p className="flex items-center gap-1.5 text-sm text-muted mt-1">
-                  <MapPin size={14} /> {barber.address}
-                </p>
-              )}
-              {barber.phone && (
-                <p className="flex items-center gap-1.5 text-sm text-muted">
-                  <Phone size={14} /> {barber.phone}
+                <p className="flex items-center gap-1 text-[13px] text-muted mt-0.5">
+                  <MapPin size={12} /> {barber.address}
                 </p>
               )}
             </div>
+            <Link to="/client/chat" className="btn-ghost btn-sm shrink-0">
+              <MessageSquare size={14} /> {t('home.chat_btn')}
+            </Link>
           </div>
         </section>
       )}

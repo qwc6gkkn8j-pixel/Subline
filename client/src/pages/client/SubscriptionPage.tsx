@@ -65,7 +65,7 @@ export default function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-ink">A minha subscrição</h1>
+      <h1 className="page-title">A minha subscrição</h1>
 
       {loading ? (
         <div className="card text-center py-10">
@@ -77,7 +77,7 @@ export default function SubscriptionPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted">Plano</p>
-              <h2 className="text-2xl font-bold text-ink mt-1">
+              <h2 className="page-title mt-1">
                 {subscription.plan?.name ?? PLAN_LABEL[subscription.planType]}
               </h2>
               <p className="text-muted">{formatCurrency(subscription.price)} / mês</p>

@@ -121,7 +121,7 @@ export default function StaffPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('staff.title')}</h1>
+        <h1 className="page-title mr-auto">{t('staff.title')}</h1>
         <label className="text-sm flex items-center gap-2">
           <input
             type="checkbox"

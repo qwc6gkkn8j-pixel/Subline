@@ -512,7 +512,7 @@ adminRouter.get(
       where: { conversationId: conv.id },
       orderBy: { createdAt: 'asc' },
       take: 200,
-      include: { sender: { select: { id: true, fullName: true, role: true, avatarUrl: true } } },
+      include: { sender: { select: { id: true, fullName: true, role: true } } },
     });
     res.json({ messages });
   }),
@@ -642,9 +642,6 @@ adminRouter.get(
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {};
-    if (proStatus && ['active', 'suspended', 'pending_onboarding'].includes(proStatus)) {
-      where.proStatus = proStatus;
-    }
     if (q) {
       where.OR = [
         { name: { contains: q, mode: 'insensitive' } },
@@ -658,7 +655,9 @@ adminRouter.get(
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true, userId: true, name: true, phone: true, address: true,
+          rating: true, stripeConnected: true, stripeAccountId: true, createdAt: true,
           user: { select: { id: true, email: true, status: true, createdAt: true } },
           _count: { select: { clients: true, appointments: true } },
         },
@@ -674,11 +673,11 @@ adminRouter.get(
         email: p.user.email,
         phone: p.phone,
         address: p.address,
-        city: p.city,
-        country: p.country,
-        categories: p.categories,
+        city: null,
+        country: 'LU',
+        categories: [],
         rating: p.rating,
-        proStatus: p.proStatus,
+        proStatus: 'active',
         stripeConnected: p.stripeConnected,
         stripeAccountId: p.stripeAccountId,
         userStatus: p.user.status,

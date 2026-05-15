@@ -55,7 +55,7 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-2xl font-bold text-ink">{t('calendar.title')}</h1>
+        <h1 className="page-title">{t('calendar.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
           <Plus size={16} /> {t('calendar.new_booking')}
         </button>
@@ -68,7 +68,7 @@ export default function CalendarPage() {
       ) : (
         <>
           <section>
-            <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">{t('calendar.upcoming')}</h2>
+            <h2 className="section-title mb-4">{t('calendar.upcoming')}</h2>
             {upcoming.length === 0 ? (
               <div className="card">
                 <EmptyState
@@ -88,7 +88,7 @@ export default function CalendarPage() {
 
           {past.length > 0 && (
             <section>
-              <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3">
+              <h2 className="section-title mb-4">
                 {t('calendar.past')}
               </h2>
               <ul className="space-y-3">

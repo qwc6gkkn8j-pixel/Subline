@@ -1056,7 +1056,7 @@ barberRouter.get(
       where: { conversationId: conv.id },
       orderBy: { createdAt: 'asc' },
       take: 200,
-      include: { sender: { select: { id: true, fullName: true, role: true, avatarUrl: true } } },
+      include: { sender: { select: { id: true, fullName: true, role: true } } },
     });
     res.json({ messages });
   }),

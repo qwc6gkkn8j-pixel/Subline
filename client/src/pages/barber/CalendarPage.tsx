@@ -100,7 +100,7 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('calendar.title')}</h1>
+        <h1 className="page-title mr-auto">{t('calendar.title')}</h1>
         <button className="btn-outline" onClick={() => setEditingAvailability(true)}>
           <Pencil size={16} /> {t('calendar.availability')}
         </button>

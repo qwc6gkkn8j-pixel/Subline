@@ -103,7 +103,7 @@ export default function PaymentsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('payments.title')}</h1>
+        <h1 className="page-title mr-auto">{t('payments.title')}</h1>
         <button className="btn-ghost btn-sm" onClick={exportCsv}>
           <Download size={14} /> Exportar CSV
         </button>
@@ -114,13 +114,13 @@ export default function PaymentsPage() {
         <div className="stat-card">
           <TrendingUp size={18} className="text-success" />
           <div>
-            <p className="text-2xl font-bold text-ink">{formatCurrency(totalRevenue)}</p>
+            <p className="page-title">{formatCurrency(totalRevenue)}</p>
             <p className="text-xs text-muted">{t('payments.revenue_confirmed')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div>
-            <p className="text-2xl font-bold text-ink">{total}</p>
+            <p className="page-title">{total}</p>
             <p className="text-xs text-muted">{t('payments.total_transactions')}</p>
           </div>
         </div>

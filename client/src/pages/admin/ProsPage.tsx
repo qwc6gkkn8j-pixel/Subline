@@ -100,7 +100,7 @@ export default function ProsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('pros.title')}</h1>
+        <h1 className="page-title mr-auto">{t('pros.title')}</h1>
         <span className="text-sm text-muted">{t('pros.total', { count: total })}</span>
       </div>
 

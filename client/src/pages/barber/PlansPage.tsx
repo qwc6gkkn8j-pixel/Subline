@@ -59,7 +59,7 @@ export default function PlansPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">{t('plans.title')}</h1>
+        <h1 className="page-title mr-auto">{t('plans.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
           <Plus size={16} /> {t('plans.new_plan')}
         </button>

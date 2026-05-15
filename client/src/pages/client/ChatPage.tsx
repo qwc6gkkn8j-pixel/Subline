@@ -63,7 +63,7 @@ export default function ChatPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink">{t('common:nav.chat')}</h1>
+        <h1 className="page-title">{t('common:nav.chat')}</h1>
         <div className="flex gap-2">
           <button className="btn-outline" onClick={() => setNewTicket(true)}>
             <LifeBuoy size={16} /> Suporte

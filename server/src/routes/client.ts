@@ -599,7 +599,7 @@ clientRouter.get(
       where: { conversationId: conv.id },
       orderBy: { createdAt: 'asc' },
       take: 200,
-      include: { sender: { select: { id: true, fullName: true, role: true, avatarUrl: true } } },
+      include: { sender: { select: { id: true, fullName: true, role: true } } },
     });
     res.json({ messages });
   }),
@@ -865,20 +865,13 @@ publicRouter.get(
     const limit = Math.min(50, Number(req.query.limit) || 20);
     const skip = (page - 1) * limit;
 
-    const where: Record<string, unknown> = { proStatus: 'active' };
-
+    const where: Record<string, unknown> = {};
     if (q) {
       where.OR = [
         { name: { contains: q, mode: 'insensitive' } },
         { bio: { contains: q, mode: 'insensitive' } },
         { address: { contains: q, mode: 'insensitive' } },
       ];
-    }
-    if (category) {
-      where.categories = { has: category };
-    }
-    if (city) {
-      where.city = { contains: city, mode: 'insensitive' };
     }
 
     const orderBy =
@@ -899,9 +892,6 @@ publicRouter.get(
           name: true,
           bio: true,
           address: true,
-          city: true,
-          country: true,
-          categories: true,
           rating: true,
           _count: { select: { reviews: true } },
           services: {
@@ -930,12 +920,6 @@ publicRouter.get(
 publicRouter.get(
   '/categories',
   asyncHandler(async (_req, res) => {
-    const pros = await prisma.barber.findMany({
-      where: { proStatus: 'active' },
-      select: { categories: true },
-    });
-    const allCats = pros.flatMap((p) => p.categories);
-    const unique = [...new Set(allCats)].sort();
-    res.json({ categories: unique });
+    res.json({ categories: [] });
   }),
 );

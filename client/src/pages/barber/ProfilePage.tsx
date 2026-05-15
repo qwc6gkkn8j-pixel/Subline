@@ -75,7 +75,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold text-ink">O meu perfil</h1>
+      <h1 className="page-title">O meu perfil</h1>
 
       <section className="card">
         <div className="flex items-center justify-between mb-4">

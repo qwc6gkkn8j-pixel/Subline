@@ -90,4 +90,27 @@
   /* ── Pill chip (category filters, segmented controls) ── */
   .chip        { @apply inline-flex items-center h-9 px-4 rounded-pill text-sm font-medium bg-card border border-line text-ink transition-all; }
   .chip-active { @apply chip bg-ink text-white border-ink; }
+
+  /* ── Page typography ── */
+  .page-title   { @apply text-[30px] font-bold text-ink leading-[1.1] tracking-[-0.013em]; }
+  .section-title { @apply text-[20px] font-bold text-ink leading-[1.2] tracking-[-0.010em]; }
+  .card-title   { @apply text-[15px] font-bold text-ink leading-[1.3] tracking-[-0.005em]; }
+
+  /* ── Premium pill ── */
+  .pill-premium { @apply inline-flex items-center px-2.5 py-1 rounded-pill bg-brand/10 text-brand text-[10px] font-bold uppercase tracking-[0.04em]; }
+
+  /* ── Subscription progress (shimmer) ── */
+  .sub-track { @apply h-2 bg-lineSoft rounded-pill overflow-hidden; }
+  .sub-fill  {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1A5FA8 0%, #2B8EF0 25%, #5BAEF7 50%, #2B8EF0 75%, #1A5FA8 100%);
+    background-size: 220% 100%;
+    animation: subline-shimmer 2.4s linear infinite;
+    box-shadow: 0 0 14px rgba(43, 142, 240, 0.45);
+  }
+  @keyframes subline-shimmer {
+    0%   { background-position: 220% 0; }
+    100% { background-position: -220% 0; }
+  }
 }

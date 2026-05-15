@@ -96,7 +96,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-ink">{t('discover.title')}</h1>
+      <h1 className="page-title">{t('discover.title')}</h1>
 
       {/* Barra de pesquisa */}
       <form onSubmit={handleSearch} className="relative">

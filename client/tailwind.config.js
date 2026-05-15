@@ -28,6 +28,16 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'sans-serif'],
+        mono: ['ui-monospace', 'SF Mono', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+      },
+      fontSize: {
+        'display': ['30px', { lineHeight: '1.1', letterSpacing: '-0.013em', fontWeight: '700' }],
+        'h1':      ['26px', { lineHeight: '1.15', letterSpacing: '-0.012em', fontWeight: '700' }],
+        'h2':      ['20px', { lineHeight: '1.2',  letterSpacing: '-0.010em', fontWeight: '700' }],
+        'h3':      ['17px', { lineHeight: '1.25', fontWeight: '700' }],
+        'card-title': ['15px', { lineHeight: '1.3', letterSpacing: '-0.005em', fontWeight: '700' }],
+        'meta':    ['13px', { lineHeight: '1.4', fontWeight: '500' }],
+        'micro':   ['11px', { lineHeight: '1.3', fontWeight: '600' }],
       },
       borderRadius: {
         card:      '16px',

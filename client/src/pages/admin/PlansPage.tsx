@@ -45,7 +45,7 @@ export default function PlansPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink">{t('plans.title')}</h1>
+        <h1 className="page-title">{t('plans.title')}</h1>
         <div className="flex items-center gap-2">
           <select
             value={barberFilter}
@@ -90,7 +90,7 @@ export default function PlansPage() {
                   {p.isActive ? 'Ativo' : 'Inativo'}
                 </span>
               </div>
-              <p className="text-2xl font-bold text-ink">
+              <p className="page-title">
                 {formatCurrency(p.price)}
                 <span className="text-sm font-normal text-muted">/mês</span>
               </p>

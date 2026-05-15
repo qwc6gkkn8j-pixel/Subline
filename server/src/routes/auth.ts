@@ -37,9 +37,15 @@ const refreshSchema = z.object({
 });
 
 async function buildJwtPayload(userId: string): Promise<JwtPayload> {
+  // Explicit select — never includes new columns that may not exist in production DB yet.
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: { barber: true, client: true, staffMember: true },
+    select: {
+      id: true, role: true, status: true,
+      barber:      { select: { id: true } },
+      client:      { select: { id: true } },
+      staffMember: { select: { id: true, barberId: true } },
+    },
   });
   if (!user) throw Unauthorized('User not found');
   if (user.status === 'inactive') throw Unauthorized('Account is inactive');
@@ -74,7 +80,7 @@ authRouter.post(
     // Public registration is restricted to barber/client. Admin must be seeded or created by an admin.
     if (data.role === 'admin') throw BadRequest('Admin accounts cannot be created via public registration');
 
-    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() } });
+    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() }, select: { id: true } });
     if (existing) throw Conflict('Email already registered');
 
     const passwordHash = await bcrypt.hash(data.password, env.BCRYPT_ROUNDS);
@@ -126,6 +132,10 @@ authRouter.post(
     const data = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({
       where: { email: data.email.toLowerCase() },
+      select: {
+        id: true, email: true, role: true, status: true,
+        fullName: true, phone: true, passwordHash: true,
+      },
     });
     if (!user) throw Unauthorized('Invalid email or password');
     if (user.status === 'inactive') throw Unauthorized('Account is inactive');
@@ -161,10 +171,22 @@ authRouter.get(
   asyncHandler(async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: req.auth!.userId },
-      include: {
-        barber: true,
-        client: true,
-        staffMember: { include: { barber: { select: { id: true, name: true } } } },
+      select: {
+        id: true, email: true, role: true, status: true, fullName: true, phone: true,
+        barber: { select: {
+          id: true, userId: true, name: true, phone: true, address: true, bio: true,
+          rating: true, stripeAccountId: true, stripeConnected: true,
+          createdAt: true, updatedAt: true,
+        }},
+        client: { select: {
+          id: true, userId: true, barberId: true, name: true, email: true,
+          phone: true, createdAt: true, updatedAt: true,
+        }},
+        staffMember: { select: {
+          id: true, barberId: true, userId: true, name: true, role: true,
+          isActive: true, createdAt: true,
+          barber: { select: { id: true, name: true } },
+        }},
       },
     });
     if (!user) throw Unauthorized();

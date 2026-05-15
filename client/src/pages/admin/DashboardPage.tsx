@@ -143,7 +143,7 @@ function QuickCard({
         {icon}
       </span>
       <div>
-        <p className="text-2xl font-bold text-ink leading-tight">{value}</p>
+        <p className="page-title leading-tight">{value}</p>
         <p className="text-xs text-muted">{label}</p>
       </div>
     </Link>

@@ -114,7 +114,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-xl space-y-6">
-      <h1 className="text-2xl font-bold text-ink">O meu perfil</h1>
+      <h1 className="page-title">O meu perfil</h1>
 
       {/* Avatar */}
       <div className="card flex items-center gap-4">

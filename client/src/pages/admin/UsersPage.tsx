@@ -75,7 +75,7 @@ export default function UsersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold text-ink">{t('users.title')}</h1>
+        <h1 className="page-title">{t('users.title')}</h1>
         <button
           onClick={() => {
             setEditing('new');
