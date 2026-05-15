@@ -18,7 +18,7 @@ export function BottomNav({ items }: BottomNavProps) {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-30 bg-[#0A0E1A] border-t border-line sm:hidden"
+      className="fixed bottom-0 inset-x-0 z-30 bg-bg border-t border-lineSoft sm:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="flex items-center justify-around h-16">
@@ -29,23 +29,34 @@ export function BottomNav({ items }: BottomNavProps) {
             <li key={item.to} className="flex-1 h-full">
               <Link
                 to={item.to}
-                className={cn(
-                  'flex flex-col items-center justify-center gap-1 w-full h-full min-h-[44px] text-[9.5px] font-semibold select-none transition-colors',
-                  active ? 'text-brand' : 'text-muted',
-                  item.primary && 'relative',
-                )}
+                className="flex flex-col items-center justify-center gap-1 w-full h-full min-h-[44px] select-none transition-colors relative"
               >
                 {item.primary ? (
-                  <span className="absolute -top-4 w-12 h-12 rounded-pill bg-brand-gradient text-white shadow-blue flex items-center justify-center">
-                    <Icon size={24} />
-                  </span>
+                  <>
+                    <span className="absolute -top-4 w-12 h-12 rounded-pill bg-ink text-white shadow-btn flex items-center justify-center">
+                      <Icon size={24} />
+                    </span>
+                    <span className="mt-7 text-[9.5px] font-semibold leading-none text-faint">{item.label}</span>
+                  </>
                 ) : (
                   <>
-                    <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
-                    <span className="leading-none">{item.label}</span>
+                    {/* Black dot indicator above active icon */}
+                    {active && (
+                      <span className="absolute top-0.5 w-1 h-1 rounded-full bg-ink" />
+                    )}
+                    <Icon
+                      size={22}
+                      strokeWidth={active ? 2.2 : 1.8}
+                      className={active ? 'text-brand' : 'text-faint'}
+                    />
+                    <span className={cn(
+                      'text-[9.5px] leading-none',
+                      active ? 'font-bold text-ink' : 'font-medium text-faint',
+                    )}>
+                      {item.label}
+                    </span>
                   </>
                 )}
-                {item.primary && <span className="mt-7 leading-none">{item.label}</span>}
               </Link>
             </li>
           );

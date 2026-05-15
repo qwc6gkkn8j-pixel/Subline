@@ -48,23 +48,23 @@ export default function DashboardPage() {
       <StripeBanner variant="barber" />
 
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="stat-card bg-brand-gradient">
-          <UsersIcon size={20} className="opacity-90" />
+        <div className="stat-card">
+          <UsersIcon size={20} className="text-brand" />
           <div>
-            <p className="text-3xl font-bold">{stats?.activeClients ?? '—'}</p>
-            <p className="text-xs opacity-90 mt-1">Clientes ativos</p>
+            <p className="text-3xl font-bold text-ink">{stats?.activeClients ?? '—'}</p>
+            <p className="text-xs text-muted mt-1">Clientes ativos</p>
           </div>
         </div>
-        <div className="stat-card bg-accent">
-          <DollarSign size={20} className="opacity-90" />
+        <div className="stat-card">
+          <DollarSign size={20} className="text-success" />
           <div>
-            <p className="text-3xl font-bold">
+            <p className="text-3xl font-bold text-ink">
               {stats ? formatCurrency(stats.monthlyRevenue) : '—'}
             </p>
-            <p className="text-xs opacity-90 mt-1">Receita estimada (mês)</p>
+            <p className="text-xs text-muted mt-1">Receita estimada (mês)</p>
           </div>
         </div>
-        <div className="card !bg-surface flex flex-col gap-2 !shadow-none">
+        <div className="stat-card">
           <Star size={20} className="text-warning fill-warning" />
           <div>
             <p className="text-3xl font-bold text-ink">
@@ -88,7 +88,7 @@ export default function DashboardPage() {
         {today.length === 0 ? (
           <p className="text-sm text-muted text-center py-6">Sem marcações para hoje.</p>
         ) : (
-          <ul className="divide-y divide-line">
+          <ul className="divide-y divide-lineSoft">
             {today.map((a) => (
               <li key={a.id} className="py-3 flex items-center gap-3">
                 <div className="w-14 text-center">

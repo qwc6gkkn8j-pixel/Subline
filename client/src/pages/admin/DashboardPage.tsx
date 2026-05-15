@@ -13,7 +13,7 @@ import {
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { StripeBanner } from '@/components/ui/StripeBanner';
-import { cn, formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 interface KpiData {
   totalUsers: number;
@@ -54,28 +54,24 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           icon={<UsersIcon size={20} />}
-          color="bg-accent"
           label="Total Users"
           value={kpi?.totalUsers ?? '—'}
           delta="+12.5%"
         />
         <KpiCard
           icon={<CheckCircle2 size={20} />}
-          color="bg-success"
           label="Active Subscriptions"
           value={kpi?.activeSubscriptions ?? '—'}
           delta="+8.2%"
         />
         <KpiCard
           icon={<DollarSign size={20} />}
-          color="bg-brand"
           label="Monthly Revenue"
           value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'}
           delta="+15.3%"
         />
         <KpiCard
           icon={<TrendingUp size={20} />}
-          color="bg-muted"
           label="User Growth"
           value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'}
         />
@@ -131,26 +127,25 @@ export default function DashboardPage() {
 
 function KpiCard({
   icon,
-  color,
   label,
   value,
   delta,
 }: {
   icon: React.ReactNode;
-  color: string;
+  color?: string;
   label: string;
   value: number | string;
   delta?: string;
 }) {
   return (
-    <div className={cn('stat-card', color)}>
+    <div className="stat-card">
       <div className="flex items-center justify-between">
-        <span className="opacity-90">{icon}</span>
-        {delta && <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">{delta}</span>}
+        <span className="text-brand">{icon}</span>
+        {delta && <span className="text-xs font-semibold text-success">{delta}</span>}
       </div>
       <div>
-        <p className="text-3xl font-bold leading-tight">{value}</p>
-        <p className="text-xs opacity-90 mt-1">{label}</p>
+        <p className="text-3xl font-bold leading-tight text-ink">{value}</p>
+        <p className="text-xs text-muted mt-1">{label}</p>
       </div>
     </div>
   );
@@ -168,7 +163,7 @@ function QuickCard({
   value: number | string;
 }) {
   return (
-    <Link to={to} className="card flex items-center gap-3 hover:shadow-card-lg transition-shadow">
+    <Link to={to} className="stat-card flex-row items-center gap-3 hover:brightness-95 transition-all">
       <span className="w-10 h-10 rounded-button bg-brand/10 text-brand flex items-center justify-center">
         {icon}
       </span>

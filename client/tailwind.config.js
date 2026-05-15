@@ -4,43 +4,54 @@ export default {
   theme: {
     extend: {
       colors: {
-        // SUBLINE v2 — dark design system
-        bg:      '#0F1221',
-        surface: '#1A2035',
-        card:    '#202640',
-        navy:    '#1A2A6C',
+        // SUBLINE v3 — Uber-Eats-style light design system
+        bg:      '#FFFFFF',
+        surface: '#F6F6F6',
+        card:    '#FFFFFF',
+        line:    '#E0E0E0',     // inputs, chips, ghost borders
+        lineSoft:'#F0F0F0',     // row separators, subtle dividers
         brand: {
           DEFAULT: '#2B8EF0',
           dark:    '#1A5FA8',
           light:   '#5BAEF7',
-          dim:     '#1A5FA8',
+          dim:     '#EBF4FE',   // rgba(43,142,240,.10) on white
         },
-        ink:      '#FFFFFF',
-        muted:    '#8A94B0',
-        faint:    '#5A6386',
-        line:     '#2A3356',
-        lineSoft: '#232A47',
-        success:  '#2BC8A0',
-        danger:   '#E24B4A',
-        warning:  '#F0B82B',
-        accent:   { DEFAULT: '#8B5CF6' },
+        ink:     '#000000',
+        muted:   '#6B6B6B',
+        faint:   '#9B9B9B',
+        cta:     '#000000',
+        success: '#2BC8A0',
+        danger:  '#E24B4A',
+        warning: '#F0B82B',
+        promo:   '#D74E2F',
+        accent:  { DEFAULT: '#8B5CF6' },
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'system-ui', 'sans-serif'],
       },
       borderRadius: {
-        card:   '14px',
-        button: '12px',
-        pill:   '999px',
+        card:      '16px',
+        'card-lg': '20px',
+        tile:      '14px',
+        input:     '12px',
+        button:    '12px',
+        pill:      '999px',
       },
       boxShadow: {
-        card:      '0 2px 8px rgba(0,0,0,0.25)',
-        'card-lg': '0 8px 24px rgba(0,0,0,0.35)',
-        blue:      '0 4px 12px rgba(43,142,240,0.4)',
+        // Button drop-shot glow system
+        btn:              '0 5px 14px rgba(0,0,0,0.14), 0 1px 3px rgba(0,0,0,0.08)',
+        'btn-hover':      '0 8px 20px rgba(0,0,0,0.18), 0 2px 5px rgba(0,0,0,0.11)',
+        'btn-brand':      '0 6px 18px rgba(43,142,240,0.22), 0 1px 4px rgba(43,142,240,0.14)',
+        'btn-brand-hover':'0 9px 24px rgba(43,142,240,0.28), 0 2px 6px rgba(43,142,240,0.18)',
+        'btn-ghost':      '0 2px 8px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)',
+        'btn-danger':     '0 4px 12px rgba(226,75,74,0.14), 0 1px 3px rgba(226,75,74,0.08)',
+        // Layout
+        fab:              '0 2px 8px rgba(0,0,0,0.18)',
+        menu:             '0 8px 24px rgba(0,0,0,0.12)',
+        'card-lg':        '0 8px 24px rgba(0,0,0,0.12)',
       },
       backgroundImage: {
-        'brand-gradient':      'linear-gradient(135deg, #2B8EF0 0%, #003D7A 100%)',
-        'brand-gradient-soft': 'linear-gradient(135deg, #1A2035 0%, #202640 100%)',
+        'brand-gradient': 'linear-gradient(90deg, #2B8EF0, #5BAEF7)',
       },
       animation: {
         'fade-in':  'fadeIn 0.2s ease-out',

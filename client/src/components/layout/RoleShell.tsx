@@ -38,12 +38,12 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
   return (
     <div className="min-h-screen bg-bg flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 bg-surface border-r border-line sticky top-0 h-screen">
-        <div className="h-16 px-6 flex items-center gap-2 border-b border-line">
+      <aside className="hidden lg:flex lg:flex-col w-64 bg-surface border-r border-lineSoft sticky top-0 h-screen">
+        <div className="h-16 px-6 flex items-center gap-2 border-b border-lineSoft">
           <Logo size={32} />
           <span className="font-bold text-ink tracking-widest text-sm">SUBLINE</span>
         </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-0.5 overflow-y-auto">
           {navItems.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
@@ -53,17 +53,21 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                 cn(
                   'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand/15 text-brand'
+                    ? 'bg-card text-ink font-semibold'
                     : 'text-muted hover:bg-card hover:text-ink',
                 )
               }
             >
-              <Icon size={18} />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <Icon size={18} className={isActive ? 'text-brand' : ''} />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-line">
+        <div className="p-4 border-t border-lineSoft">
           <button
             type="button"
             onClick={onLogout}
@@ -77,7 +81,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
       {/* Main column */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 bg-surface border-b border-line">
+        <header className="sticky top-0 z-30 bg-bg border-b border-lineSoft">
           <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <button
@@ -115,8 +119,8 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                       aria-label="Close menu"
                       onClick={() => setProfileOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-card border border-line rounded-card shadow-card-lg overflow-hidden z-40">
-                      <div className="px-4 py-3 border-b border-line">
+                    <div className="absolute right-0 mt-2 w-56 bg-card border border-lineSoft rounded-card shadow-menu overflow-hidden z-40">
+                      <div className="px-4 py-3 border-b border-lineSoft">
                         <p className="text-sm font-medium text-ink truncate">{user?.fullName}</p>
                         <p className="text-xs text-muted truncate">{user?.email}</p>
                       </div>
@@ -144,8 +148,8 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
               aria-label="Close menu"
               onClick={() => setMobileNavOpen(false)}
             />
-            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface shadow-card-lg flex flex-col border-r border-line">
-              <div className="h-16 px-4 flex items-center justify-between border-b border-line">
+            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface shadow-menu flex flex-col border-r border-lineSoft">
+              <div className="h-16 px-4 flex items-center justify-between border-b border-lineSoft">
                 <div className="flex items-center gap-2">
                   <Logo size={28} />
                   <span className="font-bold text-ink tracking-widest text-sm">SUBLINE</span>
@@ -169,16 +173,20 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                     className={({ isActive }) =>
                       cn(
                         'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
-                        isActive ? 'bg-brand/15 text-brand' : 'text-muted hover:bg-card hover:text-ink',
+                        isActive ? 'bg-card text-ink font-semibold' : 'text-muted hover:bg-card hover:text-ink',
                       )
                     }
                   >
-                    <Icon size={18} />
-                    {label}
+                    {({ isActive }) => (
+                      <>
+                        <Icon size={18} className={isActive ? 'text-brand' : ''} />
+                        {label}
+                      </>
+                    )}
                   </NavLink>
                 ))}
               </nav>
-              <div className="p-4 border-t border-line">
+              <div className="p-4 border-t border-lineSoft">
                 <button
                   type="button"
                   onClick={onLogout}

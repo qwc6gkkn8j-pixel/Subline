@@ -28,8 +28,8 @@ export default function Login() {
           <p className="text-xs text-muted mt-3 tracking-widest uppercase">Everything you need</p>
         </div>
 
-        <div className="bg-card rounded-card border border-line p-6 sm:p-8">
-          <div className="grid grid-cols-2 bg-surface rounded-button border border-line p-1 mb-6">
+        <div className="bg-card rounded-card p-6 sm:p-8">
+          <div className="grid grid-cols-2 bg-surface rounded-button border border-lineSoft p-1 mb-6">
             <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
               Sign In
             </TabButton>
@@ -64,7 +64,7 @@ function TabButton({
       onClick={onClick}
       className={cn(
         'h-10 rounded-button text-sm font-semibold transition-all',
-        active ? 'bg-brand text-white shadow-blue' : 'text-muted hover:text-ink',
+        active ? 'bg-card text-ink shadow-btn-ghost' : 'text-muted hover:text-ink',
       )}
     >
       {children}
@@ -150,7 +150,7 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <div className="bg-danger/10 text-danger text-sm rounded-button px-3 py-2">{error}</div>
       )}
 
-      <button type="submit" className="btn-primary w-full" disabled={busy}>
+      <button type="submit" className="btn-brand w-full" disabled={busy}>
         {busy ? <Spinner /> : 'Sign In'}
       </button>
 
@@ -331,7 +331,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <div className="bg-danger/10 text-danger text-sm rounded-button px-3 py-2">{error}</div>
       )}
 
-      <button type="submit" className="btn-primary w-full" disabled={busy}>
+      <button type="submit" className="btn-brand w-full" disabled={busy}>
         {busy ? <Spinner /> : 'Create Account'}
       </button>
 
