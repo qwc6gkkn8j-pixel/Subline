@@ -44,7 +44,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }: M
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          'relative bg-white w-full rounded-t-card sm:rounded-card shadow-card-lg animate-slide-up',
+          'relative bg-card w-full rounded-t-card sm:rounded-card shadow-card-lg animate-slide-up',
           'max-h-[90vh] flex flex-col',
           widths[size],
         )}

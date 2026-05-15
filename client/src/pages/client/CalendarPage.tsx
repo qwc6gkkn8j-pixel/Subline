@@ -334,7 +334,7 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
           ) : slots.length === 0 ? (
             <Banner tone="warning">{t('calendar.no_slots')}</Banner>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-56 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto">
               {slots.map((s) => (
                 <button
                   key={s.time}
@@ -342,12 +342,12 @@ function BookingModal({ onClose, onCreated }: { onClose: () => void; onCreated: 
                   disabled={!s.available}
                   onClick={() => setTime(s.time)}
                   className={
-                    'h-9 rounded-button border text-sm transition-all ' +
+                    'h-9 px-4 rounded-pill border text-[13px] font-medium transition-all ' +
                     (s.time === time
-                      ? 'bg-brand text-white border-brand'
+                      ? 'bg-brand text-white border-brand shadow-btn-brand'
                       : s.available
-                        ? 'bg-white text-ink border-line hover:border-brand'
-                        : 'bg-surface text-muted border-line line-through cursor-not-allowed')
+                        ? 'bg-card text-ink border-line hover:border-brand'
+                        : 'text-[#C8C8C8] border-lineSoft line-through cursor-not-allowed')
                   }
                 >
                   {s.time}

@@ -42,7 +42,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             key={t.id}
             className={cn(
               'pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-card shadow-card-lg',
-              'bg-white border max-w-sm w-full animate-slide-up',
+              'bg-card border max-w-sm w-full animate-slide-up',
               t.type === 'success' && 'border-success/30',
               t.type === 'error' && 'border-danger/30',
               t.type === 'info' && 'border-line',

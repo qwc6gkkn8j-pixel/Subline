@@ -137,7 +137,7 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={day}
-                    className="aspect-square rounded-button border border-line p-1 bg-white hover:shadow-md transition text-xs flex flex-col gap-0.5 overflow-hidden"
+                    className="aspect-square rounded-button border border-line p-1 bg-card hover:shadow-md transition text-xs flex flex-col gap-0.5 overflow-hidden"
                   >
                     <div className="font-semibold text-ink">{day}</div>
                     <div className="flex-1 overflow-y-auto space-y-0.5">

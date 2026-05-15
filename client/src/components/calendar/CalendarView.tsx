@@ -71,7 +71,7 @@ export function CalendarView({
   }, [days, unavailable]);
 
   return (
-    <div className="bg-white rounded-card border border-line overflow-hidden">
+    <div className="bg-card rounded-card border border-line overflow-hidden">
       {/* Header — week controls */}
       <div className="px-4 py-3 border-b border-line flex items-center justify-between">
         <div className="flex items-center gap-2">

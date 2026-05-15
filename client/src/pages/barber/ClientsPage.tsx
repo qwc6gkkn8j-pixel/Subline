@@ -92,7 +92,7 @@ export default function ClientsPage() {
 
       <section className="card !p-0 overflow-hidden">
         <div className="p-4 border-b border-line flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-1 min-w-[200px] px-3 h-9 border border-line rounded-button bg-white">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px] px-3 h-9 border border-line rounded-button bg-card">
             <Search size={16} className="text-muted shrink-0" />
             <input
               placeholder={t('clients.search_placeholder')}

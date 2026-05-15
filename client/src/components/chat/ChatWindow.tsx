@@ -91,7 +91,7 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex flex-col h-[70vh] max-h-[640px] bg-white rounded-card border border-line overflow-hidden">
+    <div className="flex flex-col h-[70vh] max-h-[640px] bg-card rounded-card border border-lineSoft overflow-hidden">
       <header className="px-4 py-3 border-b border-line flex items-center gap-3">
         {onBack && (
           <button
@@ -156,7 +156,7 @@ function Bubble({ message, myRole }: { message: Message; myRole?: Role }) {
       <div
         className={cn(
           'max-w-[75%] rounded-card px-3 py-2 shadow-card text-sm leading-relaxed',
-          mine ? 'bg-brand text-white rounded-br-sm' : 'bg-white text-ink rounded-bl-sm',
+          mine ? 'bg-brand text-white rounded-br-sm' : 'bg-surface text-ink rounded-bl-sm',
         )}
       >
         <p className="whitespace-pre-wrap break-words">{message.content}</p>

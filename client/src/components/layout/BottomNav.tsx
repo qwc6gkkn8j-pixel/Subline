@@ -18,7 +18,7 @@ export function BottomNav({ items }: BottomNavProps) {
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 inset-x-0 z-30 bg-bg border-t border-lineSoft sm:hidden"
+      className="fixed bottom-0 inset-x-0 z-30 bg-card border-t border-lineSoft sm:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="flex items-center justify-around h-16">
@@ -36,7 +36,7 @@ export function BottomNav({ items }: BottomNavProps) {
                     <span className="absolute -top-4 w-12 h-12 rounded-pill bg-ink text-white shadow-btn flex items-center justify-center">
                       <Icon size={24} />
                     </span>
-                    <span className="mt-7 text-[9.5px] font-semibold leading-none text-faint">{item.label}</span>
+                    <span className="mt-7 text-[10.5px] font-semibold leading-none text-faint">{item.label}</span>
                   </>
                 ) : (
                   <>
@@ -50,7 +50,7 @@ export function BottomNav({ items }: BottomNavProps) {
                       className={active ? 'text-brand' : 'text-faint'}
                     />
                     <span className={cn(
-                      'text-[9.5px] leading-none',
+                      'text-[10.5px] leading-none',
                       active ? 'font-bold text-ink' : 'font-medium text-faint',
                     )}>
                       {item.label}

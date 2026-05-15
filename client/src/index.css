@@ -16,48 +16,57 @@
   *::-webkit-scrollbar-thumb { background: #E0E0E0; border-radius: 999px; }
   *::-webkit-scrollbar-track { background: transparent; }
 
+  /* ── Form fields — surface-grey, no visible border until focus ── */
   input[type='text'],
   input[type='email'],
   input[type='password'],
   input[type='tel'],
   input[type='number'],
   input[type='search'],
-  textarea,
-  select {
-    @apply w-full px-4 py-3 border border-line rounded-input bg-card text-ink text-sm
-           focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20
+  input[type='date'],
+  textarea {
+    @apply w-full px-[18px] py-[14px] rounded-input bg-surface text-ink text-[15px]
+           border border-transparent
+           focus:outline-none focus:bg-card focus:border-brand
            placeholder:text-faint transition-colors;
+  }
+
+  /* Selects keep a visible border for native UX clarity */
+  select {
+    @apply w-full px-4 py-3 border border-line rounded-input bg-surface text-ink text-sm
+           focus:outline-none focus:border-brand
+           transition-colors appearance-none;
   }
 }
 
 @layer components {
-  /* ── Buttons — 52px pills, drop-shot shadow + tinted glow ── */
+  /* ── Buttons — 52 px pills ── */
   .btn {
     @apply inline-flex items-center justify-center gap-2 h-[52px] px-6 rounded-pill
            font-semibold text-[15px] transition-all select-none
            disabled:opacity-40 disabled:cursor-not-allowed
            active:scale-[0.97];
   }
-  /* Black primary — neutral drop shadow */
+  /* Black primary */
   .btn-primary {
     @apply btn bg-ink text-white shadow-btn hover:shadow-btn-hover;
   }
-  /* Brand blue — Subline-marked action, use ONCE per screen */
+  /* Brand blue — the Subline-marked action, ONE per screen */
   .btn-brand {
     @apply btn bg-brand text-white shadow-btn-brand hover:shadow-btn-brand-hover;
   }
-  /* Ghost — outline with soft lift */
+  /* Ghost */
   .btn-ghost    { @apply btn bg-card text-ink border border-line shadow-btn-ghost; }
-  /* Secondary — soft surface, muted text (non-critical actions) */
-  .btn-secondary { @apply btn bg-surface text-ink border border-lineSoft hover:border-line; }
-  /* Outline — alias for ghost, keeps backward compat */
+  /* Secondary — soft surface */
+  .btn-secondary { @apply btn bg-surface text-ink border border-line hover:border-line; }
+  /* Outline — alias */
   .btn-outline  { @apply btn bg-transparent text-ink border border-line shadow-btn-ghost hover:bg-surface; }
-  /* Danger — red outline glow */
+  /* Danger */
   .btn-danger   { @apply btn bg-transparent text-danger border border-danger shadow-btn-danger; }
   /* Small modifier */
   .btn-sm       { @apply h-9 px-4 text-sm; }
 
-  /* ── Cards — borderless white on --surface background ── */
+  /* ── Cards — borderless white on surface background ── */
   .card       { @apply bg-card rounded-card p-6; }
   .card-tight { @apply bg-card rounded-card p-4; }
 
@@ -65,16 +74,20 @@
   .badge         { @apply inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-semibold; }
   .badge-success { @apply badge bg-success/15 text-success; }
   .badge-danger  { @apply badge bg-danger/15 text-danger; }
-  .badge-warning { @apply badge bg-warning/15 text-warning; }
-  .badge-muted   { @apply badge bg-surface text-muted border border-lineSoft; }
-  .badge-brand   { @apply badge bg-brand/15 text-brand; }
+  .badge-warning { @apply badge bg-warning/15 text-[#8a6500]; }
+  .badge-muted   { @apply badge bg-surface text-muted; }
+  .badge-brand   { @apply badge bg-brand/10 text-brand; }
   .badge-accent  { @apply badge bg-accent/15 text-accent; }
 
-  /* ── Forms ── */
-  .label       { @apply block text-xs font-semibold text-muted mb-1.5; }
+  /* ── Form labels ── */
+  .label       { @apply block text-[13px] font-semibold text-ink mb-2; }
   .input-error { @apply text-xs text-danger mt-1; }
 
   /* ── Layout ── */
   .stat-card { @apply bg-surface rounded-tile p-5 flex flex-col gap-2; }
   .table-row { @apply border-b border-lineSoft last:border-0; }
+
+  /* ── Pill chip (category filters, segmented controls) ── */
+  .chip        { @apply inline-flex items-center h-9 px-4 rounded-pill text-sm font-medium bg-card border border-line text-ink transition-all; }
+  .chip-active { @apply chip bg-ink text-white border-ink; }
 }

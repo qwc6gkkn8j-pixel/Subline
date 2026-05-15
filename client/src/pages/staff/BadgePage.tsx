@@ -107,7 +107,7 @@ export default function BadgePage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-line px-4 py-3 flex items-center gap-3">
+      <header className="bg-card border-b border-line px-4 py-3 flex items-center gap-3">
         <Logo className="h-7 w-auto" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-ink truncate">

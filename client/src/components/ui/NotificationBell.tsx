@@ -45,7 +45,7 @@ export function NotificationBell() {
             aria-label="Close notifications"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 mt-2 w-80 max-w-[92vw] bg-white border border-line rounded-card shadow-card-lg overflow-hidden z-40 animate-fade-in">
+          <div className="absolute right-0 mt-2 w-80 max-w-[92vw] bg-card border border-line rounded-card shadow-card-lg overflow-hidden z-40 animate-fade-in">
             <div className="px-4 py-3 border-b border-line flex items-center justify-between">
               <p className="text-sm font-semibold text-ink">Notificações</p>
               {unread > 0 && (
@@ -64,7 +64,7 @@ export function NotificationBell() {
               ) : (
                 <ul className="divide-y divide-line">
                   {items.map((n) => (
-                    <li key={n.id} className={n.isRead ? 'bg-white' : 'bg-brand/5'}>
+                    <li key={n.id} className={n.isRead ? 'bg-card' : 'bg-brand/10'}>
                       <button
                         type="button"
                         onClick={() => void handleNotificationClick(n)}

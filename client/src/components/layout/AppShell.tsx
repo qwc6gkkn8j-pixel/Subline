@@ -24,7 +24,7 @@ export function AppShell({ title, children, bottomNav }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <header className="sticky top-0 z-30 bg-white border-b border-line">
+      <header className="sticky top-0 z-30 bg-card border-b border-line">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Logo size={36} />
@@ -50,7 +50,7 @@ export function AppShell({ title, children, bottomNav }: AppShellProps) {
                   aria-label="Close menu"
                   onClick={() => setOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-line rounded-card shadow-card-lg overflow-hidden z-20">
+                <div className="absolute right-0 mt-2 w-48 bg-card border border-line rounded-card shadow-card-lg overflow-hidden z-20">
                   <div className="px-4 py-3 border-b border-line">
                     <p className="text-sm font-medium text-ink truncate">{user?.fullName}</p>
                     <p className="text-xs text-muted truncate">{user?.email}</p>

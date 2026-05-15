@@ -47,8 +47,9 @@ export default {
         'btn-danger':     '0 4px 12px rgba(226,75,74,0.14), 0 1px 3px rgba(226,75,74,0.08)',
         // Layout
         fab:              '0 2px 8px rgba(0,0,0,0.18)',
-        menu:             '0 8px 24px rgba(0,0,0,0.12)',
+        card:             '0 1px 4px rgba(0,0,0,0.06)',
         'card-lg':        '0 8px 24px rgba(0,0,0,0.12)',
+        menu:             '0 8px 24px rgba(0,0,0,0.12)',
       },
       backgroundImage: {
         'brand-gradient': 'linear-gradient(90deg, #2B8EF0, #5BAEF7)',

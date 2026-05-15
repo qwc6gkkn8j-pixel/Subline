@@ -295,7 +295,7 @@ function ServiceFormModal({
                 placeholder={t('services.category_placeholder')}
               />
               {showSuggestions && suggestedCategories.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-line rounded-button mt-1 z-10 shadow-card">
+                <div className="absolute top-full left-0 right-0 bg-card border border-line rounded-button mt-1 z-10 shadow-card">
                   {suggestedCategories.map((cat) => (
                     <button
                       key={cat}

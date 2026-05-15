@@ -464,12 +464,12 @@ function AppointmentModal({
                     disabled={occupied}
                     onClick={() => setTime(s.time)}
                     className={cn(
-                      'h-9 rounded-button border text-sm transition-all',
+                      'h-9 px-4 rounded-pill border text-[13px] font-medium transition-all',
                       selected
-                        ? 'bg-brand text-white border-brand'
+                        ? 'bg-brand text-white border-brand shadow-btn-brand'
                         : occupied
-                          ? 'bg-surface text-muted border-line line-through cursor-not-allowed'
-                          : 'bg-white text-ink border-line hover:border-brand',
+                          ? 'text-[#C8C8C8] border-lineSoft line-through cursor-not-allowed'
+                          : 'bg-card text-ink border-line hover:border-brand',
                     )}
                   >
                     {s.time}
