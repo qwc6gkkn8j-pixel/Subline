@@ -67,7 +67,20 @@
   },
   "logs": {
     "title": "Journal d'audit",
-    "no_logs": "Aucun événement"
+    "no_logs": "Aucun événement",
+    "description": "Les actions des utilisateurs apparaissent ici.",
+    "when": "Quand",
+    "who": "Qui",
+    "action_col": "Action",
+    "entity_col": "Entité",
+    "previous": "Précédent",
+    "next_page": "Suivant"
+  },
+  "dashboard_ext": {
+    "open_tickets": "Tickets ouverts",
+    "active_plans": "Forfaits actifs",
+    "professionals": "Professionnels",
+    "appointments_today": "Rendez-vous aujourd'hui"
   },
   "settings": {
     "title": "Paramètres",

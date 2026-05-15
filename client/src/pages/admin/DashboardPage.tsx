@@ -10,6 +10,7 @@ import {
   Scissors,
   CalendarDays,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { StripeBanner } from '@/components/ui/StripeBanner';
@@ -31,6 +32,7 @@ interface ExtrasData {
 
 export default function DashboardPage() {
   const toast = useToast();
+  const { t } = useTranslation('admin');
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [extras, setExtras] = useState<ExtrasData | null>(null);
 
@@ -52,29 +54,10 @@ export default function DashboardPage() {
       <StripeBanner variant="platform" />
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          icon={<UsersIcon size={20} />}
-          label="Total Users"
-          value={kpi?.totalUsers ?? '—'}
-          delta="+12.5%"
-        />
-        <KpiCard
-          icon={<CheckCircle2 size={20} />}
-          label="Active Subscriptions"
-          value={kpi?.activeSubscriptions ?? '—'}
-          delta="+8.2%"
-        />
-        <KpiCard
-          icon={<DollarSign size={20} />}
-          label="Monthly Revenue"
-          value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'}
-          delta="+15.3%"
-        />
-        <KpiCard
-          icon={<TrendingUp size={20} />}
-          label="User Growth"
-          value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'}
-        />
+        <KpiCard icon={<UsersIcon size={20} />} label={t('dashboard.total_users')} value={kpi?.totalUsers ?? '—'} delta="+12.5%" />
+        <KpiCard icon={<CheckCircle2 size={20} />} label={t('dashboard.active_subscriptions')} value={kpi?.activeSubscriptions ?? '—'} delta="+8.2%" />
+        <KpiCard icon={<DollarSign size={20} />} label={t('dashboard.monthly_revenue')} value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'} delta="+15.3%" />
+        <KpiCard icon={<TrendingUp size={20} />} label={t('dashboard.user_growth')} value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'} />
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -99,26 +82,18 @@ export default function DashboardPage() {
         <QuickCard
           to="/admin/logs"
           icon={<CalendarDays size={18} />}
-          label="Marcações hoje"
+          label={t('dashboard_ext.appointments_today')}
           value={extras?.appointmentsToday ?? '—'}
         />
       </section>
 
       <section className="card">
-        <h2 className="text-lg font-semibold text-ink mb-4">Atalhos</h2>
+        <h2 className="text-lg font-semibold text-ink mb-4">{t('dashboard.shortcuts')}</h2>
         <div className="flex flex-wrap gap-3">
-          <Link to="/admin/users" className="btn-primary">
-            Gerir utilizadores
-          </Link>
-          <Link to="/admin/plans" className="btn-outline">
-            Gerir planos
-          </Link>
-          <Link to="/admin/tickets" className="btn-outline">
-            Ver tickets
-          </Link>
-          <Link to="/admin/logs" className="btn-outline">
-            Auditoria
-          </Link>
+          <Link to="/admin/users" className="btn-primary">{t('dashboard.manage_users')}</Link>
+          <Link to="/admin/plans" className="btn-outline">{t('dashboard.manage_plans')}</Link>
+          <Link to="/admin/tickets" className="btn-outline">{t('dashboard.view_tickets')}</Link>
+          <Link to="/admin/logs" className="btn-outline">{t('dashboard.audit')}</Link>
         </div>
       </section>
     </div>

@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatRelative } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type ProStatus = 'active' | 'suspended' | 'pending_onboarding';
 
@@ -34,9 +35,9 @@ interface ProsResp {
 }
 
 const STATUS_LABELS: Record<ProStatus, string> = {
-  active: 'Activo',
-  suspended: 'Suspenso',
-  pending_onboarding: 'Pendente',
+  active: '',
+  suspended: '',
+  pending_onboarding: '',
 };
 
 const STATUS_BADGE: Record<ProStatus, string> = {
@@ -46,6 +47,7 @@ const STATUS_BADGE: Record<ProStatus, string> = {
 };
 
 export default function ProsPage() {
+    const { t } = useTranslation('admin');
   const toast = useToast();
   const [pros, setPros] = useState<Pro[]>([]);
   const [total, setTotal] = useState(0);
@@ -85,7 +87,7 @@ export default function ProsPage() {
         proStatus: newStatus,
         ...(newStatus === 'suspended' ? { userStatus: 'inactive' } : { userStatus: 'active' }),
       });
-      toast.success('Estado actualizado');
+      toast.success(t('pros.status_updated'));
       setSelected(null);
       void load();
     } catch (err) {
@@ -98,8 +100,8 @@ export default function ProsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Profissionais</h1>
-        <span className="text-sm text-muted">{total} registados</span>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('pros.title')}</h1>
+        <span className="text-sm text-muted">{t('pros.total', { count: total })}</span>
       </div>
 
       {/* Filtros */}
@@ -110,7 +112,7 @@ export default function ProsPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Nome ou email…"
+              placeholder={t('pros.search_placeholder')}
               className="!pl-9"
             />
           </div>
@@ -119,12 +121,12 @@ export default function ProsPage() {
             onChange={(e) => { setProStatus(e.target.value as ProStatus | ''); void load(q, e.target.value as ProStatus | ''); }}
             className="w-40"
           >
-            <option value="">Todos os estados</option>
+            <option value="">{t('pros.all_statuses')}</option>
             <option value="active">Activo</option>
             <option value="pending_onboarding">Pendente</option>
             <option value="suspended">Suspenso</option>
           </select>
-          <button type="submit" className="btn-primary btn-sm">Pesquisar</button>
+          <button type="submit" className="btn-primary btn-sm">{t('common:search')}</button>
         </form>
       </div>
 
@@ -132,18 +134,18 @@ export default function ProsPage() {
         <div className="card text-center py-10"><Spinner /></div>
       ) : pros.length === 0 ? (
         <div className="card">
-          <EmptyState icon={Search} title="Nenhum profissional encontrado" description="Tenta ajustar os filtros." />
+          <EmptyState icon={Search} title={t('pros.no_pros')} description="Tenta ajustar os filtros." />
         </div>
       ) : (
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead className="border-b border-lineSoft">
               <tr className="text-left">
-                <th className="px-4 py-3 font-semibold text-muted">Profissional</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">Categorias</th>
-                <th className="px-4 py-3 font-semibold text-muted">Estado</th>
-                <th className="px-4 py-3 font-semibold text-muted">Stripe</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">Clientes</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('common:nav.pros')}</th>
+                <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">{t('pros.categories')}</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('common:fields.category').replace('Catégorie','État') === 'État' ? t('common:fields.category') : 'État'}</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('common:stripe.connected').split(' ')[0]}</th>
+                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">{t('common:nav.clients')}</th>
                 <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">Registo</th>
                 <th className="px-4 py-3"></th>
               </tr>

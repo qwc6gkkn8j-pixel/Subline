@@ -13,7 +13,12 @@
     "no_cuts": "Aucune séance enregistrée.",
     "my_professional": "Mon professionnel",
     "cuts_used": "{{used}}/{{total}} séances utilisées",
-    "renews_on": "Renouvellement le {{date}}"
+    "renews_on": "Renouvellement le {{date}}",
+    "view_all": "Voir tout",
+    "cuts_label": "Séances ce mois",
+    "chat_pro": "Envoyer un message au professionnel",
+    "active_label": "Actif",
+    "no_subscription_desc": "Vous n'avez pas encore d'abonnement actif."
   },
   "discover": {
     "title": "Découvrir",
@@ -38,7 +43,14 @@
     "confirm_cancel": "Résilier votre abonnement ?",
     "cancelled_msg": "Abonnement résilié",
     "change_plan": "Changer de forfait",
-    "subscribe_btn": "Souscrire"
+    "subscribe_btn": "Souscrire",
+    "date_col": "Date",
+    "plan_col": "Forfait",
+    "amount_col": "Montant",
+    "status_col": "Statut",
+    "cancel_confirm": "Résilier votre abonnement ?",
+    "payment_history": "Historique des paiements",
+    "no_payments": "Aucun paiement."
   },
   "calendar": {
     "title": "Réservations",
@@ -61,7 +73,9 @@
     "order_btn": "Commander",
     "order_placed": "Commande passée",
     "my_orders": "Mes commandes",
-    "no_orders": "Aucune commande."
+    "no_orders": "Aucune commande.",
+    "total": "Total",
+    "added_to_cart": "Produit ajouté au panier"
   },
   "profile": {
     "title": "Mon profil",

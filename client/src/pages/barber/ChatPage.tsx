@@ -9,6 +9,7 @@ import { ChatWindow } from '@/components/chat/ChatWindow';
 import { api, apiErrorMessage } from '@/lib/api';
 import type { Client, Conversation, SupportTicket, TicketCategory, TicketPriority } from '@/lib/types';
 import { TICKET_CATEGORY_LABEL, TICKET_PRIORITY_LABEL } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function ChatPage() {
   const toast = useToast();
@@ -165,13 +166,14 @@ function NewConversationModal({
   const [busy, setBusy] = useState(false);
 
   const onCreate = async () => {
+    const { t } = useTranslation('pro');
     if (!clientId) return;
     setBusy(true);
     try {
       const { data } = await api.post<{ conversation: Conversation }>('/pro/conversations', {
         clientId,
       });
-      toast.success('Conversa criada');
+      toast.success(t('common:notifications.created'));
       onCreated(data.conversation);
       onClose();
     } catch (err) {
@@ -227,11 +229,12 @@ function NewTicketModal({
   const [busy, setBusy] = useState(false);
 
   const onCreate = async () => {
+    const { t } = useTranslation('pro');
     if (!subject.trim() || !message.trim()) return;
     setBusy(true);
     try {
       await api.post('/pro/tickets', { subject, message, category, priority });
-      toast.success('Ticket aberto');
+      toast.success(t('client:support.ticket_created'));
       onCreated();
       onClose();
     } catch (err) {

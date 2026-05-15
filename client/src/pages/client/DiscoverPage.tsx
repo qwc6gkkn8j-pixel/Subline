@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 interface Pro {
   id: string;
@@ -28,6 +29,7 @@ interface FavoriteState {
 }
 
 export default function DiscoverPage() {
+    const { t } = useTranslation('client');
   const toast = useToast();
   const [pros, setPros] = useState<Pro[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -94,7 +96,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold text-ink">Descobrir</h1>
+      <h1 className="text-2xl font-bold text-ink">{t('discover.title')}</h1>
 
       {/* Barra de pesquisa */}
       <form onSubmit={handleSearch} className="relative">
@@ -102,7 +104,7 @@ export default function DiscoverPage() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Pesquisar barbeiros, cabeleireiros, spas…"
+          placeholder={t('discover.search_placeholder')}
           className="!pl-12 !rounded-pill"
         />
       </form>
@@ -142,8 +144,8 @@ export default function DiscoverPage() {
       ) : pros.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="Nenhum profissional encontrado"
-          description="Tenta outra pesquisa ou categoria."
+          title={t('discover.no_results')}
+          description={t('discover.no_results_desc')}
         />
       ) : (
         <div className="space-y-3">
@@ -154,7 +156,7 @@ export default function DiscoverPage() {
                 onClick={(e) => void toggleFavorite(pro.id, e)}
                 disabled={favLoading === pro.id}
                 className="absolute top-4 right-4 p-1 text-faint hover:text-danger transition-colors"
-                aria-label={favorites[pro.id] ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+                aria-label={favorites[pro.id] ? t('discover.remove_favorite') : t('discover.add_favorite')}
               >
                 <Heart
                   size={20}

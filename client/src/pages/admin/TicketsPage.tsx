@@ -18,6 +18,7 @@ import {
   TICKET_PRIORITY_LABEL,
   TICKET_STATUS_LABEL,
 } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 interface TicketsResp {
   tickets: SupportTicket[];
@@ -31,6 +32,7 @@ const PRIORITY_OPTIONS: TicketPriority[] = ['low', 'medium', 'high'];
 const CATEGORY_OPTIONS: TicketCategory[] = ['payment', 'account', 'booking', 'other'];
 
 export default function TicketsPage() {
+    const { t } = useTranslation('admin');
   const toast = useToast();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,13 +68,13 @@ export default function TicketsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Tickets de suporte</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('tickets.title')}</h1>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as TicketStatus | '')}
           className="!h-9 !py-1 text-sm"
         >
-          <option value="">Estado</option>
+          <option value="">{t('common:fields.category').replace('Catégorie','État')}</option>
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {TICKET_STATUS_LABEL[s]}
@@ -84,7 +86,7 @@ export default function TicketsPage() {
           onChange={(e) => setCategoryFilter(e.target.value as TicketCategory | '')}
           className="!h-9 !py-1 text-sm"
         >
-          <option value="">Categoria</option>
+          <option value="">{t('common:fields.category')}</option>
           {CATEGORY_OPTIONS.map((c) => (
             <option key={c} value={c}>
               {TICKET_CATEGORY_LABEL[c]}
@@ -96,7 +98,7 @@ export default function TicketsPage() {
           onChange={(e) => setPriorityFilter(e.target.value as TicketPriority | '')}
           className="!h-9 !py-1 text-sm"
         >
-          <option value="">Prioridade</option>
+          <option value="">{t('common:fields.category').replace('Catégorie','Priorité')}</option>
           {PRIORITY_OPTIONS.map((p) => (
             <option key={p} value={p}>
               {TICKET_PRIORITY_LABEL[p]}
@@ -113,7 +115,7 @@ export default function TicketsPage() {
         <div className="card">
           <EmptyState
             icon={LifeBuoy}
-            title="Nenhum ticket"
+            title={t('tickets.no_tickets')}
             description="Pedidos de suporte aparecem aqui assim que utilizadores os abrirem."
           />
         </div>
@@ -185,12 +187,14 @@ function TicketDetailModal({
   onClose: () => void;
   onUpdated: () => void;
 }) {
+  const { t } = useTranslation('admin');
   const toast = useToast();
   const [status, setStatus] = useState<TicketStatus>(ticket.status);
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [busy, setBusy] = useState(false);
 
   const onSave = async () => {
+    const { t } = useTranslation('admin');
     setBusy(true);
     try {
       await api.put(`/admin/tickets/${ticket.id}`, {
@@ -198,7 +202,7 @@ function TicketDetailModal({
         priority,
         assignToMe: true,
       });
-      toast.success('Ticket atualizado');
+      toast.success(t('common:notifications.updated'));
       onUpdated();
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -232,7 +236,7 @@ function TicketDetailModal({
             Fechar
           </button>
           <button className="btn-primary" onClick={() => void onSave()} disabled={busy}>
-            {busy ? <Spinner /> : 'Atualizar'}
+            {busy ? <Spinner /> : t('common:save')}
           </button>
         </>
       }

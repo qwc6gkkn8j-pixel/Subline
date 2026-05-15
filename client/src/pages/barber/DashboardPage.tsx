@@ -8,6 +8,7 @@ import {
   Scissors,
   MessageSquare,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { StripeBanner } from '@/components/ui/StripeBanner';
@@ -24,6 +25,7 @@ interface Stats {
 
 export default function DashboardPage() {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [stats, setStats] = useState<Stats | null>(null);
   const [today, setToday] = useState<Appointment[]>([]);
 
@@ -52,7 +54,7 @@ export default function DashboardPage() {
           <UsersIcon size={20} className="text-brand" />
           <div>
             <p className="text-3xl font-bold text-ink">{stats?.activeClients ?? '—'}</p>
-            <p className="text-xs text-muted mt-1">Clientes ativos</p>
+            <p className="text-xs text-muted mt-1">{t('dashboard.active_clients')}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -61,7 +63,7 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold text-ink">
               {stats ? formatCurrency(stats.monthlyRevenue) : '—'}
             </p>
-            <p className="text-xs text-muted mt-1">Receita estimada (mês)</p>
+            <p className="text-xs text-muted mt-1">{t('dashboard.monthly_revenue')}</p>
           </div>
         </div>
         <div className="stat-card">
@@ -71,7 +73,7 @@ export default function DashboardPage() {
               {stats?.rating ? Number(stats.rating).toFixed(1) : '0.0'}
               <span className="text-base text-muted">/5</span>
             </p>
-            <p className="text-xs text-muted mt-1">Avaliação</p>
+            <p className="text-xs text-muted mt-1">{t('dashboard.rating')}</p>
           </div>
         </div>
       </section>
@@ -82,11 +84,11 @@ export default function DashboardPage() {
             <CalendarDays size={18} className="text-brand" /> {formatToday()}
           </h2>
           <Link to="/barber/calendar" className="btn-outline btn-sm">
-            Ver agenda
+            {t('dashboard.view_calendar')}
           </Link>
         </div>
         {today.length === 0 ? (
-          <p className="text-sm text-muted text-center py-6">Sem marcações para hoje.</p>
+          <p className="text-sm text-muted text-center py-6">{t('dashboard.no_appointments')}</p>
         ) : (
           <ul className="divide-y divide-lineSoft">
             {today.map((a) => (
@@ -96,7 +98,7 @@ export default function DashboardPage() {
                   <p className="text-[10px] text-muted">{a.durationMinutes}m</p>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-ink truncate">{a.client?.name ?? 'Cliente'}</p>
+                  <p className="font-medium text-ink truncate">{a.client?.name ?? t('common:nav.clients')}</p>
                   <p className="text-xs text-muted">{SERVICE_LABEL[a.service]}</p>
                 </div>
                 <span
@@ -119,19 +121,19 @@ export default function DashboardPage() {
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Link to="/barber/clients" className="card hover:shadow-card-lg flex flex-col items-start gap-2">
           <UsersIcon className="text-brand" size={20} />
-          <p className="font-medium text-ink">Clientes</p>
+          <p className="font-medium text-ink">{t('common:nav.clients')}</p>
         </Link>
         <Link to="/barber/calendar" className="card hover:shadow-card-lg flex flex-col items-start gap-2">
           <CalendarDays className="text-brand" size={20} />
-          <p className="font-medium text-ink">Agenda</p>
+          <p className="font-medium text-ink">{t('common:nav.calendar')}</p>
         </Link>
         <Link to="/barber/plans" className="card hover:shadow-card-lg flex flex-col items-start gap-2">
           <Scissors className="text-brand" size={20} />
-          <p className="font-medium text-ink">Planos</p>
+          <p className="font-medium text-ink">{t('common:nav.plans')}</p>
         </Link>
         <Link to="/barber/chat" className="card hover:shadow-card-lg flex flex-col items-start gap-2">
           <MessageSquare className="text-brand" size={20} />
-          <p className="font-medium text-ink">Chat</p>
+          <p className="font-medium text-ink">{t('common:nav.chat')}</p>
         </Link>
       </section>
     </div>

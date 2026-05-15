@@ -49,7 +49,21 @@
     "audit": "Audit",
     "settings": "Paramètres",
     "pros": "Professionnels",
-    "home": "Accueil"
+    "home": "Accueil",
+    "badge": "Pointage",
+    "add": "Ajouter",
+    "book": "Réserver"
+  },
+  "roles": {
+    "client": "Client",
+    "pro": "Professionnel",
+    "admin": "Admin",
+    "staff": "Équipe"
+  },
+  "stripe_toast": {
+    "connected": "Compte Stripe connecté avec succès",
+    "error": "Une erreur est survenue lors de la connexion Stripe",
+    "not_configured": "Stripe n'est pas encore configuré sur la plateforme"
   },
   "status": {
     "active": "Actif",

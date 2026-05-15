@@ -18,6 +18,7 @@ import type {
   Service,
   Slot,
 } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function CalendarPage() {
   const toast = useToast();
@@ -377,6 +378,7 @@ function CancelAppointmentModal({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const { t } = useTranslation('client');
   const toast = useToast();
   const [busy, setBusy] = useState(false);
 
@@ -384,7 +386,7 @@ function CancelAppointmentModal({
     setBusy(true);
     try {
       await api.put(`/client/appointments/${appointment.id}/cancel`);
-      toast.success('Marcação cancelada');
+      toast.success(t('calendar.booking_cancelled'));
       onDone();
       onClose();
     } catch (err) {

@@ -44,7 +44,21 @@
     "audit": "Audit",
     "settings": "Einstellungen",
     "pros": "Fachleute",
-    "home": "Startseite"
+    "home": "Startseite",
+    "badge": "Stempel",
+    "add": "Hinzufügen",
+    "book": "Buchen"
+  },
+  "roles": {
+    "client": "Kunde",
+    "pro": "Fachperson",
+    "admin": "Admin",
+    "staff": "Team"
+  },
+  "stripe_toast": {
+    "connected": "Stripe-Konto erfolgreich verbunden",
+    "error": "Beim Verbinden von Stripe ist ein Fehler aufgetreten",
+    "not_configured": "Stripe ist auf der Plattform noch nicht konfiguriert"
   },
   "status": {
     "active": "Aktiv",

@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatDate, formatTime } from '@/lib/dateUtils';
 import type { StaffMember, TimeEntry } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 interface DaySummary {
   date: string;
@@ -89,6 +90,7 @@ function formatHours(minutes: number): string {
 }
 
 export default function StaffPage() {
+    const { t } = useTranslation('pro');
   const toast = useToast();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +121,7 @@ export default function StaffPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Staff</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('staff.title')}</h1>
         <label className="text-sm flex items-center gap-2">
           <input
             type="checkbox"
@@ -142,7 +144,7 @@ export default function StaffPage() {
         <div className="card">
           <EmptyState
             icon={UserPlus}
-            title="Sem staff"
+            title={t('staff.no_staff')}
             description="Adiciona o primeiro funcionário da tua negócio."
           />
         </div>
@@ -191,7 +193,7 @@ export default function StaffPage() {
                         void api
                           .delete(`/pro/staff/${s.id}`)
                           .then(() => {
-                            toast.success('Staff desativado');
+                            toast.success(t('staff.staff_deactivated'));
                             void load();
                           })
                           .catch((err) => toast.error(apiErrorMessage(err)));
@@ -242,6 +244,7 @@ function StaffFormModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useTranslation('pro');
   const toast = useToast();
   const [name, setName] = useState(existing?.name ?? '');
   const [role, setRole] = useState(existing?.role ?? 'Professional');
@@ -252,19 +255,20 @@ function StaffFormModal({
   const isEdit = Boolean(existing);
 
   const onSubmit = async () => {
+    const { t } = useTranslation('pro');
     if (!name.trim() || !role.trim()) {
-      toast.error('Preenche nome e função');
+      toast.error(t('staff.name_role_required'));
       return;
     }
     if (createAccount && (!email || password.length < 8)) {
-      toast.error('Email válido e password com 8+ caracteres');
+      toast.error(t('staff.email_password_required'));
       return;
     }
     setBusy(true);
     try {
       if (isEdit) {
         await api.put(`/pro/staff/${existing!.id}`, { name, role });
-        toast.success('Staff atualizado');
+        toast.success(t('staff.staff_updated'));
       } else {
         await api.post('/pro/staff', {
           name,
@@ -273,7 +277,7 @@ function StaffFormModal({
           email: createAccount ? email : undefined,
           password: createAccount ? password : undefined,
         });
-        toast.success('Staff criado');
+        toast.success(t('staff.staff_created'));
       }
       onSaved();
     } catch (err) {
@@ -309,7 +313,7 @@ function StaffFormModal({
           <input
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            placeholder="Ex: Barbeiro, Aprendiz, Rececionista"
+            placeholder={t('staff.name_placeholder')}
             required
           />
         </div>

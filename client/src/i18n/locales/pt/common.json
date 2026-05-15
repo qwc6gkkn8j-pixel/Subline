@@ -44,7 +44,21 @@
     "audit": "Auditoria",
     "settings": "Definições",
     "pros": "Profissionais",
-    "home": "Início"
+    "home": "Início",
+    "badge": "Ponto",
+    "add": "Adicionar",
+    "book": "Marcar"
+  },
+  "roles": {
+    "client": "Cliente",
+    "pro": "Profissional",
+    "admin": "Admin",
+    "staff": "Equipa"
+  },
+  "stripe_toast": {
+    "connected": "Conta Stripe ligada com sucesso",
+    "error": "Ocorreu um erro ao ligar a conta Stripe",
+    "not_configured": "Stripe ainda não configurado na plataforma"
   },
   "status": {
     "active": "Activo",

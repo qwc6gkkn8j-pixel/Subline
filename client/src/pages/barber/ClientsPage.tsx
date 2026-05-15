@@ -10,6 +10,7 @@ import {
   Scissors,
   CreditCard,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '@/components/ui/Avatar';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
@@ -31,6 +32,7 @@ type ClientWithSub = Client & { subscriptions: Subscription[] };
 
 export default function ClientsPage() {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [params, setParams] = useSearchParams();
   const [clients, setClients] = useState<ClientWithSub[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -76,7 +78,7 @@ export default function ClientsPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink">Os meus clientes</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('clients.title')}</h1>
         <button
           onClick={() => {
             setEditing('new');
@@ -84,7 +86,7 @@ export default function ClientsPage() {
           }}
           className="btn-primary"
         >
-          <UserPlus size={18} /> Novo cliente
+          <UserPlus size={18} /> {t('clients.new_client')}
         </button>
       </div>
 
@@ -93,7 +95,7 @@ export default function ClientsPage() {
           <div className="flex items-center gap-2 flex-1 min-w-[200px] px-3 h-9 border border-line rounded-button bg-white">
             <Search size={16} className="text-muted shrink-0" />
             <input
-              placeholder="Pesquisar clientes…"
+              placeholder={t('clients.search_placeholder')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="!border-0 !ring-0 !p-0 !h-auto bg-transparent flex-1"
@@ -104,11 +106,11 @@ export default function ClientsPage() {
             onChange={(e) => setStatusFilter(e.target.value as SubscriptionStatus | '')}
             className="!h-9 !py-1 text-sm"
           >
-            <option value="">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-            <option value="cancelled">Cancelados</option>
-            <option value="payment_failed">Pagamento falhou</option>
+            <option value="">{t('clients.filter_all')}</option>
+            <option value="active">{t('clients.filter_active')}</option>
+            <option value="inactive">{t('clients.filter_inactive')}</option>
+            <option value="cancelled">{t('clients.filter_cancelled')}</option>
+            <option value="payment_failed">{t('clients.filter_payment_failed')}</option>
           </select>
         </div>
 
@@ -120,8 +122,8 @@ export default function ClientsPage() {
           ) : clients.length === 0 ? (
             <EmptyState
               icon={UserPlus}
-              title="Sem clientes"
-              description="Adiciona o teu primeiro cliente para começar."
+              title={t('clients.no_clients')}
+              description={t('clients.no_clients_desc')}
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -177,6 +179,7 @@ function ClientCard({
   onRegisterCut: () => void;
   onPaymentLink: () => void;
 }) {
+  const { t } = useTranslation(['pro', 'common']);
   const sub = client.subscriptions?.[0];
   const used = sub?.cutsUsed ?? 0;
   const total = sub?.cutsTotal ?? sub?.plan?.cutsPerMonth ?? null;
@@ -201,14 +204,14 @@ function ClientCard({
           <button
             onClick={onEdit}
             className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10"
-            aria-label="Editar"
+            aria-label={t('common:edit')}
           >
             <Pencil size={16} />
           </button>
           <button
             onClick={onDelete}
             className="p-2 rounded-button text-muted hover:text-danger hover:bg-danger/10"
-            aria-label="Eliminar"
+            aria-label={t('common:delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -238,13 +241,13 @@ function ClientCard({
             </span>
             {remaining !== null && (
               <span className="text-muted">
-                {used}/{total} cortes este mês
+                {t('clients.cuts_this_month', { used, total })}
               </span>
             )}
-            <span className="text-muted">Renova {formatDate(sub.renewalDate)}</span>
+            <span className="text-muted">{t('clients.renewal', { date: formatDate(sub.renewalDate) })}</span>
           </>
         ) : (
-          <span className="badge-muted">Sem subscrição</span>
+          <span className="badge-muted">{t('clients.no_subscription')}</span>
         )}
       </div>
 
@@ -254,10 +257,10 @@ function ClientCard({
           className="btn-outline btn-sm"
           disabled={!sub || sub.status !== 'active'}
         >
-          <Scissors size={14} /> Registar corte
+          <Scissors size={14} /> {t('clients.register_cut')}
         </button>
         <button onClick={onPaymentLink} className="btn-outline btn-sm">
-          <CreditCard size={14} /> Link de pagamento
+          <CreditCard size={14} /> {t('clients.payment_link')}
         </button>
       </div>
     </div>
@@ -292,6 +295,7 @@ function ClientFormModal({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const isNew = editing === 'new';
   const open = editing !== null;
   const [form, setForm] = useState<ClientFormState>(emptyClientForm);
@@ -322,10 +326,10 @@ function ClientFormModal({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (form.fullName.trim().length < 2) return setError('Nome obrigatório');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setError('Email inválido');
+    if (form.fullName.trim().length < 2) return setError(t('clients.errors.name_required'));
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setError(t('clients.errors.email_invalid'));
     if (isNew && form.password && form.password.length < 8)
-      return setError('Password ≥ 8 caracteres');
+      return setError(t('clients.errors.password_min'));
 
     setBusy(true);
     try {
@@ -337,7 +341,7 @@ function ClientFormModal({
           password: form.password || undefined,
           planType: form.planType,
         });
-        toast.success('Cliente criado');
+        toast.success(t('clients.client_created'));
       } else {
         const c = editing as ClientWithSub;
         await api.put(`/pro/clients/${c.id}`, {
@@ -347,7 +351,7 @@ function ClientFormModal({
           planType: form.planType,
           status: form.status,
         });
-        toast.success('Cliente atualizado');
+        toast.success(t('clients.client_updated'));
       }
       onSaved();
       onClose();
@@ -362,25 +366,25 @@ function ClientFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isNew ? 'Novo cliente' : 'Editar cliente'}
+      title={isNew ? t('clients.new_client') : t('clients.edit_client')}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button form="client-form" type="submit" className="btn-primary" disabled={busy}>
-            {busy ? <Spinner /> : 'Guardar'}
+            {busy ? <Spinner /> : t('common:save')}
           </button>
         </>
       }
     >
       <form id="client-form" onSubmit={onSubmit} className="space-y-4">
         <div>
-          <label className="label">Nome</label>
+          <label className="label">{t('common:fields.name')}</label>
           <input value={form.fullName} onChange={(e) => set('fullName', e.target.value)} required />
         </div>
         <div>
-          <label className="label">Email</label>
+          <label className="label">{t('common:fields.email')}</label>
           <input
             type="email"
             value={form.email}
@@ -389,22 +393,22 @@ function ClientFormModal({
           />
         </div>
         <div>
-          <label className="label">Telefone (opcional)</label>
+          <label className="label">{t('clients.phone_optional')}</label>
           <input value={form.phone} onChange={(e) => set('phone', e.target.value)} />
         </div>
         {isNew && (
           <div>
-            <label className="label">Password inicial (opcional)</label>
+            <label className="label">{t('clients.initial_password_optional')}</label>
             <input
               type="text"
               value={form.password}
               onChange={(e) => set('password', e.target.value)}
-              placeholder="ChangeMe123! por defeito"
+              placeholder={t('clients.initial_password_placeholder')}
             />
           </div>
         )}
         <div>
-          <label className="label">Plano</label>
+          <label className="label">{t('clients.plan_label')}</label>
           <select value={form.planType} onChange={(e) => set('planType', e.target.value as PlanType)}>
             {(['bronze', 'silver', 'gold'] as PlanType[]).map((p) => (
               <option key={p} value={p}>
@@ -415,10 +419,10 @@ function ClientFormModal({
         </div>
         {!isNew && (
           <div>
-            <label className="label">Estado</label>
+            <label className="label">{t('clients.form_status')}</label>
             <select value={form.status} onChange={(e) => set('status', e.target.value as 'active' | 'inactive')}>
-              <option value="active">Ativo</option>
-              <option value="inactive">Inativo</option>
+              <option value="active">{t('clients.form_status_active')}</option>
+              <option value="inactive">{t('clients.form_status_inactive')}</option>
             </select>
           </div>
         )}
@@ -440,6 +444,7 @@ function DeleteClientModal({
   onDeleted: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [busy, setBusy] = useState(false);
 
   const onDelete = async () => {
@@ -447,7 +452,7 @@ function DeleteClientModal({
     setBusy(true);
     try {
       await api.delete(`/pro/clients/${client.id}`);
-      toast.success('Cliente eliminado');
+      toast.success(t('clients.client_deleted'));
       onDeleted();
       onClose();
     } catch (err) {
@@ -461,22 +466,21 @@ function DeleteClientModal({
     <Modal
       open={!!client}
       onClose={onClose}
-      title="Eliminar cliente?"
+      title={t('clients.delete_modal_title')}
       size="sm"
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button className="btn-danger" onClick={onDelete} disabled={busy}>
-            {busy ? <Spinner /> : 'Eliminar'}
+            {busy ? <Spinner /> : t('common:delete')}
           </button>
         </>
       }
     >
       <p className="text-sm text-ink">
-        Eliminar <span className="font-semibold">{client?.name}</span>? Todos os dados de subscrição
-        serão perdidos.
+        {t('clients.confirm_delete')} <span className="font-semibold">{client?.name}</span>
       </p>
     </Modal>
   );
@@ -492,6 +496,7 @@ function RegisterCutModal({
   onDone: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState('');
   const [history, setHistory] = useState<Cut[]>([]);
@@ -512,7 +517,7 @@ function RegisterCutModal({
       await api.post(`/pro/clients/${client.id}/register-cut`, {
         notes: notes || undefined,
       });
-      toast.success('Corte registado');
+      toast.success(t('clients.cut_registered'));
       onDone();
       onClose();
     } catch (err) {
@@ -526,34 +531,34 @@ function RegisterCutModal({
     <Modal
       open={!!client}
       onClose={onClose}
-      title="Registar corte"
+      title={t('clients.register_cut_modal_title')}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button className="btn-primary" onClick={() => void onSubmit()} disabled={busy}>
-            {busy ? <Spinner /> : 'Registar'}
+            {busy ? <Spinner /> : t('clients.register_btn')}
           </button>
         </>
       }
     >
       <div className="space-y-4">
         <p className="text-sm text-muted">
-          Vais registar um corte para <span className="font-semibold text-ink">{client?.name}</span>.
+          {t('clients.register_cut')} — <span className="font-semibold text-ink">{client?.name}</span>
         </p>
         <div>
-          <label className="label">Notas (opcional)</label>
+          <label className="label">{t('clients.notes_optional')}</label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Detalhes do corte…"
+            placeholder={t('clients.notes_placeholder')}
           />
         </div>
         {history.length > 0 && (
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted mb-2">Histórico recente</p>
+            <p className="text-xs uppercase tracking-wide text-muted mb-2">{t('clients.history_recent')}</p>
             <ul className="text-sm space-y-1 max-h-40 overflow-y-auto">
               {history.slice(0, 5).map((h) => (
                 <li key={h.id} className="flex justify-between border-b border-line py-1">
@@ -579,6 +584,7 @@ function PaymentLinkModal({
   onClose: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [busy, setBusy] = useState(false);
   const [planId, setPlanId] = useState<string>('');
   const [link, setLink] = useState<string | null>(null);
@@ -603,7 +609,7 @@ function PaymentLinkModal({
         { planId },
       );
       setLink(data.url);
-      toast.success('Link gerado');
+      toast.success(t('clients.link_generated'));
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
@@ -615,25 +621,24 @@ function PaymentLinkModal({
     <Modal
       open={!!client}
       onClose={onClose}
-      title="Link de pagamento"
+      title={t('clients.payment_link_modal_title')}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Fechar
+            {t('common:close')}
           </button>
           <button className="btn-primary" onClick={() => void onGenerate()} disabled={busy || !planId}>
-            {busy ? <Spinner /> : 'Gerar link'}
+            {busy ? <Spinner /> : t('clients.generate_link_btn')}
           </button>
         </>
       }
     >
       <div className="space-y-4">
         <p className="text-sm text-muted">
-          Gera um link Stripe para <span className="text-ink font-semibold">{client?.name}</span>{' '}
-          pagar a subscrição.
+          {t('clients.payment_link')} — <span className="text-ink font-semibold">{client?.name}</span>
         </p>
         <div>
-          <label className="label">Plano</label>
+          <label className="label">{t('clients.plan_label')}</label>
           <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
             <option value="">—</option>
             {plans.map((p) => (
@@ -653,8 +658,7 @@ function PaymentLinkModal({
             {error}{' '}
             {error.toLowerCase().includes('stripe') && (
               <span className="block text-xs text-muted mt-1">
-                Stripe ainda não configurado — esta função vai funcionar quando ligares a tua conta na
-                página de Perfil.
+                {t('clients.stripe_setup_hint')}
               </span>
             )}
           </div>

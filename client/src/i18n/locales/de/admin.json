@@ -1,10 +1,90 @@
 {
-  "dashboard": { "title": "Dashboard", "total_users": "Nutzer", "active_subscriptions": "Aktive Abonnements", "monthly_revenue": "Monatliche Einnahmen", "user_growth": "Wachstum", "shortcuts": "Schnellzugriff", "manage_users": "Nutzer verwalten", "manage_plans": "Pakete verwalten", "view_tickets": "Tickets ansehen", "audit": "Audit" },
-  "pros": { "title": "Fachleute", "total": "{{count}} registriert", "search_placeholder": "Name oder E-Mail…", "all_statuses": "Alle Status", "stripe_connected": "Stripe verbunden", "stripe_not_connected": "Stripe nicht verbunden", "clients_count": "Kunden", "registered_on": "Registriert", "actions": "Aktionen", "activate": "Aktivieren", "suspend": "Sperren", "set_pending": "Ausstehend", "stripe_dashboard": "Stripe", "status_updated": "Status aktualisiert", "no_pros": "Keine Fachkraft gefunden", "categories": "Kategorien" },
-  "users": { "title": "Nutzer", "new_user": "Neuer Nutzer", "search_placeholder": "Nutzer suchen…", "all_roles": "Alle Rollen", "user_created": "Nutzer erstellt", "user_updated": "Nutzer aktualisiert", "user_deleted": "Nutzer gelöscht", "confirm_delete": "Diesen Nutzer löschen?" },
-  "payments": { "title": "Zahlungen", "revenue_confirmed": "Bestätigte Einnahmen", "total_transactions": "Transaktionen", "all_statuses": "Alle", "from_date": "Von", "to_date": "Bis", "client_col": "Kunde", "professional_col": "Fachkraft", "amount_col": "Betrag", "status_col": "Status", "method_col": "Methode", "no_payments": "Keine Zahlungen", "export_csv": "CSV exportieren" },
-  "plans": { "title": "Pakete", "all_professionals": "Alle Fachleute" },
-  "tickets": { "title": "Support-Tickets", "no_tickets": "Keine Tickets", "reply_placeholder": "Ihre Antwort…", "reply_btn": "Antworten", "mark_resolved": "Als gelöst markieren" },
-  "logs": { "title": "Auditprotokoll", "no_logs": "Keine Ereignisse" },
-  "settings": { "title": "Einstellungen", "platform": "Plattform", "stripe_status": "Stripe-Status" }
+  "dashboard": {
+    "title": "Dashboard",
+    "total_users": "Nutzer",
+    "active_subscriptions": "Aktive Abonnements",
+    "monthly_revenue": "Monatliche Einnahmen",
+    "user_growth": "Wachstum",
+    "shortcuts": "Schnellzugriff",
+    "manage_users": "Nutzer verwalten",
+    "manage_plans": "Pakete verwalten",
+    "view_tickets": "Tickets ansehen",
+    "audit": "Audit"
+  },
+  "pros": {
+    "title": "Fachleute",
+    "total": "{{count}} registriert",
+    "search_placeholder": "Name oder E-Mail…",
+    "all_statuses": "Alle Status",
+    "stripe_connected": "Stripe verbunden",
+    "stripe_not_connected": "Stripe nicht verbunden",
+    "clients_count": "Kunden",
+    "registered_on": "Registriert",
+    "actions": "Aktionen",
+    "activate": "Aktivieren",
+    "suspend": "Sperren",
+    "set_pending": "Ausstehend",
+    "stripe_dashboard": "Stripe",
+    "status_updated": "Status aktualisiert",
+    "no_pros": "Keine Fachkraft gefunden",
+    "categories": "Kategorien"
+  },
+  "users": {
+    "title": "Nutzer",
+    "new_user": "Neuer Nutzer",
+    "search_placeholder": "Nutzer suchen…",
+    "all_roles": "Alle Rollen",
+    "user_created": "Nutzer erstellt",
+    "user_updated": "Nutzer aktualisiert",
+    "user_deleted": "Nutzer gelöscht",
+    "confirm_delete": "Diesen Nutzer löschen?"
+  },
+  "payments": {
+    "title": "Zahlungen",
+    "revenue_confirmed": "Bestätigte Einnahmen",
+    "total_transactions": "Transaktionen",
+    "all_statuses": "Alle",
+    "from_date": "Von",
+    "to_date": "Bis",
+    "client_col": "Kunde",
+    "professional_col": "Fachkraft",
+    "amount_col": "Betrag",
+    "status_col": "Status",
+    "method_col": "Methode",
+    "no_payments": "Keine Zahlungen",
+    "export_csv": "CSV exportieren"
+  },
+  "plans": {
+    "title": "Pakete",
+    "all_professionals": "Alle Fachleute"
+  },
+  "tickets": {
+    "title": "Support-Tickets",
+    "no_tickets": "Keine Tickets",
+    "reply_placeholder": "Ihre Antwort…",
+    "reply_btn": "Antworten",
+    "mark_resolved": "Als gelöst markieren"
+  },
+  "logs": {
+    "title": "Auditprotokoll",
+    "no_logs": "Keine Ereignisse",
+    "description": "Benutzeraktionen erscheinen hier.",
+    "when": "Wann",
+    "who": "Wer",
+    "action_col": "Aktion",
+    "entity_col": "Entität",
+    "previous": "Zurück",
+    "next_page": "Weiter"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "platform": "Plattform",
+    "stripe_status": "Stripe-Status"
+  },
+  "dashboard_ext": {
+    "open_tickets": "Offene Tickets",
+    "active_plans": "Aktive Pakete",
+    "professionals": "Fachleute",
+    "appointments_today": "Termine heute"
+  }
 }

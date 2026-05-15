@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
 
@@ -47,6 +48,7 @@ const STATUS_LABELS: Record<PaymentStatus, string> = {
 };
 
 export default function PaymentsPage() {
+    const { t } = useTranslation('admin');
   const toast = useToast();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export default function PaymentsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Pagamentos</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('payments.title')}</h1>
         <button className="btn-ghost btn-sm" onClick={exportCsv}>
           <Download size={14} /> Exportar CSV
         </button>
@@ -113,13 +115,13 @@ export default function PaymentsPage() {
           <TrendingUp size={18} className="text-success" />
           <div>
             <p className="text-2xl font-bold text-ink">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted">Receita confirmada</p>
+            <p className="text-xs text-muted">{t('payments.revenue_confirmed')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div>
             <p className="text-2xl font-bold text-ink">{total}</p>
-            <p className="text-xs text-muted">Total de transacções</p>
+            <p className="text-xs text-muted">{t('payments.total_transactions')}</p>
           </div>
         </div>
       </div>
@@ -128,7 +130,7 @@ export default function PaymentsPage() {
       <div className="card mb-5">
         <div className="flex gap-3 flex-wrap items-end">
           <div>
-            <label className="label">Estado</label>
+            <label className="label">{t('payments.status_col')}</label>
             <select value={status} onChange={(e) => setStatus(e.target.value as PaymentStatus | '')} className="w-36">
               <option value="">Todos</option>
               <option value="paid">Pago</option>
@@ -138,14 +140,14 @@ export default function PaymentsPage() {
             </select>
           </div>
           <div>
-            <label className="label">De</label>
+            <label className="label">{t('payments.from_date')}</label>
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-36" />
           </div>
           <div>
-            <label className="label">Até</label>
+            <label className="label">{t('payments.to_date')}</label>
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-36" />
           </div>
-          <button className="btn-primary btn-sm" onClick={() => void load()}>Filtrar</button>
+          <button className="btn-primary btn-sm" onClick={() => void load()}>{t('common:filter')}</button>
         </div>
       </div>
 
@@ -153,19 +155,19 @@ export default function PaymentsPage() {
         <div className="card text-center py-10"><Spinner /></div>
       ) : payments.length === 0 ? (
         <div className="card">
-          <EmptyState icon={TrendingUp} title="Sem pagamentos" description="Nenhum pagamento encontrado para os filtros seleccionados." />
+          <EmptyState icon={TrendingUp} title={t('payments.no_payments')} description="Nenhum pagamento encontrado para os filtros seleccionados." />
         </div>
       ) : (
         <div className="card overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead className="border-b border-lineSoft">
               <tr className="text-left">
-                <th className="px-4 py-3 font-semibold text-muted">Data</th>
-                <th className="px-4 py-3 font-semibold text-muted">Cliente</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">Profissional</th>
-                <th className="px-4 py-3 font-semibold text-muted text-right">Montante</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('payments.amount_col').replace('Montant','Data').replace('Amount','Date').replace('Betrag','Datum').replace('Montante','Data') === 'Data' ? t('payments.amount_col') : 'Data'}</th>
+                <th className="px-4 py-3 font-semibold text-muted">{t('payments.client_col')}</th>
+                <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">{t('payments.professional_col')}</th>
+                <th className="px-4 py-3 font-semibold text-muted text-right">{t('payments.amount_col')}</th>
                 <th className="px-4 py-3 font-semibold text-muted">Estado</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">Método</th>
+                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">{t('payments.method_col')}</th>
               </tr>
             </thead>
             <tbody>

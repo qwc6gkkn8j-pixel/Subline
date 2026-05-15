@@ -4,8 +4,10 @@ import { Banner } from '@/components/ui/Banner';
 import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { api } from '@/lib/api';
 import type { StripeStatus } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsPage() {
+    const { t } = useTranslation('admin');
   const [status, setStatus] = useState<StripeStatus | null>(null);
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <h1 className="text-2xl font-bold text-ink">Definições</h1>
+      <h1 className="text-2xl font-bold text-ink">{t('settings.title')}</h1>
 
       <section className="card space-y-4">
         <div className="flex items-center gap-3">

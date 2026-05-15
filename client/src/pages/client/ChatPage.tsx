@@ -14,8 +14,10 @@ import type {
   TicketPriority,
 } from '@/lib/types';
 import { TICKET_CATEGORY_LABEL, TICKET_PRIORITY_LABEL } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function ChatPage() {
+    const { t } = useTranslation('client');
   const toast = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -61,7 +63,7 @@ export default function ChatPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink">Chat</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('common:nav.chat')}</h1>
         <div className="flex gap-2">
           <button className="btn-outline" onClick={() => setNewTicket(true)}>
             <LifeBuoy size={16} /> Suporte
@@ -160,6 +162,7 @@ function NewTicketModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { t } = useTranslation('client');
   const toast = useToast();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -172,7 +175,7 @@ function NewTicketModal({
     setBusy(true);
     try {
       await api.post('/client/tickets', { subject, message, category, priority });
-      toast.success('Ticket aberto');
+      toast.success(t('support.ticket_created'));
       onCreated();
       onClose();
     } catch (err) {

@@ -15,6 +15,7 @@ import {
   Star,
 } from 'lucide-react';
 import { lazy, Suspense, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleShell } from '@/components/layout/RoleShell';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -37,17 +38,18 @@ function StripeConnectFeedback() {
   const toast = useToast();
   const navigate = useNavigate();
   const [params] = useSearchParams();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     const stripe = params.get('stripe');
     if (stripe === 'connected') {
-      toast.success('Conta Stripe ligada com sucesso! ✅');
+      toast.success(t('stripe_toast.connected'));
       navigate('/barber', { replace: true });
     } else if (stripe === 'error') {
-      toast.error('Ocorreu um erro ao ligar a conta Stripe. Tenta novamente.');
+      toast.error(t('stripe_toast.error'));
       navigate('/barber', { replace: true });
     } else if (stripe === 'not_configured') {
-      toast.error('Stripe ainda não configurado na plataforma.');
+      toast.error(t('stripe_toast.not_configured'));
       navigate('/barber', { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -56,30 +58,31 @@ function StripeConnectFeedback() {
 }
 
 export default function BarberLayout() {
+  const { t } = useTranslation('common');
   return (
     <RoleShell
-      title="Professionnel"
+      title={t('roles.pro')}
       navItems={[
-        { to: '/barber', icon: LayoutDashboard, label: 'Dashboard', end: true },
-        { to: '/barber/clients', icon: UsersIcon, label: 'Clientes' },
-        { to: '/barber/services', icon: Scissors, label: 'Serviços' },
-        { to: '/barber/staff', icon: UserCog, label: 'Staff' },
-        { to: '/barber/calendar', icon: Calendar, label: 'Calendário' },
-        { to: '/barber/plans', icon: Tag, label: 'Planos' },
-        { to: '/barber/reviews', icon: Star, label: 'Avaliações' },
-        { to: '/barber/shop', icon: ShoppingBag, label: 'Loja' },
-        { to: '/barber/chat', icon: MessageSquare, label: 'Chat' },
-        { to: '/barber/support', icon: LifeBuoy, label: 'Suporte' },
-        { to: '/barber/profile', icon: UserIcon, label: 'Perfil' },
+        { to: '/barber', icon: LayoutDashboard, label: t('nav.dashboard'), end: true },
+        { to: '/barber/clients', icon: UsersIcon, label: t('nav.clients') },
+        { to: '/barber/services', icon: Scissors, label: t('nav.services') },
+        { to: '/barber/staff', icon: UserCog, label: t('nav.staff') },
+        { to: '/barber/calendar', icon: Calendar, label: t('nav.calendar') },
+        { to: '/barber/plans', icon: Tag, label: t('nav.plans') },
+        { to: '/barber/reviews', icon: Star, label: t('nav.reviews') },
+        { to: '/barber/shop', icon: ShoppingBag, label: t('nav.shop') },
+        { to: '/barber/chat', icon: MessageSquare, label: t('nav.chat') },
+        { to: '/barber/support', icon: LifeBuoy, label: t('nav.support') },
+        { to: '/barber/profile', icon: UserIcon, label: t('nav.profile') },
       ]}
       bottomNav={
         <BottomNav
           items={[
-            { to: '/barber', icon: Home, label: 'Home' },
-            { to: '/barber/clients', icon: UsersIcon, label: 'Clientes' },
-            { to: '/barber/clients?new=1', icon: UserPlus, label: 'Add', primary: true },
-            { to: '/barber/calendar', icon: Calendar, label: 'Agenda' },
-            { to: '/barber/chat', icon: MessageSquare, label: 'Chat' },
+            { to: '/barber', icon: Home, label: t('nav.home') },
+            { to: '/barber/clients', icon: UsersIcon, label: t('nav.clients') },
+            { to: '/barber/clients?new=1', icon: UserPlus, label: t('nav.add'), primary: true },
+            { to: '/barber/calendar', icon: Calendar, label: t('nav.calendar') },
+            { to: '/barber/chat', icon: MessageSquare, label: t('nav.chat') },
           ]}
         />
       }

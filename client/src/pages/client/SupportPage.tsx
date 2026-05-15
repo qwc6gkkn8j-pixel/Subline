@@ -16,6 +16,7 @@ import {
   TICKET_PRIORITY_LABEL,
   TICKET_STATUS_LABEL,
 } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 interface TicketsResp {
   tickets: SupportTicket[];
@@ -24,6 +25,7 @@ interface TicketsResp {
 const CATEGORY_OPTIONS: TicketCategory[] = ['payment', 'account', 'booking', 'other'];
 
 export default function SupportPage() {
+    const { t } = useTranslation('client');
   const toast = useToast();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export default function SupportPage() {
 
   const handleCreateTicket = async () => {
     if (!newForm.subject.trim() || !newForm.message.trim()) {
-      toast.error('Assunto e mensagem são obrigatórios');
+      toast.error(t('support.subject_placeholder'));
       return;
     }
     try {
@@ -59,7 +61,7 @@ export default function SupportPage() {
         priority: 'medium',
         message: newForm.message,
       });
-      toast.success('Ticket criado');
+      toast.success(t('support.ticket_created'));
       setNewForm({ subject: '', category: 'other', message: '' });
       setCreating(false);
       await load();
@@ -71,7 +73,7 @@ export default function SupportPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Suporte</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('support.title')}</h1>
         <button className="btn-primary text-sm" onClick={() => setCreating(true)}>
           <MessageSquare size={14} /> Novo ticket
         </button>
@@ -85,8 +87,8 @@ export default function SupportPage() {
         <div className="card">
           <EmptyState
             icon={LifeBuoy}
-            title="Sem tickets"
-            description="Cria um ticket para entrar em contacto com o suporte."
+            title={t('support.no_tickets')}
+            description={t('support.no_tickets_desc')}
           />
         </div>
       ) : (
@@ -132,16 +134,16 @@ export default function SupportPage() {
         >
           <div className="space-y-4">
             <div>
-              <label className="label">Assunto *</label>
+              <label className="label">{t('common:fields.subject')} *</label>
               <input
                 value={newForm.subject}
                 onChange={(e) => setNewForm({ ...newForm, subject: e.target.value })}
-                placeholder="Descreva brevemente o problema"
+                placeholder={t('support.subject_placeholder')}
                 required
               />
             </div>
             <div>
-              <label className="label">Categoria</label>
+              <label className="label">{t('support.category_label')}</label>
               <select
                 value={newForm.category}
                 onChange={(e) => setNewForm({ ...newForm, category: e.target.value as TicketCategory })}
@@ -154,12 +156,12 @@ export default function SupportPage() {
               </select>
             </div>
             <div>
-              <label className="label">Mensagem *</label>
+              <label className="label">{t('common:fields.message')} *</label>
               <textarea
                 rows={4}
                 value={newForm.message}
                 onChange={(e) => setNewForm({ ...newForm, message: e.target.value })}
-                placeholder="Detalhe o seu problema..."
+                placeholder={t('support.message_placeholder')}
                 required
               />
             </div>

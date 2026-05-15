@@ -44,7 +44,21 @@
     "audit": "Audit",
     "settings": "Settings",
     "pros": "Professionals",
-    "home": "Home"
+    "home": "Home",
+    "badge": "Clock",
+    "add": "Add",
+    "book": "Book"
+  },
+  "roles": {
+    "client": "Client",
+    "pro": "Professional",
+    "admin": "Admin",
+    "staff": "Staff"
+  },
+  "stripe_toast": {
+    "connected": "Stripe account connected successfully",
+    "error": "An error occurred while connecting Stripe",
+    "not_configured": "Stripe is not yet configured on the platform"
   },
   "status": {
     "active": "Active",

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Pencil, CalendarOff, Check, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { CalendarView } from '@/components/calendar/CalendarView';
 import { Spinner } from '@/components/ui/Spinner';
 import { Modal } from '@/components/ui/Modal';
@@ -30,6 +31,7 @@ type ClientLite = Client & { subscriptions: Subscription[] };
 
 export default function CalendarPage() {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), 1));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availability, setAvailability] = useState<BarberAvailability[]>([]);
@@ -98,23 +100,23 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Calendário</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('calendar.title')}</h1>
         <button className="btn-outline" onClick={() => setEditingAvailability(true)}>
-          <Pencil size={16} /> Disponibilidade
+          <Pencil size={16} /> {t('calendar.availability')}
         </button>
         <button
           className="btn-primary"
           onClick={() => setCreating({ date: isoDate(new Date()), time: '10:00' })}
         >
-          <Plus size={16} /> Nova marcação
+          <Plus size={16} /> {t('calendar.new_appointment')}
         </button>
       </div>
 
       {availability.length === 0 && (
-        <Banner tone="info" title="Sem horário definido">
-          Define o teu horário semanal para que aparições recebam slots automaticamente.{' '}
+        <Banner tone="info" title={t('calendar.no_schedule_title')}>
+          {t('calendar.no_schedule_text')}{' '}
           <button className="underline" onClick={() => setEditingAvailability(true)}>
-            Configurar agora
+            {t('calendar.configure_now')}
           </button>
         </Banner>
       )}
@@ -172,6 +174,7 @@ function AppointmentModal({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const isEditing = Boolean(existing);
   const [clientId, setClientId] = useState(existing?.clientId ?? clients[0]?.id ?? '');
   // Catalog selection (F4) — when present, takes precedence over the legacy
@@ -238,11 +241,11 @@ function AppointmentModal({
       };
       if (existing) {
         await api.put(`/pro/appointments/${existing.id}`, { ...base, status });
-        toast.success('Marcação atualizada');
+        toast.success(t('calendar.appointment_updated'));
       } else {
         // Don't send status on create — server defaults to 'pending'.
         await api.post('/pro/appointments', base);
-        toast.success('Marcação criada');
+        toast.success(t('calendar.appointment_created'));
       }
       onSaved();
       onClose();
@@ -264,8 +267,8 @@ function AppointmentModal({
       });
       toast.success(
         newStatus === 'completed'
-          ? 'Cliente marcado como presente · corte registado'
-          : 'Cliente marcado como não compareceu',
+          ? t('calendar.marked_present')
+          : t('calendar.marked_no_show'),
       );
       onSaved();
       onClose();
@@ -281,7 +284,7 @@ function AppointmentModal({
     setBusy(true);
     try {
       await api.delete(`/pro/appointments/${existing.id}`);
-      toast.success('Marcação removida');
+      toast.success(t('calendar.appointment_removed'));
       onSaved();
       onClose();
     } catch (err) {
@@ -295,23 +298,23 @@ function AppointmentModal({
     <Modal
       open
       onClose={onClose}
-      title={isEditing ? 'Editar marcação' : 'Nova marcação'}
+      title={isEditing ? t('calendar.edit_appointment') : t('calendar.new_appointment')}
       size="lg"
       footer={
         <div className="flex w-full justify-between">
           {isEditing ? (
             <button className="btn-danger btn-sm" onClick={() => void onDelete()} disabled={busy}>
-              <Trash2 size={14} /> Remover
+              <Trash2 size={14} /> {t('calendar.remove')}
             </button>
           ) : (
             <span />
           )}
           <div className="flex gap-3">
             <button className="btn-ghost" onClick={onClose} disabled={busy}>
-              Cancelar
+              {t('common:cancel')}
             </button>
             <button className="btn-primary" onClick={() => void onSubmit()} disabled={busy}>
-              {busy ? <Spinner /> : 'Guardar'}
+              {busy ? <Spinner /> : t('common:save')}
             </button>
           </div>
         </div>
@@ -337,7 +340,7 @@ function AppointmentModal({
               onClick={() => void onMarkPresence('completed')}
               disabled={busy}
             >
-              <Check size={16} /> Cliente presente
+              <Check size={16} /> {t('calendar.client_present')}
             </button>
             <button
               type="button"
@@ -345,13 +348,13 @@ function AppointmentModal({
               onClick={() => void onMarkPresence('no_show')}
               disabled={busy}
             >
-              <X size={16} /> Não apareceu
+              <X size={16} /> {t('calendar.client_no_show')}
             </button>
           </div>
         )}
 
         <div>
-          <label className="label">Cliente</label>
+          <label className="label">{t('calendar.client_label')}</label>
           <select value={clientId} onChange={(e) => setClientId(e.target.value)}>
             <option value="">—</option>
             {clients.map((c) => (
@@ -364,7 +367,7 @@ function AppointmentModal({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Serviço</label>
+            <label className="label">{t('calendar.service_label')}</label>
             {hasCatalog ? (
               <select
                 value={serviceId}
@@ -377,7 +380,7 @@ function AppointmentModal({
                   }
                 }}
               >
-                <option value="">— escolher —</option>
+                <option value="">{t('calendar.service_choose')}</option>
                 {services.map((sv) => (
                   <option key={sv.id} value={sv.id}>
                     {sv.name} · {sv.durationMinutes}min · {Number(sv.price).toFixed(2)}€
@@ -402,20 +405,20 @@ function AppointmentModal({
             )}
           </div>
           <div>
-            <label className="label">Duração (min)</label>
+            <label className="label">{t('calendar.duration_label')}</label>
             <input
               type="number"
               min={5}
               value={duration}
               onChange={(e) => setDuration(Number(e.target.value))}
               disabled={Boolean(serviceId)}
-              title={serviceId ? 'Definida pelo serviço escolhido' : undefined}
+              title={serviceId ? t('calendar.duration_locked') : undefined}
             />
           </div>
         </div>
 
         <div>
-          <label className="label">Data</label>
+          <label className="label">{t('calendar.date_label')}</label>
           <input
             type="date"
             value={date}
@@ -426,7 +429,7 @@ function AppointmentModal({
 
         {/* Slot grid: replaces manual time input when slots are available */}
         <div>
-          <label className="label">Hora disponível</label>
+          <label className="label">{t('calendar.time_available')}</label>
           {loadingSlots ? (
             <div className="text-center py-6">
               <Spinner />
@@ -434,7 +437,7 @@ function AppointmentModal({
           ) : slots.length === 0 ? (
             <div className="space-y-2">
               <Banner tone="warning">
-                Sem horário definido para este dia. Escolhe a hora manualmente.
+                {t('calendar.no_schedule_day')}
               </Banner>
               <input
                 type="time"
@@ -480,22 +483,22 @@ function AppointmentModal({
         {/* Status only on edit — created appointments default to 'pending' */}
         {isEditing && (
           <div>
-            <label className="label">Estado</label>
+            <label className="label">{t('calendar.status_label')}</label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as AppointmentStatus)}
             >
-              <option value="pending">Pendente</option>
-              <option value="confirmed">Confirmada</option>
-              <option value="completed">Concluída</option>
-              <option value="cancelled">Cancelada</option>
-              <option value="no_show">Não compareceu</option>
+              <option value="pending">{t('common:status.pending')}</option>
+              <option value="confirmed">{t('common:status.confirmed')}</option>
+              <option value="completed">{t('common:status.completed')}</option>
+              <option value="cancelled">{t('common:status.cancelled')}</option>
+              <option value="no_show">{t('common:status.no_show')}</option>
             </select>
           </div>
         )}
 
         <div>
-          <label className="label">Notas (opcional)</label>
+          <label className="label">{t('calendar.notes_optional')}</label>
           <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
       </div>
@@ -515,6 +518,7 @@ function AvailabilityModal({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [draftRules, setDraftRules] = useState<BarberAvailability[]>(rules);
   const [ranges, setRanges] = useState<BarberUnavailable[]>(unavailable);
   const [newRange, setNewRange] = useState({ dateFrom: '', dateTo: '', reason: '' });
@@ -605,7 +609,7 @@ function AvailabilityModal({
           isActive: r.isActive,
         });
       }
-      toast.success('Disponibilidade atualizada');
+      toast.success(t('calendar.availability_updated'));
       onSaved();
       onClose();
     } catch (err) {
@@ -617,11 +621,11 @@ function AvailabilityModal({
 
   const addRange = async () => {
     if (!newRange.dateFrom || !newRange.dateTo) {
-      toast.error('Indica a data de início e fim');
+      toast.error(t('calendar.errors.date_range_required'));
       return;
     }
     if (newRange.dateFrom > newRange.dateTo) {
-      toast.error('Data de início tem de ser anterior à de fim');
+      toast.error(t('calendar.errors.date_range_invalid'));
       return;
     }
     setSavingRange(true);
@@ -636,7 +640,7 @@ function AvailabilityModal({
       );
       setRanges((prev) => [...prev, data.range]);
       setNewRange({ dateFrom: '', dateTo: '', reason: '' });
-      toast.success('Período fechado adicionado');
+      toast.success(t('calendar.closed_period_added'));
       onSaved();
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -650,7 +654,7 @@ function AvailabilityModal({
     try {
       await api.delete(`/pro/availability/unavailable/${id}`);
       setRanges((prev) => prev.filter((r) => r.id !== id));
-      toast.success('Período removido');
+      toast.success(t('calendar.period_removed'));
       onSaved();
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -663,23 +667,23 @@ function AvailabilityModal({
     <Modal
       open
       onClose={onClose}
-      title="Disponibilidade & dias fechados"
+      title={t('calendar.availability_title')}
       size="lg"
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Fechar
+            {t('common:close')}
           </button>
           <button className="btn-primary" onClick={() => void onSave()} disabled={busy}>
-            {busy ? <Spinner /> : 'Guardar disponibilidade'}
+            {busy ? <Spinner /> : t('calendar.save_availability')}
           </button>
         </>
       }
     >
       <section className="space-y-3">
         <div>
-          <h3 className="font-semibold text-ink mb-1">Horário semanal</h3>
-          <p className="text-sm text-muted">Define os horários em que aceitas marcações.</p>
+          <h3 className="font-semibold text-ink mb-1">{t('calendar.weekly_schedule')}</h3>
+          <p className="text-sm text-muted">{t('calendar.weekly_schedule_desc')}</p>
         </div>
         <div className="space-y-4">
           {[1, 2, 3, 4, 5, 6, 0].map((dow) => {
@@ -703,16 +707,16 @@ function AvailabilityModal({
                     onChange={(e) => handleDayChange(dow, 'startTime', e.target.value)}
                     disabled={!r?.isActive}
                     className="sm:col-span-3 !h-9"
-                    aria-label="Hora de abertura"
+                    aria-label={t('calendar.open_time')}
                   />
-                  <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
+                  <span className="sm:col-span-1 text-center text-xs text-muted">{t('calendar.until')}</span>
                   <input
                     type="time"
                     value={r?.endTime ?? '18:00'}
                     onChange={(e) => handleDayChange(dow, 'endTime', e.target.value)}
                     disabled={!r?.isActive}
                     className="sm:col-span-3 !h-9"
-                    aria-label="Hora de fecho"
+                    aria-label={t('calendar.close_time')}
                   />
                 </div>
 
@@ -725,25 +729,25 @@ function AvailabilityModal({
                         onChange={(e) => toggleBreak(dow, e.target.checked)}
                         className="!w-auto !h-auto"
                       />
-                      Pausa de meio-dia
+                      {t('calendar.lunch_break')}
                     </label>
                     {hasBreak && (
                       <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center mt-2">
-                        <span className="sm:col-span-3 text-xs text-muted">Sem marcações</span>
+                        <span className="sm:col-span-3 text-xs text-muted">{t('calendar.no_bookings')}</span>
                         <input
                           type="time"
                           value={r.breakStart ?? '13:00'}
                           onChange={(e) => handleDayChange(dow, 'breakStart', e.target.value)}
                           className="sm:col-span-3 !h-9"
-                          aria-label="Início da pausa"
+                          aria-label={t('calendar.break_start')}
                         />
-                        <span className="sm:col-span-1 text-center text-xs text-muted">até</span>
+                        <span className="sm:col-span-1 text-center text-xs text-muted">{t('calendar.until')}</span>
                         <input
                           type="time"
                           value={r.breakEnd ?? '14:00'}
                           onChange={(e) => handleDayChange(dow, 'breakEnd', e.target.value)}
                           className="sm:col-span-3 !h-9"
-                          aria-label="Fim da pausa"
+                          aria-label={t('calendar.break_end')}
                         />
                       </div>
                     )}
@@ -759,9 +763,9 @@ function AvailabilityModal({
         <div className="flex items-start gap-2">
           <CalendarOff size={18} className="text-muted mt-0.5" />
           <div>
-            <h3 className="font-semibold text-ink mb-1">Dias fechados</h3>
+            <h3 className="font-semibold text-ink mb-1">{t('calendar.closed_days')}</h3>
             <p className="text-sm text-muted">
-              Adiciona períodos em que não aceitas marcações (férias, feriados, etc.).
+              {t('calendar.closed_days_desc')}
             </p>
           </div>
         </div>
@@ -769,7 +773,7 @@ function AvailabilityModal({
         {/* Existing ranges (future + ongoing only) */}
         <ul className="space-y-2">
           {ranges.length === 0 && (
-            <li className="text-sm text-muted italic">Sem períodos fechados.</li>
+            <li className="text-sm text-muted italic">{t('calendar.no_closed')}</li>
           )}
           {ranges.map((r) => (
             <li
@@ -788,7 +792,7 @@ function AvailabilityModal({
                 className="btn-ghost btn-sm !text-danger"
                 onClick={() => void removeRange(r.id)}
                 disabled={savingRange}
-                aria-label="Remover período"
+                aria-label={t('calendar.remove_period')}
               >
                 <Trash2 size={14} />
               </button>
@@ -799,7 +803,7 @@ function AvailabilityModal({
         {/* Add new range form */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-end pt-2">
           <div className="sm:col-span-3">
-            <label className="label">De</label>
+            <label className="label">{t('calendar.from')}</label>
             <input
               type="date"
               value={newRange.dateFrom}
@@ -807,7 +811,7 @@ function AvailabilityModal({
             />
           </div>
           <div className="sm:col-span-3">
-            <label className="label">Até</label>
+            <label className="label">{t('calendar.to')}</label>
             <input
               type="date"
               value={newRange.dateTo}
@@ -815,10 +819,10 @@ function AvailabilityModal({
             />
           </div>
           <div className="sm:col-span-4">
-            <label className="label">Motivo (opcional)</label>
+            <label className="label">{t('calendar.reason_optional')}</label>
             <input
               type="text"
-              placeholder="Ex: Férias"
+              placeholder={t('calendar.reason_placeholder')}
               value={newRange.reason}
               onChange={(e) => setNewRange((p) => ({ ...p, reason: e.target.value }))}
             />
@@ -830,7 +834,7 @@ function AvailabilityModal({
               onClick={() => void addRange()}
               disabled={savingRange}
             >
-              <Plus size={14} /> Adicionar
+              <Plus size={14} /> {t('calendar.add')}
             </button>
           </div>
         </div>

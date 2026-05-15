@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
@@ -11,6 +12,7 @@ interface AppointmentsResp {
 
 export default function CalendarPage() {
   const toast = useToast();
+  const { t } = useTranslation('staff');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -74,7 +76,7 @@ export default function CalendarPage() {
     <div>
       <div className="flex items-center gap-3 mb-5">
         <Calendar size={24} className="text-brand" />
-        <h1 className="text-2xl font-bold text-ink">Calendário</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('calendar.title')}</h1>
       </div>
 
       {loading ? (
@@ -157,7 +159,7 @@ export default function CalendarPage() {
           {/* Appointments list */}
           {appointments.length > 0 && (
             <div className="card">
-              <h3 className="font-semibold text-ink mb-3">Marcações</h3>
+              <h3 className="font-semibold text-ink mb-3">{t('common:nav.calendar')}</h3>
               <div className="space-y-2">
                 {appointments.map((apt) => (
                   <div key={apt.id} className="flex items-start gap-3 p-2 rounded-button bg-surface">

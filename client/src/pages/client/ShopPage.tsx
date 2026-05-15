@@ -13,8 +13,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/lib/utils';
 import type { Product } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function ShopPage() {
+    const { t } = useTranslation('client');
   const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [barberId, setBarberId] = useState<string>('');
@@ -65,7 +67,7 @@ export default function ShopPage() {
         productId: selectedProduct.id,
         quantity,
       });
-      toast.success('Produto adicionado ao carrinho');
+      toast.success(t('shop.added_to_cart'));
       setSelectedProduct(null);
       setQuantity(1);
       void load();
@@ -78,7 +80,7 @@ export default function ShopPage() {
     <div>
       <div className="flex items-center gap-3 mb-5">
         <ShoppingBag size={24} className="text-brand" />
-        <h1 className="text-2xl font-bold text-ink">Loja</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('shop.title')}</h1>
       </div>
 
       {loading ? (
@@ -199,7 +201,7 @@ export default function ShopPage() {
 
             <div className="bg-surface rounded-lg p-3 text-sm">
               <div className="flex justify-between">
-                <span>Total:</span>
+                <span>{t('shop.total')}:</span>
                 <span className="font-bold text-brand">
                   {formatCurrency(Number(selectedProduct.price) * quantity)}
                 </span>

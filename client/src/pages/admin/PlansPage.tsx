@@ -7,8 +7,10 @@ import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import type { Barber, Plan } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function PlansPage() {
+    const { t } = useTranslation('admin');
   const toast = useToast();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -43,14 +45,14 @@ export default function PlansPage() {
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink">Planos</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('plans.title')}</h1>
         <div className="flex items-center gap-2">
           <select
             value={barberFilter}
             onChange={(e) => setBarberFilter(e.target.value)}
             className="!h-9 !py-1 text-sm"
           >
-            <option value="">Todos os profissionais</option>
+            <option value="">{t('plans.all_professionals')}</option>
             {barbers.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}

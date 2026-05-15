@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Power } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
@@ -17,6 +18,7 @@ import type { Plan } from '@/lib/types';
 
 export default function PlansPage() {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [plans, setPlans] = useState<(Plan & { _count?: { subscriptions: number } })[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -43,10 +45,10 @@ export default function PlansPage() {
     try {
       if (p.isActive) {
         await api.delete(`/pro/plans/${p.id}`);
-        toast.success('Plano desativado');
+        toast.success(t('plans.plan_disabled'));
       } else {
         await api.put(`/pro/plans/${p.id}`, { isActive: true });
-        toast.success('Plano reativado');
+        toast.success(t('plans.plan_reactivated'));
       }
       void load();
     } catch (err) {
@@ -57,9 +59,9 @@ export default function PlansPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Planos</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('plans.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
-          <Plus size={16} /> Novo plano
+          <Plus size={16} /> {t('plans.new_plan')}
         </button>
       </div>
 
@@ -71,8 +73,8 @@ export default function PlansPage() {
         <div className="card">
           <EmptyState
             icon={Plus}
-            title="Sem planos"
-            description="Cria o primeiro plano para começares a oferecer subscrições aos teus clientes."
+            title={t('plans.no_plans')}
+            description={t('plans.no_plans_desc')}
           />
         </div>
       ) : (
@@ -92,27 +94,27 @@ export default function PlansPage() {
                   )}
                 </div>
                 {p.isActive ? (
-                  <span className="badge-success">Ativo</span>
+                  <span className="badge-success">{t('common:status.active')}</span>
                 ) : (
-                  <span className="badge-muted">Inativo</span>
+                  <span className="badge-muted">{t('common:status.inactive')}</span>
                 )}
               </header>
 
               <div className="flex flex-wrap items-center gap-2">
                 {p.cutsPerMonth && (
                   <span className="badge-muted">
-                    {p.cutsPerMonth} serviços/mês
+                    {t('plans.services_per_month', { count: p.cutsPerMonth })}
                   </span>
                 )}
               </div>
 
               <p className="text-2xl font-bold text-brand mt-auto">
-                {formatCurrency(Number(p.price))}/mês
+                {formatCurrency(Number(p.price))}{t('plans.per_month_short')}
               </p>
 
               {p._count?.subscriptions !== undefined && (
                 <div className="text-xs text-muted">
-                  <span className="badge-accent">{p._count.subscriptions} subscritores</span>
+                  <span className="badge-accent">{t('plans.subscribers_count', { count: p._count.subscriptions })}</span>
                 </div>
               )}
 
@@ -121,7 +123,7 @@ export default function PlansPage() {
                   className="btn-outline btn-sm flex-1"
                   onClick={() => setEditing(p)}
                 >
-                  <Pencil size={14} /> Editar
+                  <Pencil size={14} /> {t('common:edit')}
                 </button>
                 <button
                   className={`btn-sm flex-1 ${
@@ -129,7 +131,7 @@ export default function PlansPage() {
                   }`}
                   onClick={() => void toggleActive(p)}
                 >
-                  <Power size={14} /> {p.isActive ? 'Desativar' : 'Ativar'}
+                  <Power size={14} /> {p.isActive ? t('plans.deactivate') : t('plans.activate')}
                 </button>
               </div>
             </article>
@@ -172,6 +174,7 @@ function PlanFormModal({
   onSaved,
 }: PlanFormModalProps) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [name, setName] = useState(existing?.name ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [price, setPrice] = useState<string>(
@@ -190,11 +193,11 @@ function PlanFormModal({
   const onSubmit = async () => {
     const priceNum = Number(price);
     if (!name.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.error(t('plans.errors.name_required'));
       return;
     }
     if (!Number.isFinite(priceNum) || priceNum < 0) {
-      toast.error('Preço inválido');
+      toast.error(t('plans.errors.price_invalid'));
       return;
     }
 
@@ -202,7 +205,7 @@ function PlanFormModal({
     if (cutsPerMonth.trim()) {
       cutsNum = Number(cutsPerMonth);
       if (!Number.isInteger(cutsNum) || cutsNum < 1 || cutsNum > 100) {
-        toast.error('Serviços/mês deve estar entre 1 e 100');
+        toast.error(t('plans.errors.cuts_range'));
         return;
       }
     }
@@ -218,10 +221,10 @@ function PlanFormModal({
       };
       if (isEdit) {
         await api.put(`/pro/plans/${existing!.id}`, payload);
-        toast.success('Plano atualizado');
+        toast.success(t('plans.plan_updated'));
       } else {
         await api.post('/pro/plans', payload);
-        toast.success('Plano criado');
+        toast.success(t('plans.plan_created'));
       }
       onSaved();
     } catch (err) {
@@ -235,62 +238,62 @@ function PlanFormModal({
     <Modal
       open
       onClose={onClose}
-      title={isEdit ? 'Editar plano' : 'Novo plano'}
+      title={isEdit ? t('plans.edit_plan') : t('plans.new_plan')}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button className="btn-primary" onClick={() => void onSubmit()} disabled={busy}>
-            {busy ? <Spinner /> : 'Guardar'}
+            {busy ? <Spinner /> : t('common:save')}
           </button>
         </>
       }
     >
       <div className="space-y-3">
         <div>
-          <label className="label">Nome *</label>
+          <label className="label">{t('plans.name_required')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Plano básico"
+            placeholder={t('plans.name_placeholder')}
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Preço (EUR) *</label>
+            <label className="label">{t('plans.price_required')}</label>
             <input
               type="number"
               step="0.01"
               min="0"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="Ex: 19.99"
+              placeholder={t('plans.price_placeholder')}
               required
             />
           </div>
           <div>
-            <label className="label">Serviços/mês (opcional)</label>
+            <label className="label">{t('plans.services_optional')}</label>
             <input
               type="number"
               min="1"
               max="100"
               value={cutsPerMonth}
               onChange={(e) => setCutsPerMonth(e.target.value)}
-              placeholder="Ex: 4"
+              placeholder={t('plans.services_placeholder')}
             />
           </div>
         </div>
 
         <div>
-          <label className="label">Descrição (opcional)</label>
+          <label className="label">{t('plans.description_optional')}</label>
           <textarea
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Detalhes do plano…"
+            placeholder={t('plans.description_placeholder')}
           />
         </div>
 
@@ -301,7 +304,7 @@ function PlanFormModal({
             onChange={(e) => setIsActive(e.target.checked)}
             className="!w-auto !h-auto"
           />
-          Plano ativo
+          {t('plans.plan_active')}
         </label>
       </div>
     </Modal>

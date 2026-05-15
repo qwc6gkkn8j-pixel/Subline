@@ -12,6 +12,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleShell } from '@/components/layout/RoleShell';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -26,27 +27,28 @@ const LogsPage = lazy(() => import('./LogsPage'));
 const SettingsPage = lazy(() => import('./SettingsPage'));
 
 export default function AdminLayout() {
+  const { t } = useTranslation('common');
   return (
     <RoleShell
-      title="Admin"
+      title={t('roles.admin')}
       navItems={[
-        { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
-        { to: '/admin/pros', icon: Briefcase, label: 'Profissionais' },
-        { to: '/admin/users', icon: UsersIcon, label: 'Utilizadores' },
-        { to: '/admin/payments', icon: CreditCard, label: 'Pagamentos' },
-        { to: '/admin/plans', icon: Tag, label: 'Planos' },
-        { to: '/admin/tickets', icon: LifeBuoy, label: 'Tickets' },
-        { to: '/admin/logs', icon: Activity, label: 'Auditoria' },
-        { to: '/admin/settings', icon: Settings, label: 'Definições' },
+        { to: '/admin', icon: LayoutDashboard, label: t('nav.dashboard'), end: true },
+        { to: '/admin/pros', icon: Briefcase, label: t('nav.pros') },
+        { to: '/admin/users', icon: UsersIcon, label: t('nav.users') },
+        { to: '/admin/payments', icon: CreditCard, label: t('nav.payments') },
+        { to: '/admin/plans', icon: Tag, label: t('nav.plans') },
+        { to: '/admin/tickets', icon: LifeBuoy, label: t('nav.tickets') },
+        { to: '/admin/logs', icon: Activity, label: t('nav.audit') },
+        { to: '/admin/settings', icon: Settings, label: t('nav.settings') },
       ]}
       bottomNav={
         <BottomNav
           items={[
-            { to: '/admin', icon: Home, label: 'Home' },
-            { to: '/admin/pros', icon: Briefcase, label: 'Pros' },
-            { to: '/admin/users?new=1', icon: UserPlus, label: 'Add', primary: true },
-            { to: '/admin/tickets', icon: LifeBuoy, label: 'Tickets' },
-            { to: '/admin/payments', icon: CreditCard, label: 'Pagamentos' },
+            { to: '/admin', icon: Home, label: t('nav.home') },
+            { to: '/admin/pros', icon: Briefcase, label: t('nav.pros') },
+            { to: '/admin/users?new=1', icon: UserPlus, label: t('nav.add'), primary: true },
+            { to: '/admin/tickets', icon: LifeBuoy, label: t('nav.tickets') },
+            { to: '/admin/payments', icon: CreditCard, label: t('nav.payments') },
           ]}
         />
       }

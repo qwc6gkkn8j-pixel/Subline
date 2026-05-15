@@ -11,6 +11,7 @@ import {
   MapPin,
   Phone,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { Avatar } from '@/components/ui/Avatar';
@@ -25,6 +26,7 @@ import { PLAN_LABEL, SERVICE_LABEL } from '@/lib/types';
 
 export default function HomePage() {
   const toast = useToast();
+  const { t } = useTranslation('client');
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [barber, setBarber] = useState<Barber | null>(null);
   const [upcoming, setUpcoming] = useState<Appointment[]>([]);
@@ -57,7 +59,7 @@ export default function HomePage() {
     <div className="space-y-6">
       <section className="card relative overflow-hidden">
         <div className="absolute inset-x-0 top-0 h-1 bg-brand-gradient" />
-        <p className="text-xs uppercase tracking-wide text-muted">A tua subscrição</p>
+        <p className="text-xs uppercase tracking-wide text-muted">{t('home.subscription_card')}</p>
         {subscription ? (
           <>
             <div className="flex items-baseline gap-3 mt-2 flex-wrap">
@@ -70,7 +72,7 @@ export default function HomePage() {
               {subscription.status === 'active' ? (
                 <>
                   <CheckCircle2 size={16} className="text-success" />
-                  <span className="text-success font-medium">Ativa</span>
+                  <span className="text-success font-medium">{t('home.active_label')}</span>
                 </>
               ) : (
                 <>
@@ -79,14 +81,14 @@ export default function HomePage() {
                 </>
               )}
               <span className="text-muted text-sm">
-                · Renova {formatDate(subscription.renewalDate)}
+                · {t('home.renews_on', { date: formatDate(subscription.renewalDate) })}
               </span>
             </div>
 
             {remaining !== null && (
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted">Cortes este mês</span>
+                  <span className="text-muted">{t('home.cuts_label')}</span>
                   <span className="text-ink font-medium">
                     {used}/{total}
                   </span>
@@ -102,18 +104,18 @@ export default function HomePage() {
 
             <div className="flex flex-wrap gap-3 mt-5">
               <Link to="/client/calendar" className="btn-primary btn-sm">
-                <CalendarDays size={14} /> Marcar
+                <CalendarDays size={14} /> {t('home.book_btn')}
               </Link>
               <Link to="/client/subscription" className="btn-outline btn-sm">
-                <CreditCard size={14} /> Detalhes
+                <CreditCard size={14} /> {t('home.details_btn')}
               </Link>
               <Link to="/client/chat" className="btn-outline btn-sm">
-                <MessageSquare size={14} /> Falar com profissional
+                <MessageSquare size={14} /> {t('home.chat_pro')}
               </Link>
             </div>
           </>
         ) : (
-          <p className="mt-4 text-muted">Ainda não tens uma subscrição ativa.</p>
+          <p className="mt-4 text-muted">{t('home.no_subscription_desc')}</p>
         )}
       </section>
 
@@ -121,14 +123,14 @@ export default function HomePage() {
         <div className="card">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-ink flex items-center gap-2">
-              <CalendarDays size={18} className="text-brand" /> Próximas marcações
+              <CalendarDays size={18} className="text-brand" /> {t('home.upcoming')}
             </h3>
             <Link to="/client/calendar" className="text-xs text-brand hover:underline">
-              Ver todas
+              {t('home.view_all')}
             </Link>
           </div>
           {upcoming.length === 0 ? (
-            <p className="text-sm text-muted text-center py-4">Sem marcações futuras.</p>
+            <p className="text-sm text-muted text-center py-4">{t('home.no_upcoming')}</p>
           ) : (
             <ul className="divide-y divide-line">
               {upcoming.map((a) => (
@@ -152,11 +154,11 @@ export default function HomePage() {
         <div className="card">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-ink flex items-center gap-2">
-              <Scissors size={18} className="text-brand" /> Histórico de cortes
+              <Scissors size={18} className="text-brand" /> {t('home.recent_cuts')}
             </h3>
           </div>
           {cuts.length === 0 ? (
-            <p className="text-sm text-muted text-center py-4">Sem cortes registados ainda.</p>
+            <p className="text-sm text-muted text-center py-4">{t('home.no_cuts')}</p>
           ) : (
             <ul className="divide-y divide-line max-h-48 overflow-y-auto">
               {cuts.slice(0, 8).map((c) => (
@@ -172,7 +174,7 @@ export default function HomePage() {
 
       {barber && (
         <section className="card">
-          <p className="text-xs uppercase tracking-wide text-muted mb-3">Mon professionnel</p>
+          <p className="text-xs uppercase tracking-wide text-muted mb-3">{t('home.my_professional')}</p>
           <div className="flex items-start gap-4">
             <Avatar name={barber.name} size={60} />
             <div className="flex-1 min-w-0">

@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatRelative } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface Review {
   id: string;
@@ -21,6 +22,7 @@ interface ReviewsResponse {
 }
 
 export default function ReviewsPage() {
+    const { t } = useTranslation('pro');
   const toast = useToast();
   const [data, setData] = useState<ReviewsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function ReviewsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Avaliações</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('reviews.title')}</h1>
       </div>
 
       {loading ? (
@@ -74,7 +76,7 @@ export default function ReviewsPage() {
         <div className="card">
           <EmptyState
             icon={Star}
-            title="Sem avaliações ainda"
+            title={t('reviews.no_reviews')}
             description="Quando clientes deixarem avaliações, aparecerão aqui."
           />
         </div>

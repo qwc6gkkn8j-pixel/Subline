@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { Play, Pause, Square, LogOut, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
@@ -15,13 +16,6 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Logo } from '@/components/ui/Logo';
 import { formatTime } from '@/lib/dateUtils';
 import type { EntryType, StaffDaySummary, StaffMember } from '@/lib/types';
-
-const ENTRY_LABEL: Record<EntryType, string> = {
-  clock_in: 'Entrada',
-  break_start: 'Início pausa',
-  break_end: 'Fim pausa',
-  clock_out: 'Saída',
-};
 
 function formatHM(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -31,6 +25,7 @@ function formatHM(minutes: number): string {
 
 export default function BadgePage() {
   const toast = useToast();
+  const { t } = useTranslation('staff');
   const { logout, user } = useAuth();
   const [staff, setStaff] = useState<StaffMember | null>(null);
   const [summary, setSummary] = useState<StaffDaySummary | null>(null);
@@ -73,7 +68,7 @@ export default function BadgePage() {
     try {
       const { data } = await api.post<StaffDaySummary>('/staff/badge', { type });
       setSummary(data);
-      toast.success(`${ENTRY_LABEL[type]} registada`);
+      toast.success(t('badge.today_summary'));
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
@@ -104,9 +99,9 @@ export default function BadgePage() {
 
   const state = summary?.state ?? 'out';
   const stateLabel: Record<typeof state, { text: string; cls: string }> = {
-    out: { text: 'Fora', cls: 'badge-muted' },
-    working: { text: 'Em serviço', cls: 'badge-success' },
-    on_break: { text: 'Em pausa', cls: 'badge-warning' },
+    out: { text: t('badge.state_out'), cls: 'badge-muted' },
+    working: { text: t('badge.state_working'), cls: 'badge-success' },
+    on_break: { text: t('badge.state_on_break'), cls: 'badge-warning' },
   };
 
   return (
@@ -151,13 +146,13 @@ export default function BadgePage() {
           {summary && (
             <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
               <div className="rounded-button bg-surface p-2">
-                <p className="text-muted">Tempo de trabalho</p>
+                <p className="text-muted">{t('badge.worked')}</p>
                 <p className="font-semibold text-ink mt-0.5">
                   {formatHM(summary.totalMinutesWorked)}
                 </p>
               </div>
               <div className="rounded-button bg-surface p-2">
-                <p className="text-muted">Tempo em pausa</p>
+                <p className="text-muted">{t('badge.breaks')}</p>
                 <p className="font-semibold text-ink mt-0.5">
                   {formatHM(summary.totalMinutesOnBreak)}
                 </p>
@@ -169,48 +164,18 @@ export default function BadgePage() {
         {/* Action buttons */}
         <section className="space-y-3">
           {state === 'out' && (
-            <BigButton
-              icon={<Play size={22} />}
-              label="Marcar Entrada"
-              variant="success"
-              busy={busy}
-              onClick={() => void onBadge('clock_in')}
-            />
+            <BigButton icon={<Play size={22} />} label={t('badge.clock_in_btn')} variant="success" busy={busy} onClick={() => void onBadge('clock_in')} />
           )}
           {state === 'working' && (
             <>
-              <BigButton
-                icon={<Pause size={22} />}
-                label="Início Pausa"
-                variant="warning"
-                busy={busy}
-                onClick={() => void onBadge('break_start')}
-              />
-              <BigButton
-                icon={<Square size={22} />}
-                label="Marcar Saída"
-                variant="danger"
-                busy={busy}
-                onClick={() => void onBadge('clock_out')}
-              />
+              <BigButton icon={<Pause size={22} />} label={t('badge.break_start_btn')} variant="warning" busy={busy} onClick={() => void onBadge('break_start')} />
+              <BigButton icon={<Square size={22} />} label={t('badge.clock_out_btn')} variant="danger" busy={busy} onClick={() => void onBadge('clock_out')} />
             </>
           )}
           {state === 'on_break' && (
             <>
-              <BigButton
-                icon={<Play size={22} />}
-                label="Retomar"
-                variant="success"
-                busy={busy}
-                onClick={() => void onBadge('break_end')}
-              />
-              <BigButton
-                icon={<Square size={22} />}
-                label="Marcar Saída"
-                variant="danger"
-                busy={busy}
-                onClick={() => void onBadge('clock_out')}
-              />
+              <BigButton icon={<Play size={22} />} label={t('badge.break_end_btn')} variant="success" busy={busy} onClick={() => void onBadge('break_end')} />
+              <BigButton icon={<Square size={22} />} label={t('badge.clock_out_btn')} variant="danger" busy={busy} onClick={() => void onBadge('clock_out')} />
             </>
           )}
         </section>
@@ -218,19 +183,19 @@ export default function BadgePage() {
         {/* Today's history */}
         <section className="card">
           <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-3">
-            <Clock size={16} /> Histórico de hoje
+            <Clock size={16} /> {t('badge.today_summary')}
           </h2>
           {summary && summary.entries.length > 0 ? (
             <ul className="divide-y divide-line">
               {summary.entries.map((e) => (
                 <li key={e.id} className="py-2 flex items-center justify-between text-sm">
-                  <span className="text-ink">{ENTRY_LABEL[e.type]}</span>
+                  <span className="text-ink">{t(`badge.${e.type === 'clock_in' ? 'clock_in_btn' : e.type === 'break_start' ? 'break_start_btn' : e.type === 'break_end' ? 'break_end_btn' : 'clock_out_btn'}`)}</span>
                   <span className="text-muted tabular-nums">{formatTime(e.timestamp)}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted text-center py-3">Sem registos hoje.</p>
+            <p className="text-sm text-muted text-center py-3">{t('calendar.no_appointments')}</p>
           )}
         </section>
       </main>

@@ -19,10 +19,12 @@ import type {
   Subscription,
 } from '@/lib/types';
 import { PLAN_LABEL } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 const PAGE_SIZE = 8;
 
 export default function SubscriptionPage() {
+    const { t } = useTranslation('client');
   const toast = useToast();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -158,7 +160,7 @@ export default function SubscriptionPage() {
 
       <section className="card !p-0 overflow-hidden">
         <div className="p-5 border-b border-line">
-          <h2 className="font-semibold text-ink">Histórico de pagamentos</h2>
+          <h2 className="font-semibold text-ink">{t('subscription.payment_history')}</h2>
         </div>
         {payments.length === 0 ? (
           <p className="p-5 text-sm text-muted">Sem pagamentos.</p>
@@ -249,6 +251,7 @@ function CancelSubscriptionModal({
   onClose: () => void;
   onCancelled: () => void;
 }) {
+  const { t } = useTranslation('client');
   const toast = useToast();
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
@@ -257,7 +260,7 @@ function CancelSubscriptionModal({
     setBusy(true);
     try {
       await api.post('/client/subscription/cancel', { reason });
-      toast.success('Cancelamento solicitado');
+      toast.success(t('subscription.cancelled_msg'));
       setReason('');
       onCancelled();
       onClose();

@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import type { Role, User, UserStatus } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 interface UsersResponse {
   users: User[];
@@ -19,6 +20,7 @@ interface UsersResponse {
 const PAGE_SIZE = 10;
 
 export default function UsersPage() {
+    const { t } = useTranslation('admin');
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
@@ -73,7 +75,7 @@ export default function UsersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-2xl font-bold text-ink">Utilizadores</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('users.title')}</h1>
         <button
           onClick={() => {
             setEditing('new');
@@ -315,6 +317,7 @@ function UserFormModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { t } = useTranslation('admin');
   const toast = useToast();
   const isNew = editing === 'new';
   const open = editing !== null;
@@ -365,7 +368,7 @@ function UserFormModal({
           address: form.address || undefined,
           bio: form.bio || undefined,
         });
-        toast.success('Utilizador criado');
+        toast.success(t('users.user_created'));
       } else {
         const u = editing as User;
         await api.put(`/admin/users/${u.id}`, {
@@ -375,7 +378,7 @@ function UserFormModal({
           phone: form.phone || null,
           ...(form.password ? { password: form.password } : {}),
         });
-        toast.success('Utilizador atualizado');
+        toast.success(t('users.user_updated'));
       }
       onSaved();
       onClose();
@@ -487,11 +490,12 @@ function DeleteUserModal({
   const [busy, setBusy] = useState(false);
 
   const onDelete = async () => {
+    const { t } = useTranslation('admin');
     if (!user) return;
     setBusy(true);
     try {
       await api.delete(`/admin/users/${user.id}`);
-      toast.success('Utilizador eliminado');
+      toast.success(t('users.user_deleted'));
       onDeleted();
       onClose();
     } catch (err) {

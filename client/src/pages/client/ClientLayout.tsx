@@ -10,6 +10,7 @@ import {
   Compass,
 } from 'lucide-react';
 import { lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RoleShell } from '@/components/layout/RoleShell';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -24,27 +25,28 @@ const ShopPage = lazy(() => import('./ShopPage'));
 const SupportPage = lazy(() => import('./SupportPage'));
 
 export default function ClientLayout() {
+  const { t } = useTranslation('common');
   return (
     <RoleShell
-      title="Cliente"
+      title={t('roles.client')}
       navItems={[
-        { to: '/client', icon: Home, label: 'Início', end: true },
-        { to: '/client/discover', icon: Compass, label: 'Descobrir' },
-        { to: '/client/subscription', icon: CreditCard, label: 'Subscrição' },
-        { to: '/client/calendar', icon: CalendarDays, label: 'Calendário' },
-        { to: '/client/shop', icon: ShoppingBag, label: 'Loja' },
-        { to: '/client/chat', icon: MessageSquare, label: 'Chat' },
-        { to: '/client/support', icon: LifeBuoy, label: 'Suporte' },
-        { to: '/client/profile', icon: UserIcon, label: 'Perfil' },
+        { to: '/client', icon: Home, label: t('nav.home'), end: true },
+        { to: '/client/discover', icon: Compass, label: t('nav.discover') },
+        { to: '/client/subscription', icon: CreditCard, label: t('nav.subscription') },
+        { to: '/client/calendar', icon: CalendarDays, label: t('nav.calendar') },
+        { to: '/client/shop', icon: ShoppingBag, label: t('nav.shop') },
+        { to: '/client/chat', icon: MessageSquare, label: t('nav.chat') },
+        { to: '/client/support', icon: LifeBuoy, label: t('nav.support') },
+        { to: '/client/profile', icon: UserIcon, label: t('nav.profile') },
       ]}
       bottomNav={
         <BottomNav
           items={[
-            { to: '/client', icon: Home, label: 'Início' },
-            { to: '/client/discover', icon: Compass, label: 'Descobrir' },
-            { to: '/client/calendar', icon: CalendarDays, label: 'Marcar', primary: true },
-            { to: '/client/chat', icon: MessageSquare, label: 'Chat' },
-            { to: '/client/profile', icon: UserIcon, label: 'Perfil' },
+            { to: '/client', icon: Home, label: t('nav.home') },
+            { to: '/client/discover', icon: Compass, label: t('nav.discover') },
+            { to: '/client/calendar', icon: CalendarDays, label: t('nav.book'), primary: true },
+            { to: '/client/chat', icon: MessageSquare, label: t('nav.chat') },
+            { to: '/client/profile', icon: UserIcon, label: t('nav.profile') },
           ]}
         />
       }

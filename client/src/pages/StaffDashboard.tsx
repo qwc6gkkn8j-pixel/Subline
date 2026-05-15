@@ -6,6 +6,7 @@ import {
   Calendar,
   User as UserIcon,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { RoleShell } from '@/components/layout/RoleShell';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -15,22 +16,23 @@ const CalendarPage = lazy(() => import('@/pages/staff/CalendarPage'));
 const ProfilePage = lazy(() => import('@/pages/staff/ProfilePage'));
 
 export default function StaffDashboard() {
+  const { t } = useTranslation('common');
   return (
     <RoleShell
-      title="Staff"
+      title={t('roles.staff')}
       navItems={[
-        { to: '/staff', icon: Home, label: 'Início', end: true },
-        { to: '/staff/badge', icon: Clock, label: 'Ponto' },
-        { to: '/staff/calendar', icon: Calendar, label: 'Calendário' },
-        { to: '/staff/profile', icon: UserIcon, label: 'Perfil' },
+        { to: '/staff', icon: Home, label: t('nav.home'), end: true },
+        { to: '/staff/badge', icon: Clock, label: t('nav.badge') },
+        { to: '/staff/calendar', icon: Calendar, label: t('nav.calendar') },
+        { to: '/staff/profile', icon: UserIcon, label: t('nav.profile') },
       ]}
       bottomNav={
         <BottomNav
           items={[
-            { to: '/staff', icon: Home, label: 'Home' },
-            { to: '/staff/badge', icon: Clock, label: 'Ponto', primary: true },
-            { to: '/staff/calendar', icon: Calendar, label: 'Calendário' },
-            { to: '/staff/profile', icon: UserIcon, label: 'Perfil' },
+            { to: '/staff', icon: Home, label: t('nav.home') },
+            { to: '/staff/badge', icon: Clock, label: t('nav.badge'), primary: true },
+            { to: '/staff/calendar', icon: Calendar, label: t('nav.calendar') },
+            { to: '/staff/profile', icon: UserIcon, label: t('nav.profile') },
           ]}
         />
       }

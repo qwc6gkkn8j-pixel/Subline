@@ -14,8 +14,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/lib/utils';
 import type { Product } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
 
 export default function ShopPage() {
+    const { t } = useTranslation('pro');
   const toast = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +45,10 @@ export default function ShopPage() {
     try {
       if (p.isActive) {
         await api.delete(`/pro/shop/products/${p.id}`);
-        toast.success('Produto desativado');
+        toast.success(t('shop.product_deactivated'));
       } else {
         await api.put(`/pro/shop/products/${p.id}`, { isActive: true });
-        toast.success('Produto reativado');
+        toast.success(t('shop.product_activated'));
       }
       void load();
     } catch (err) {
@@ -57,7 +59,7 @@ export default function ShopPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Loja</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('shop.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
           <Plus size={16} /> Novo produto
         </button>
@@ -71,7 +73,7 @@ export default function ShopPage() {
         <div className="card">
           <EmptyState
             icon={Package}
-            title="Sem produtos"
+            title={t('shop.no_products')}
             description="Cria o primeiro produto para começares a vender na tua loja."
           />
         </div>
@@ -163,6 +165,7 @@ function ProductFormModal({
   onClose,
   onSaved,
 }: ProductFormModalProps) {
+  const { t } = useTranslation('pro');
   const toast = useToast();
   const [name, setName] = useState(existing?.name ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
@@ -176,13 +179,14 @@ function ProductFormModal({
   const isEdit = Boolean(existing);
 
   const onSubmit = async () => {
+    const { t } = useTranslation('pro');
     const priceNum = Number(price);
     if (!name.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.error(t('shop.name_required'));
       return;
     }
     if (!Number.isFinite(priceNum) || priceNum < 0) {
-      toast.error('Preço inválido');
+      toast.error(t('shop.price_invalid'));
       return;
     }
 
@@ -197,10 +201,10 @@ function ProductFormModal({
       };
       if (isEdit) {
         await api.put(`/pro/shop/products/${existing!.id}`, payload);
-        toast.success('Produto atualizado');
+        toast.success(t('shop.product_updated'));
       } else {
         await api.post('/pro/shop/products', payload);
-        toast.success('Produto criado');
+        toast.success(t('shop.product_created'));
       }
       onSaved();
     } catch (err) {
@@ -232,7 +236,7 @@ function ProductFormModal({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: T-shirt da marca"
+            placeholder={t('shop.name_placeholder')}
             required
           />
         </div>
@@ -246,15 +250,15 @@ function ProductFormModal({
               min="0"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder="Ex: 15.00"
+              placeholder={t('shop.price_placeholder')}
               required
             />
           </div>
           <div>
             <label className="label">Tipo</label>
             <select value={type} onChange={(e) => setType(e.target.value as 'physical' | 'digital')}>
-              <option value="physical">Físico</option>
-              <option value="digital">Digital</option>
+              <option value="physical">{t('shop.physical_type')}</option>
+              <option value="digital">{t('shop.digital_type')}</option>
             </select>
           </div>
         </div>
@@ -265,7 +269,7 @@ function ProductFormModal({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Detalhes do produto…"
+            placeholder={t('shop.description_placeholder')}
           />
         </div>
 

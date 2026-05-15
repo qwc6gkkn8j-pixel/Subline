@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/components/ui/Spinner';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
@@ -18,6 +19,7 @@ const PAGE_SIZE = 20;
 
 export default function LogsPage() {
   const toast = useToast();
+  const { t } = useTranslation('admin');
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -38,24 +40,24 @@ export default function LogsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ink mb-5">Auditoria</h1>
+      <h1 className="text-2xl font-bold text-ink mb-5">{t('logs.title')}</h1>
       {loading ? (
         <div className="card text-center py-10">
           <Spinner />
         </div>
       ) : logs.length === 0 ? (
         <div className="card">
-          <EmptyState icon={Activity} title="Sem registos" description="As ações dos utilizadores aparecem aqui." />
+          <EmptyState icon={Activity} title={t('logs.no_logs')} description={t('logs.description')} />
         </div>
       ) : (
         <div className="card !p-0 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-surface text-muted text-xs uppercase tracking-wide">
               <tr>
-                <th className="text-left px-5 py-3">Quando</th>
-                <th className="text-left px-5 py-3">Quem</th>
-                <th className="text-left px-5 py-3">Ação</th>
-                <th className="text-left px-5 py-3">Entidade</th>
+                <th className="text-left px-5 py-3">{t('logs.when')}</th>
+                <th className="text-left px-5 py-3">{t('logs.who')}</th>
+                <th className="text-left px-5 py-3">{t('logs.action_col')}</th>
+                <th className="text-left px-5 py-3">{t('logs.entity_col')}</th>
               </tr>
             </thead>
             <tbody>
@@ -81,7 +83,7 @@ export default function LogsPage() {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
             >
-              Anterior
+              {t('logs.previous')}
             </button>
             <span className="text-muted">
               {page} / {totalPages}
@@ -91,7 +93,7 @@ export default function LogsPage() {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
             >
-              Seguinte
+              {t('logs.next_page')}
             </button>
           </div>
         </div>

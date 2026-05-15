@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Logo } from '@/components/ui/Logo';
 import { Spinner } from '@/components/ui/Spinner';
 import { useAuth } from '@/context/AuthContext';
@@ -19,22 +20,23 @@ interface BarberOption {
 
 export default function Login() {
   const [tab, setTab] = useState<Tab>('login');
+  const { t } = useTranslation('auth');
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
           <Logo size={84} showText />
-          <p className="text-xs text-muted mt-3 tracking-widest uppercase">Everything you need</p>
+          <p className="text-xs text-muted mt-3 tracking-widest uppercase">{t('tagline')}</p>
         </div>
 
         <div className="bg-card rounded-card p-6 sm:p-8">
           <div className="grid grid-cols-2 bg-surface rounded-button border border-lineSoft p-1 mb-6">
             <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
-              Sign In
+              {t('sign_in')}
             </TabButton>
             <TabButton active={tab === 'register'} onClick={() => setTab('register')}>
-              Create Account
+              {t('sign_up')}
             </TabButton>
           </div>
 
@@ -79,6 +81,7 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const { login } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -88,12 +91,12 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!isEmail(email)) return setError('Please enter a valid email');
-    if (!password) return setError('Password is required');
+    if (!isEmail(email)) return setError(t('errors.email_invalid'));
+    if (!password) return setError(t('errors.password_required'));
     setBusy(true);
     try {
       const user = await login(email, password);
-      toast.success(`Welcome back, ${user.fullName}`);
+      toast.success(t('welcome_back', { name: user.fullName }));
       navigate(rolePath(user.role), { replace: true });
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -108,7 +111,7 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <input
           type="email"
           autoComplete="email"
-          placeholder="your@email.com"
+          placeholder={t('email_placeholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -120,7 +123,7 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
           <input
             type={show ? 'text' : 'password'}
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder={t('password_placeholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -129,7 +132,7 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
             type="button"
             onClick={() => setShow((s) => !s)}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-ink"
-            aria-label={show ? 'Hide password' : 'Show password'}
+            aria-label={show ? t('hide_password') : t('show_password')}
           >
             {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -139,10 +142,10 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => toast.show('Password reset is coming soon', 'info')}
+          onClick={() => toast.show(t('password_reset_soon'), 'info')}
           className="text-xs text-muted hover:text-ink"
         >
-          Forgot password?
+          {t('forgot_password')}
         </button>
       </div>
 
@@ -151,13 +154,13 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       )}
 
       <button type="submit" className="btn-brand w-full" disabled={busy}>
-        {busy ? <Spinner /> : 'Sign In'}
+        {busy ? <Spinner /> : t('sign_in')}
       </button>
 
       <p className="text-center text-sm text-muted">
-        Don&apos;t have an account?{' '}
+        {t('no_account')}{' '}
         <button type="button" onClick={onSwitchTab} className="text-brand font-medium">
-          Create one
+          {t('create_one')}
         </button>
       </p>
     </form>
@@ -171,6 +174,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const { register } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -198,11 +202,11 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (fullName.trim().length < 2) return setError('Full name is required');
-    if (!isEmail(email)) return setError('Please enter a valid email');
-    if (password.length < 8) return setError('Password must be at least 8 characters');
-    if (password !== confirm) return setError('Passwords do not match');
-    if (!accepted) return setError('Please accept the terms to continue');
+    if (fullName.trim().length < 2) return setError(t('errors.full_name_required'));
+    if (!isEmail(email)) return setError(t('errors.email_invalid'));
+    if (password.length < 8) return setError(t('errors.password_min'));
+    if (password !== confirm) return setError(t('errors.passwords_mismatch'));
+    if (!accepted) return setError(t('errors.accept_terms'));
 
     setBusy(true);
     try {
@@ -215,7 +219,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         phone: phone.trim() || undefined,
         barberId: role === 'client' && barberId ? barberId : undefined,
       });
-      toast.success(`Account created — welcome, ${user.fullName}!`);
+      toast.success(t('account_created', { name: user.fullName }));
       navigate(rolePath(user.role), { replace: true });
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -226,11 +230,11 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field icon={<User size={16} />} label="Full Name">
+      <Field icon={<User size={16} />} label={t('full_name')}>
         <input
           type="text"
           autoComplete="name"
-          placeholder="John Doe"
+          placeholder={t('full_name_placeholder')}
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           required
@@ -241,18 +245,18 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         <input
           type="email"
           autoComplete="email"
-          placeholder="your@email.com"
+          placeholder={t('email_placeholder')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
       </Field>
 
-      <Field icon={<Phone size={16} />} label="Phone (optional)">
+      <Field icon={<Phone size={16} />} label={t('phone_optional')}>
         <input
           type="tel"
           autoComplete="tel"
-          placeholder="+1-555-0123"
+          placeholder={t('phone_placeholder')}
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
@@ -263,7 +267,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
           <input
             type={show ? 'text' : 'password'}
             autoComplete="new-password"
-            placeholder="••••••••"
+            placeholder={t('password_placeholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -272,7 +276,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
             type="button"
             onClick={() => setShow((s) => !s)}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-ink"
-            aria-label={show ? 'Hide password' : 'Show password'}
+            aria-label={show ? t('hide_password') : t('show_password')}
           >
             {show ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -280,31 +284,31 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         {password && <PasswordStrength score={strength} />}
       </Field>
 
-      <Field icon={<Lock size={16} />} label="Confirm password">
+      <Field icon={<Lock size={16} />} label={t('confirm_password_label')}>
         <input
           type={show ? 'text' : 'password'}
           autoComplete="new-password"
-          placeholder="••••••••"
+          placeholder={t('password_placeholder')}
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
         />
-        {!passwordsMatch && <p className="input-error">Passwords do not match</p>}
+        {!passwordsMatch && <p className="input-error">{t('errors.passwords_mismatch')}</p>}
       </Field>
 
       <div>
-        <label className="label">I am a…</label>
+        <label className="label">{t('i_am')}</label>
         <div className="grid grid-cols-2 gap-2">
-          <RoleRadio value="client" current={role} onChange={setRole} label="Client" />
-          <RoleRadio value="barber" current={role} onChange={setRole} label="Professionnel" />
+          <RoleRadio value="client" current={role} onChange={setRole} label={t('role_client')} />
+          <RoleRadio value="barber" current={role} onChange={setRole} label={t('role_pro')} />
         </div>
       </div>
 
       {role === 'client' && barbers.length > 0 && (
         <div>
-          <label className="label">Choose a professional (optional)</label>
+          <label className="label">{t('choose_professional')}</label>
           <select value={barberId} onChange={(e) => setBarberId(e.target.value)}>
-            <option value="">— Pick later —</option>
+            <option value="">{t('pick_later')}</option>
             {barbers.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -323,7 +327,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
           className="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand"
         />
         <span className="text-sm text-muted">
-          I agree to the <span className="text-brand">Terms &amp; Conditions</span>
+          {t('terms_agree')}<span className="text-brand">{t('terms_link')}</span>
         </span>
       </label>
 
@@ -332,13 +336,13 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       )}
 
       <button type="submit" className="btn-brand w-full" disabled={busy}>
-        {busy ? <Spinner /> : 'Create Account'}
+        {busy ? <Spinner /> : t('sign_up')}
       </button>
 
       <p className="text-center text-sm text-muted">
-        Already have an account?{' '}
+        {t('have_account')}{' '}
         <button type="button" onClick={onSwitchTab} className="text-brand font-medium">
-          Sign in
+          {t('sign_in_link')}
         </button>
       </p>
     </form>
@@ -397,7 +401,13 @@ function RoleRadio({
 }
 
 function PasswordStrength({ score }: { score: 0 | 1 | 2 | 3 }) {
-  const labels: Record<number, string> = { 0: 'Too weak', 1: 'Weak', 2: 'Medium', 3: 'Strong' };
+  const { t } = useTranslation('auth');
+  const labels: Record<number, string> = {
+    0: t('password_strength.too_weak'),
+    1: t('password_strength.weak'),
+    2: t('password_strength.medium'),
+    3: t('password_strength.strong'),
+  };
   const colors: Record<number, string> = {
     0: 'bg-danger',
     1: 'bg-warning',

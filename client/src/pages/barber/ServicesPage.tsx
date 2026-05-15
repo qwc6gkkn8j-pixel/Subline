@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Power, Scissors, Clock, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
@@ -30,6 +31,7 @@ function getCategoryBadgeColor(category: string): string {
 
 export default function ServicesPage() {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -56,10 +58,10 @@ export default function ServicesPage() {
     try {
       if (s.isActive) {
         await api.delete(`/pro/services/${s.id}`);
-        toast.success('Serviço desativado');
+        toast.success(t('services.service_disabled'));
       } else {
         await api.put(`/pro/services/${s.id}`, { isActive: true });
-        toast.success('Serviço reativado');
+        toast.success(t('services.service_reactivated'));
       }
       void load();
     } catch (err) {
@@ -70,9 +72,9 @@ export default function ServicesPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <h1 className="text-2xl font-bold text-ink mr-auto">Serviços</h1>
+        <h1 className="text-2xl font-bold text-ink mr-auto">{t('services.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
-          <Plus size={16} /> Novo serviço
+          <Plus size={16} /> {t('services.new_service')}
         </button>
       </div>
 
@@ -84,8 +86,8 @@ export default function ServicesPage() {
         <div className="card">
           <EmptyState
             icon={Scissors}
-            title="Sem serviços"
-            description="Cria o primeiro serviço para começares a aceitar marcações."
+            title={t('services.no_services')}
+            description={t('services.no_services_desc')}
           />
         </div>
       ) : (
@@ -105,9 +107,9 @@ export default function ServicesPage() {
                   )}
                 </div>
                 {s.isActive ? (
-                  <span className="badge-success">Ativo</span>
+                  <span className="badge-success">{t('common:status.active')}</span>
                 ) : (
-                  <span className="badge-muted">Inativo</span>
+                  <span className="badge-muted">{t('common:status.inactive')}</span>
                 )}
               </header>
 
@@ -120,7 +122,7 @@ export default function ServicesPage() {
                 )}
                 <span className="badge-muted">
                   <Clock size={11} className="inline -mt-0.5 mr-1" />
-                  {s.durationMinutes} min
+                  {t('services.duration_min', { min: s.durationMinutes })}
                 </span>
               </div>
 
@@ -133,7 +135,7 @@ export default function ServicesPage() {
                   className="btn-outline btn-sm flex-1"
                   onClick={() => setEditing(s)}
                 >
-                  <Pencil size={14} /> Editar
+                  <Pencil size={14} /> {t('common:edit')}
                 </button>
                 <button
                   className={`btn-sm flex-1 ${
@@ -141,7 +143,7 @@ export default function ServicesPage() {
                   }`}
                   onClick={() => void toggleActive(s)}
                 >
-                  <Power size={14} /> {s.isActive ? 'Desativar' : 'Ativar'}
+                  <Power size={14} /> {s.isActive ? t('plans.deactivate') : t('plans.activate')}
                 </button>
               </div>
             </article>
@@ -188,6 +190,7 @@ function ServiceFormModal({
   allServices = [],
 }: ServiceFormModalProps) {
   const toast = useToast();
+  const { t } = useTranslation(['pro', 'common']);
   const [name, setName] = useState(existing?.name ?? '');
   const [category, setCategory] = useState(existing?.category ?? '');
   const [categoryInput, setCategoryInput] = useState(existing?.category ?? '');
@@ -216,11 +219,11 @@ function ServiceFormModal({
   const onSubmit = async () => {
     const priceNum = Number(price);
     if (!name.trim()) {
-      toast.error('Nome é obrigatório');
+      toast.error(t('services.errors.name_required'));
       return;
     }
     if (!Number.isFinite(priceNum) || priceNum < 0) {
-      toast.error('Preço inválido');
+      toast.error(t('services.errors.price_invalid'));
       return;
     }
     setBusy(true);
@@ -235,10 +238,10 @@ function ServiceFormModal({
       };
       if (isEdit) {
         await api.put(`/pro/services/${existing!.id}`, payload);
-        toast.success('Serviço atualizado');
+        toast.success(t('services.service_updated'));
       } else {
         await api.post('/pro/services', payload);
-        toast.success('Serviço criado');
+        toast.success(t('services.service_created'));
       }
       onSaved();
     } catch (err) {
@@ -252,32 +255,32 @@ function ServiceFormModal({
     <Modal
       open
       onClose={onClose}
-      title={isEdit ? 'Editar serviço' : 'Novo serviço'}
+      title={isEdit ? t('services.edit_service') : t('services.new_service')}
       footer={
         <>
           <button className="btn-ghost" onClick={onClose} disabled={busy}>
-            Cancelar
+            {t('common:cancel')}
           </button>
           <button className="btn-primary" onClick={() => void onSubmit()} disabled={busy}>
-            {busy ? <Spinner /> : 'Guardar'}
+            {busy ? <Spinner /> : t('common:save')}
           </button>
         </>
       }
     >
       <div className="space-y-3">
         <div>
-          <label className="label">Nome *</label>
+          <label className="label">{t('services.name_required')}</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Ex: Corte clássico"
+            placeholder={t('services.name_placeholder')}
             required
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Categoria</label>
+            <label className="label">{t('services.category_label')}</label>
             <div className="relative">
               <input
                 type="text"
@@ -289,7 +292,7 @@ function ServiceFormModal({
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                placeholder="Ex: Corte, Barba, Coloração..."
+                placeholder={t('services.category_placeholder')}
               />
               {showSuggestions && suggestedCategories.length > 0 && (
                 <div className="absolute top-full left-0 right-0 bg-white border border-line rounded-button mt-1 z-10 shadow-card">
@@ -308,11 +311,11 @@ function ServiceFormModal({
             </div>
           </div>
           <div>
-            <label className="label">Duração (min)</label>
+            <label className="label">{t('services.duration_label')}</label>
             <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
               {SERVICE_DURATIONS.map((d) => (
                 <option key={d} value={d}>
-                  {d} min
+                  {t('services.duration_min', { min: d })}
                 </option>
               ))}
             </select>
@@ -320,25 +323,25 @@ function ServiceFormModal({
         </div>
 
         <div>
-          <label className="label">Preço (EUR) *</label>
+          <label className="label">{t('services.price_required')}</label>
           <input
             type="number"
             step="0.01"
             min="0"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="Ex: 15.00"
+            placeholder={t('services.price_placeholder')}
             required
           />
         </div>
 
         <div>
-          <label className="label">Descrição (opcional)</label>
+          <label className="label">{t('services.description_optional')}</label>
           <textarea
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Detalhes do serviço…"
+            placeholder={t('services.description_placeholder')}
           />
         </div>
 
@@ -349,7 +352,7 @@ function ServiceFormModal({
             onChange={(e) => setIsActive(e.target.checked)}
             className="!w-auto !h-auto"
           />
-          Serviço ativo
+          {t('services.service_active')}
         </label>
       </div>
     </Modal>
