@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, ExternalLink, Globe } from 'lucide-react';
 import { Banner } from '@/components/ui/Banner';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { api } from '@/lib/api';
 import type { StripeStatus } from '@/lib/types';
 
@@ -80,6 +81,19 @@ export default function SettingsPage() {
             </p>
           )}
         </div>
+      </section>
+
+      <section className="card space-y-4">
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-button bg-surface text-ink flex items-center justify-center">
+            <Globe size={18} />
+          </span>
+          <div>
+            <h2 className="font-semibold text-ink">Langue / Language</h2>
+            <p className="text-xs text-muted">Interface language preference</p>
+          </div>
+        </div>
+        <LanguageSelector variant="list" />
       </section>
 
       <section className="card">

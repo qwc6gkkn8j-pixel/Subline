@@ -53,7 +53,7 @@ async function buildJwtPayload(userId: string): Promise<JwtPayload> {
   };
 }
 
-function publicUser(user: { id: string; email: string; role: string; status: string; fullName: string; phone: string | null; avatarUrl?: string | null }) {
+function publicUser(user: { id: string; email: string; role: string; status: string; fullName: string; phone: string | null; avatarUrl?: string | null; language?: string }) {
   return {
     id: user.id,
     email: user.email,
@@ -62,6 +62,7 @@ function publicUser(user: { id: string; email: string; role: string; status: str
     fullName: user.fullName,
     phone: user.phone,
     avatarUrl: user.avatarUrl ?? null,
+    language: user.language ?? 'fr',
   };
 }
 
@@ -179,3 +180,23 @@ authRouter.post('/logout', requireAuth, (_req, res) => {
   // Stateless JWT — client clears its own storage. Endpoint exists for symmetry/audit.
   res.json({ message: 'Logged out successfully' });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// PATCH /api/auth/me/language — update authenticated user's language preference
+// ────────────────────────────────────────────────────────────────────────────
+authRouter.patch(
+  '/me/language',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const SUPPORTED = ['fr', 'de', 'en', 'pt'];
+    const { language } = req.body as { language?: string };
+    if (!language || !SUPPORTED.includes(language)) {
+      throw BadRequest(`Unsupported language. Use one of: ${SUPPORTED.join(', ')}`);
+    }
+    await prisma.user.update({
+      where: { id: req.auth!.userId },
+      data: { language },
+    });
+    res.json({ language });
+  }),
+);

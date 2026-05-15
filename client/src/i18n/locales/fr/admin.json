@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "title": "Tableau de bord",
+    "total_users": "Utilisateurs",
+    "active_subscriptions": "Abonnements actifs",
+    "monthly_revenue": "Revenus mensuels",
+    "user_growth": "Croissance",
+    "shortcuts": "Raccourcis",
+    "manage_users": "Gérer les utilisateurs",
+    "manage_plans": "Gérer les forfaits",
+    "view_tickets": "Voir les tickets",
+    "audit": "Audit"
+  },
+  "pros": {
+    "title": "Professionnels",
+    "total": "{{count}} inscrits",
+    "search_placeholder": "Nom ou email…",
+    "all_statuses": "Tous les statuts",
+    "stripe_connected": "Stripe connecté",
+    "stripe_not_connected": "Stripe non connecté",
+    "clients_count": "Clients",
+    "registered_on": "Inscrit",
+    "actions": "Actions",
+    "activate": "Activer",
+    "suspend": "Suspendre",
+    "set_pending": "Mettre en attente",
+    "stripe_dashboard": "Stripe",
+    "status_updated": "Statut mis à jour",
+    "no_pros": "Aucun professionnel trouvé",
+    "categories": "Catégories"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "new_user": "Nouvel utilisateur",
+    "search_placeholder": "Rechercher un utilisateur…",
+    "all_roles": "Tous les rôles",
+    "user_created": "Utilisateur créé",
+    "user_updated": "Utilisateur mis à jour",
+    "user_deleted": "Utilisateur supprimé",
+    "confirm_delete": "Supprimer cet utilisateur ?"
+  },
+  "payments": {
+    "title": "Paiements",
+    "revenue_confirmed": "Revenus confirmés",
+    "total_transactions": "Transactions",
+    "all_statuses": "Tous",
+    "from_date": "Du",
+    "to_date": "Au",
+    "client_col": "Client",
+    "professional_col": "Professionnel",
+    "amount_col": "Montant",
+    "status_col": "Statut",
+    "method_col": "Méthode",
+    "no_payments": "Aucun paiement trouvé",
+    "export_csv": "Exporter CSV"
+  },
+  "plans": {
+    "title": "Forfaits",
+    "all_professionals": "Tous les professionnels"
+  },
+  "tickets": {
+    "title": "Tickets de support",
+    "no_tickets": "Aucun ticket",
+    "reply_placeholder": "Votre réponse…",
+    "reply_btn": "Répondre",
+    "mark_resolved": "Marquer comme résolu"
+  },
+  "logs": {
+    "title": "Journal d'audit",
+    "no_logs": "Aucun événement"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "platform": "Plateforme",
+    "stripe_status": "Statut Stripe"
+  }
+}

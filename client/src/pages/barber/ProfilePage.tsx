@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Save, Star } from 'lucide-react';
 import { Banner } from '@/components/ui/Banner';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
@@ -138,6 +139,11 @@ export default function ProfilePage() {
             </button>
           </div>
         </form>
+      </section>
+
+      <section className="card">
+        <h2 className="font-semibold text-ink mb-4">Langue / Language</h2>
+        <LanguageSelector variant="list" />
       </section>
     </div>
   );

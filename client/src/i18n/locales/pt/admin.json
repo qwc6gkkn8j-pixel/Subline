@@ -1,0 +1,10 @@
+{
+  "dashboard": { "title": "Painel", "total_users": "Utilizadores", "active_subscriptions": "Subscrições activas", "monthly_revenue": "Receita mensal", "user_growth": "Crescimento", "shortcuts": "Atalhos", "manage_users": "Gerir utilizadores", "manage_plans": "Gerir planos", "view_tickets": "Ver tickets", "audit": "Auditoria" },
+  "pros": { "title": "Profissionais", "total": "{{count}} registados", "search_placeholder": "Nome ou email…", "all_statuses": "Todos os estados", "stripe_connected": "Stripe ligado", "stripe_not_connected": "Stripe não ligado", "clients_count": "Clientes", "registered_on": "Registado", "actions": "Acções", "activate": "Activar", "suspend": "Suspender", "set_pending": "Pôr pendente", "stripe_dashboard": "Stripe", "status_updated": "Estado actualizado", "no_pros": "Nenhum profissional encontrado", "categories": "Categorias" },
+  "users": { "title": "Utilizadores", "new_user": "Novo utilizador", "search_placeholder": "Pesquisar utilizador…", "all_roles": "Todos os perfis", "user_created": "Utilizador criado", "user_updated": "Utilizador actualizado", "user_deleted": "Utilizador eliminado", "confirm_delete": "Eliminar este utilizador?" },
+  "payments": { "title": "Pagamentos", "revenue_confirmed": "Receita confirmada", "total_transactions": "Transacções", "all_statuses": "Todos", "from_date": "De", "to_date": "Até", "client_col": "Cliente", "professional_col": "Profissional", "amount_col": "Montante", "status_col": "Estado", "method_col": "Método", "no_payments": "Sem pagamentos encontrados", "export_csv": "Exportar CSV" },
+  "plans": { "title": "Planos", "all_professionals": "Todos os profissionais" },
+  "tickets": { "title": "Tickets de suporte", "no_tickets": "Sem tickets", "reply_placeholder": "A tua resposta…", "reply_btn": "Responder", "mark_resolved": "Marcar como resolvido" },
+  "logs": { "title": "Registo de auditoria", "no_logs": "Sem eventos" },
+  "settings": { "title": "Definições", "platform": "Plataforma", "stripe_status": "Estado do Stripe" }
+}

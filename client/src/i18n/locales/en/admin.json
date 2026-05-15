@@ -1,0 +1,10 @@
+{
+  "dashboard": { "title": "Dashboard", "total_users": "Users", "active_subscriptions": "Active subscriptions", "monthly_revenue": "Monthly revenue", "user_growth": "Growth", "shortcuts": "Shortcuts", "manage_users": "Manage users", "manage_plans": "Manage plans", "view_tickets": "View tickets", "audit": "Audit" },
+  "pros": { "title": "Professionals", "total": "{{count}} registered", "search_placeholder": "Name or email…", "all_statuses": "All statuses", "stripe_connected": "Stripe connected", "stripe_not_connected": "Stripe not connected", "clients_count": "Clients", "registered_on": "Registered", "actions": "Actions", "activate": "Activate", "suspend": "Suspend", "set_pending": "Set pending", "stripe_dashboard": "Stripe", "status_updated": "Status updated", "no_pros": "No professionals found", "categories": "Categories" },
+  "users": { "title": "Users", "new_user": "New user", "search_placeholder": "Search users…", "all_roles": "All roles", "user_created": "User created", "user_updated": "User updated", "user_deleted": "User deleted", "confirm_delete": "Delete this user?" },
+  "payments": { "title": "Payments", "revenue_confirmed": "Confirmed revenue", "total_transactions": "Transactions", "all_statuses": "All", "from_date": "From", "to_date": "To", "client_col": "Client", "professional_col": "Professional", "amount_col": "Amount", "status_col": "Status", "method_col": "Method", "no_payments": "No payments found", "export_csv": "Export CSV" },
+  "plans": { "title": "Plans", "all_professionals": "All professionals" },
+  "tickets": { "title": "Support tickets", "no_tickets": "No tickets", "reply_placeholder": "Your reply…", "reply_btn": "Reply", "mark_resolved": "Mark as resolved" },
+  "logs": { "title": "Audit log", "no_logs": "No events" },
+  "settings": { "title": "Settings", "platform": "Platform", "stripe_status": "Stripe status" }
+}

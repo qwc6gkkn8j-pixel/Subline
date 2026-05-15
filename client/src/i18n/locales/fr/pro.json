@@ -1,0 +1,111 @@
+{
+  "dashboard": {
+    "title": "Tableau de bord",
+    "today": "Aujourd'hui",
+    "no_appointments": "Aucun rendez-vous aujourd'hui.",
+    "view_calendar": "Voir l'agenda",
+    "active_clients": "Clients actifs",
+    "monthly_revenue": "Revenus estimés (mois)",
+    "rating": "Note",
+    "quick_actions": "Raccourcis"
+  },
+  "clients": {
+    "title": "Mes clients",
+    "new_client": "Nouveau client",
+    "search_placeholder": "Rechercher un client…",
+    "filter_all": "Tous",
+    "filter_active": "Actifs",
+    "filter_inactive": "Inactifs",
+    "no_clients": "Aucun client",
+    "no_clients_desc": "Ajoutez votre premier client pour commencer.",
+    "cuts_this_month": "{{used}}/{{total}} séances ce mois",
+    "renewal": "Renouvellement {{date}}",
+    "no_subscription": "Sans abonnement",
+    "register_cut": "Enregistrer une séance",
+    "payment_link": "Lien de paiement",
+    "confirm_delete": "Supprimer ce client ?",
+    "edit_client": "Modifier le client",
+    "client_created": "Client créé",
+    "cut_registered": "Séance enregistrée"
+  },
+  "calendar": {
+    "title": "Agenda",
+    "new_appointment": "Nouveau rendez-vous",
+    "availability": "Disponibilités",
+    "edit_availability": "Modifier les disponibilités",
+    "no_appointments": "Aucun rendez-vous",
+    "appointment_created": "Rendez-vous créé",
+    "appointment_updated": "Rendez-vous mis à jour",
+    "appointment_cancelled": "Rendez-vous annulé",
+    "appointment_completed": "Rendez-vous terminé",
+    "confirm_cancel": "Annuler ce rendez-vous ?"
+  },
+  "plans": {
+    "title": "Forfaits",
+    "new_plan": "Nouveau forfait",
+    "no_plans": "Aucun forfait",
+    "no_plans_desc": "Créez un forfait pour vos clients.",
+    "active_subscribers": "{{count}} abonné(s) actif(s)",
+    "unlimited": "Illimité",
+    "sessions_per_month": "{{count}} séance(s)/mois",
+    "plan_created": "Forfait créé",
+    "plan_updated": "Forfait mis à jour",
+    "plan_deleted": "Forfait supprimé"
+  },
+  "services": {
+    "title": "Services",
+    "new_service": "Nouveau service",
+    "no_services": "Aucun service",
+    "no_services_desc": "Ajoutez vos services pour que les clients puissent réserver.",
+    "duration_min": "{{min}} min",
+    "service_created": "Service créé",
+    "service_updated": "Service mis à jour"
+  },
+  "staff": {
+    "title": "Équipe",
+    "new_member": "Ajouter un membre",
+    "no_staff": "Aucun membre d'équipe",
+    "no_staff_desc": "Invitez des collaborateurs à rejoindre votre espace.",
+    "clock_in": "Entrée",
+    "clock_out": "Sortie",
+    "on_break": "En pause",
+    "working": "En service"
+  },
+  "shop": {
+    "title": "Boutique",
+    "new_product": "Nouveau produit",
+    "no_products": "Aucun produit",
+    "no_products_desc": "Ajoutez des produits à votre boutique.",
+    "orders": "Commandes",
+    "no_orders": "Aucune commande",
+    "product_created": "Produit créé",
+    "product_updated": "Produit mis à jour"
+  },
+  "reviews": {
+    "title": "Avis",
+    "no_reviews": "Aucun avis pour l'instant.",
+    "average_rating": "Note moyenne",
+    "total_reviews": "Avis au total"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "pro_info": "Informations professionnelles",
+    "discovery_settings": "Paramètres de découverte",
+    "categories_label": "Catégories (séparées par virgule)",
+    "profile_updated": "Profil mis à jour"
+  },
+  "stripe": {
+    "title": "Paiements Stripe",
+    "not_configured": "Stripe n'est pas configuré sur ce serveur.",
+    "connect_prompt": "Connectez votre compte Stripe pour recevoir des paiements.",
+    "connect_btn": "Connecter Stripe",
+    "connected_msg": "Votre compte Stripe est connecté.",
+    "view_payouts": "Voir les virements"
+  },
+  "upsell": {
+    "title": "Suggestions pour votre client",
+    "services_heading": "Services complémentaires",
+    "products_heading": "Produits recommandés",
+    "skip": "Ignorer"
+  }
+}

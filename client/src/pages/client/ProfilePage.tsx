@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Save, Camera, Heart } from 'lucide-react';
+import { Save, Camera, Heart, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
 import { Avatar } from '@/components/ui/Avatar';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
@@ -177,6 +178,15 @@ export default function ProfilePage() {
       </form>
 
       {/* Favoritos */}
+      {/* Language */}
+      <div className="card">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe size={16} className="text-muted" />
+          <h2 className="font-semibold text-ink">Langue / Language</h2>
+        </div>
+        <LanguageSelector variant="list" />
+      </div>
+
       {favorites.length > 0 && (
         <div className="card">
           <div className="flex items-center gap-2 mb-4">

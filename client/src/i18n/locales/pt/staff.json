@@ -1,0 +1,5 @@
+{
+  "badge": { "title": "Marcação de ponto", "state_out": "Fora de serviço", "state_working": "Em serviço", "state_on_break": "Em pausa", "clock_in_btn": "Iniciar serviço", "break_start_btn": "Iniciar pausa", "break_end_btn": "Terminar pausa", "clock_out_btn": "Terminar serviço", "today_summary": "Resumo do dia", "worked": "Trabalhado", "breaks": "Pausas", "history": "Histórico" },
+  "profile": { "title": "Perfil", "category_label": "Categoria profissional", "category_placeholder": "Barbeiro, Cabeleireiro…", "role_label": "Função na equipa", "employer": "Empregador", "profile_updated": "Perfil actualizado", "password_updated": "Password actualizada" },
+  "calendar": { "title": "A minha agenda", "no_appointments": "Sem marcações." }
+}

@@ -142,6 +142,7 @@ model User {
   fullName     String
   phone        String?
   avatarUrl    String?
+  language     String     @default("fr") @db.VarChar(5)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -540,6 +541,8 @@ model StaffMember {
   name      String
   // Free-form label: "Barbeiro", "Aprendiz", "Rececionista", etc.
   role      String
+  // Professional category for discovery/booking filters (same vocabulary as Barber.categories)
+  category  String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 

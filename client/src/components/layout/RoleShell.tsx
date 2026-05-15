@@ -6,6 +6,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { Avatar } from '@/components/ui/Avatar';
 import { NotificationBell } from '@/components/ui/NotificationBell';
+import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 
@@ -98,6 +99,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
               <h1 className="text-base font-semibold text-ink truncate">{title}</h1>
             </div>
             <div className="flex items-center gap-1">
+              <LanguageSelector />
               <NotificationBell />
               <div className="relative">
                 <button

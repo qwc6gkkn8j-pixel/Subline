@@ -1,0 +1,29 @@
+{
+  "badge": {
+    "title": "Pointage",
+    "state_out": "Hors service",
+    "state_working": "En service",
+    "state_on_break": "En pause",
+    "clock_in_btn": "Commencer le service",
+    "break_start_btn": "Début de pause",
+    "break_end_btn": "Fin de pause",
+    "clock_out_btn": "Terminer le service",
+    "today_summary": "Récapitulatif du jour",
+    "worked": "Travaillé",
+    "breaks": "Pauses",
+    "history": "Historique"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "category_label": "Catégorie professionnelle",
+    "category_placeholder": "Barbier, Coiffeur…",
+    "role_label": "Rôle dans l'équipe",
+    "employer": "Employeur",
+    "profile_updated": "Profil mis à jour",
+    "password_updated": "Mot de passe mis à jour"
+  },
+  "calendar": {
+    "title": "Mon agenda",
+    "no_appointments": "Aucun rendez-vous."
+  }
+}

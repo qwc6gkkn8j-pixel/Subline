@@ -1,0 +1,89 @@
+{
+  "home": {
+    "title": "Accueil",
+    "greeting": "Bonjour, {{name}}",
+    "subscription_card": "Mon abonnement",
+    "no_subscription": "Aucun abonnement actif",
+    "book_btn": "Réserver",
+    "details_btn": "Détails",
+    "chat_btn": "Envoyer un message",
+    "upcoming": "Prochains rendez-vous",
+    "no_upcoming": "Aucun rendez-vous à venir.",
+    "recent_cuts": "Dernières séances",
+    "no_cuts": "Aucune séance enregistrée.",
+    "my_professional": "Mon professionnel",
+    "cuts_used": "{{used}}/{{total}} séances utilisées",
+    "renews_on": "Renouvellement le {{date}}"
+  },
+  "discover": {
+    "title": "Découvrir",
+    "search_placeholder": "Barbiers, coiffeurs, spas…",
+    "all_categories": "Tous",
+    "no_results": "Aucun professionnel trouvé",
+    "no_results_desc": "Essayez une autre recherche ou catégorie.",
+    "book_btn": "Réserver",
+    "reviews_count": "{{count}} avis",
+    "add_favorite": "Ajouter aux favoris",
+    "remove_favorite": "Retirer des favoris"
+  },
+  "subscription": {
+    "title": "Mon abonnement",
+    "no_subscription": "Aucun abonnement actif",
+    "no_subscription_desc": "Souscrivez à un forfait pour profiter des services.",
+    "plan_label": "Forfait",
+    "status_label": "Statut",
+    "renews_label": "Renouvellement",
+    "sessions_label": "Séances",
+    "cancel_btn": "Résilier l'abonnement",
+    "confirm_cancel": "Résilier votre abonnement ?",
+    "cancelled_msg": "Abonnement résilié",
+    "change_plan": "Changer de forfait",
+    "subscribe_btn": "Souscrire"
+  },
+  "calendar": {
+    "title": "Réservations",
+    "new_booking": "Nouvelle réservation",
+    "no_appointments": "Aucun rendez-vous.",
+    "book_btn": "Réserver",
+    "choose_service": "Choisir un service",
+    "choose_staff": "Choisir un collaborateur",
+    "choose_date": "Choisir une date",
+    "choose_time": "Choisir un horaire",
+    "confirm_booking": "Confirmer",
+    "booking_confirmed": "Réservation confirmée",
+    "cancel_booking": "Annuler",
+    "booking_cancelled": "Réservation annulée",
+    "leave_review": "Laisser un avis"
+  },
+  "shop": {
+    "title": "Boutique",
+    "no_products": "Aucun produit disponible.",
+    "order_btn": "Commander",
+    "order_placed": "Commande passée",
+    "my_orders": "Mes commandes",
+    "no_orders": "Aucune commande."
+  },
+  "profile": {
+    "title": "Mon profil",
+    "avatar_change": "Changer la photo",
+    "avatar_updated": "Photo mise à jour",
+    "profile_updated": "Profil mis à jour",
+    "change_password": "Changer le mot de passe (optionnel)",
+    "favorites_title": "Mes favoris",
+    "book_btn": "Réserver",
+    "remove_favorite": "Retirer"
+  },
+  "support": {
+    "title": "Support",
+    "new_ticket": "Nouveau ticket",
+    "no_tickets": "Aucun ticket",
+    "no_tickets_desc": "Créez un ticket pour contacter le support.",
+    "ticket_created": "Ticket créé",
+    "ticket_title": "Ticket : {{subject}}",
+    "category_label": "Catégorie",
+    "status_label": "Statut",
+    "priority_label": "Priorité",
+    "subject_placeholder": "Décrivez brièvement le problème",
+    "message_placeholder": "Décrivez votre problème en détail…"
+  }
+}

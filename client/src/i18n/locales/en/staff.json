@@ -1,0 +1,5 @@
+{
+  "badge": { "title": "Time tracking", "state_out": "Off duty", "state_working": "On duty", "state_on_break": "On break", "clock_in_btn": "Start shift", "break_start_btn": "Start break", "break_end_btn": "End break", "clock_out_btn": "End shift", "today_summary": "Today's summary", "worked": "Worked", "breaks": "Breaks", "history": "History" },
+  "profile": { "title": "Profile", "category_label": "Professional category", "category_placeholder": "Barber, Hairdresser…", "role_label": "Role in team", "employer": "Employer", "profile_updated": "Profile updated", "password_updated": "Password updated" },
+  "calendar": { "title": "My calendar", "no_appointments": "No appointments." }
+}

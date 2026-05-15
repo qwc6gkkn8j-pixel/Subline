@@ -1,0 +1,29 @@
+{
+  "badge": {
+    "title": "Zeiterfassung",
+    "state_out": "Außer Dienst",
+    "state_working": "Im Dienst",
+    "state_on_break": "In Pause",
+    "clock_in_btn": "Dienst beginnen",
+    "break_start_btn": "Pausenbeginn",
+    "break_end_btn": "Pausenende",
+    "clock_out_btn": "Dienst beenden",
+    "today_summary": "Tagesübersicht",
+    "worked": "Gearbeitet",
+    "breaks": "Pausen",
+    "history": "Verlauf"
+  },
+  "profile": {
+    "title": "Profil",
+    "category_label": "Berufliche Kategorie",
+    "category_placeholder": "Barbier, Friseur…",
+    "role_label": "Rolle im Team",
+    "employer": "Arbeitgeber",
+    "profile_updated": "Profil aktualisiert",
+    "password_updated": "Passwort aktualisiert"
+  },
+  "calendar": {
+    "title": "Mein Kalender",
+    "no_appointments": "Keine Termine."
+  }
+}

@@ -215,3 +215,89 @@ staffRouter.get(
     res.json({ appointments });
   }),
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// Feature #20 — Dados Pessoais do Staff
+// ────────────────────────────────────────────────────────────────────────────
+
+import bcrypt from 'bcrypt';
+import { env } from '../lib/env.js';
+
+// GET /api/staff/me/profile
+staffRouter.get(
+  '/me/profile',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const member = await prisma.staffMember.findUnique({
+      where: { id: staffId },
+      include: {
+        user: { select: { id: true, email: true, avatarUrl: true, language: true, createdAt: true } },
+        barber: { select: { id: true, name: true } },
+      },
+    });
+    if (!member) throw NotFound('Staff member not found');
+    res.json({ member });
+  }),
+);
+
+// PATCH /api/staff/me/profile — update name, phone, category
+staffRouter.patch(
+  '/me/profile',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const schema = z.object({
+      name: z.string().min(2).max(100).optional(),
+      phone: z.string().max(30).nullable().optional(),
+      category: z.string().max(50).nullable().optional(),
+      role: z.string().max(50).optional(),
+    });
+    const data = schema.parse(req.body);
+    const updated = await prisma.staffMember.update({
+      where: { id: staffId },
+      data: { ...data },
+    });
+    res.json({ member: updated });
+  }),
+);
+
+// PATCH /api/staff/me/password
+staffRouter.patch(
+  '/me/password',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const schema = z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(8),
+    });
+    const { currentPassword, newPassword } = schema.parse(req.body);
+
+    const member = await prisma.staffMember.findUnique({
+      where: { id: staffId },
+      include: { user: { select: { id: true, passwordHash: true } } },
+    });
+    if (!member?.user) throw NotFound('Staff user account not found');
+
+    const ok = await bcrypt.compare(currentPassword, member.user.passwordHash);
+    if (!ok) throw BadRequest('Password atual incorreta');
+
+    const passwordHash = await bcrypt.hash(newPassword, env.BCRYPT_ROUNDS);
+    await prisma.user.update({ where: { id: member.user.id }, data: { passwordHash } });
+    res.json({ message: 'Password atualizada' });
+  }),
+);
+
+// Feature #19 — Categoria de Perfil
+// PATCH /api/staff/me/category
+staffRouter.patch(
+  '/me/category',
+  asyncHandler(async (req, res) => {
+    const staffId = ensureStaffId(req);
+    const schema = z.object({ category: z.string().min(1).max(50) });
+    const { category } = schema.parse(req.body);
+    const updated = await prisma.staffMember.update({
+      where: { id: staffId },
+      data: { category },
+    });
+    res.json({ category: updated.category });
+  }),
+);

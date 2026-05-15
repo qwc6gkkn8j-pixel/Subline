@@ -57,6 +57,7 @@ export interface User {
   fullName: string;
   phone: string | null;
   avatarUrl?: string | null;
+  language?: string;
   createdAt?: string;
 }
 

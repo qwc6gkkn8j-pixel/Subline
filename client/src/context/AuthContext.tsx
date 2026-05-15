@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, tokens } from '@/lib/api';
 import type { AuthResponse, MeResponse, Role, User } from '@/lib/types';
+import i18n from '@/i18n';
 
 interface AuthState {
   user: User | null;
@@ -30,6 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const applyUserLanguage = useCallback((u: User) => {
+    const lang = u.language ?? 'fr';
+    if (i18n.language?.slice(0, 2) !== lang) {
+      void i18n.changeLanguage(lang);
+      localStorage.setItem('subline_lang', lang);
+    }
+  }, []);
+
   const refresh = useCallback(async () => {
     if (!tokens.getAccess()) {
       setUser(null);
@@ -39,13 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data } = await api.get<MeResponse>('/auth/me');
       setUser(data.user);
+      applyUserLanguage(data.user);
     } catch {
       tokens.clear();
       setUser(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyUserLanguage]);
 
   useEffect(() => {
     void refresh();
@@ -55,15 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
     tokens.set(data.accessToken, data.refreshToken);
     setUser(data.user);
+    applyUserLanguage(data.user);
     return data.user;
-  }, []);
+  }, [applyUserLanguage]);
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const { data } = await api.post<AuthResponse>('/auth/register', payload);
     tokens.set(data.accessToken, data.refreshToken);
     setUser(data.user);
+    applyUserLanguage(data.user);
     return data.user;
-  }, []);
+  }, [applyUserLanguage]);
 
   const logout = useCallback(async () => {
     try {
