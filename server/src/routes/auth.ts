@@ -124,7 +124,9 @@ authRouter.post(
   '/login',
   asyncHandler(async (req, res) => {
     const data = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() } });
+    const user = await prisma.user.findUnique({
+      where: { email: data.email.toLowerCase() },
+    });
     if (!user) throw Unauthorized('Invalid email or password');
     if (user.status === 'inactive') throw Unauthorized('Account is inactive');
     const ok = await bcrypt.compare(data.password, user.passwordHash);

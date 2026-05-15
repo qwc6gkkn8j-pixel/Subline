@@ -760,7 +760,7 @@ adminRouter.patch(
     });
 
     await logAudit({
-      userId: (req as { user?: { id: string } }).user?.id ?? 'system',
+      userId: req.auth!.userId,
       action: 'updated',
       entityType: 'barber',
       entityId: pro.id,
