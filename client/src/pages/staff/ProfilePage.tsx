@@ -99,9 +99,9 @@ export default function StaffProfilePage() {
       <h1 className="page-title">{t('profile.title')}</h1>
 
       {/* Employeur */}
-      <div className="card bg-surface text-sm">
-        <p className="text-muted">{t('profile.employer')}</p>
-        <p className="font-semibold text-ink mt-0.5">{member.barber.name}</p>
+      <div className="bg-surface rounded-card p-[18px]">
+        <p className="text-[13px] text-muted">{t('profile.employer')}</p>
+        <p className="card-title mt-0.5">{member.barber.name}</p>
       </div>
 
       {/* Données personnelles */}
@@ -144,7 +144,7 @@ export default function StaffProfilePage() {
 
       {/* Changer le mot de passe */}
       <form onSubmit={onChangePassword} className="card space-y-4">
-        <h2 className="font-semibold text-ink">Changer le mot de passe</h2>
+        <h2 className="section-title mb-4">Changer le mot de passe</h2>
         <input type="password" placeholder="Mot de passe actuel" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} autoComplete="current-password" required />
         <input type="password" placeholder="Nouveau mot de passe" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} autoComplete="new-password" required />
         <input type="password" placeholder="Confirmer le mot de passe" value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} autoComplete="new-password" required />
@@ -159,7 +159,7 @@ export default function StaffProfilePage() {
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Globe size={16} className="text-muted" />
-          <h2 className="font-semibold text-ink">Langue / Language</h2>
+          <h2 className="section-title">Langue / Language</h2>
         </div>
         <LanguageSelector variant="list" />
       </div>

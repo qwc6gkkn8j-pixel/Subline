@@ -105,7 +105,7 @@ export default function DiscoverPage() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t('discover.search_placeholder')}
-          className="!pl-12 !rounded-pill"
+          className="!pl-12 !rounded-pill bg-surface border-transparent"
         />
       </form>
 
@@ -170,18 +170,18 @@ export default function DiscoverPage() {
                   {pro.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-ink">{pro.name}</h3>
+                  <h3 className="card-title">{pro.name}</h3>
 
                   <div className="flex items-center gap-3 mt-0.5">
                     {Number(pro.rating) > 0 && (
-                      <span className="flex items-center gap-1 text-sm font-semibold">
-                        <Star size={13} className="fill-ink" />
+                      <span className="flex items-center gap-1 text-[13px] font-semibold text-ink">
+                        <Star size={13} className="fill-ink text-ink" />
                         {Number(pro.rating).toFixed(1)}
                         <span className="text-faint font-normal">({pro.reviewCount})</span>
                       </span>
                     )}
                     {pro.city && (
-                      <span className="flex items-center gap-1 text-xs text-muted">
+                      <span className="flex items-center gap-1 text-[13px] text-muted">
                         <MapPin size={12} /> {pro.city}
                       </span>
                     )}
@@ -196,7 +196,7 @@ export default function DiscoverPage() {
                   )}
 
                   {pro.bio && (
-                    <p className="text-xs text-muted mt-2 line-clamp-2">{pro.bio}</p>
+                    <p className="text-[13px] text-muted mt-2 line-clamp-2">{pro.bio}</p>
                   )}
 
                   {pro.services.length > 0 && (
@@ -204,7 +204,7 @@ export default function DiscoverPage() {
                       {pro.services.map((s) => (
                         <div key={s.id} className="shrink-0 bg-surface rounded-input px-3 py-1.5 text-xs">
                           <p className="font-semibold text-ink">{s.name}</p>
-                          <p className="text-muted">{s.price}€ · {s.durationMinutes}min</p>
+                          <p className="text-[13px] text-muted">{s.price}€ · {s.durationMinutes}min</p>
                         </div>
                       ))}
                     </div>

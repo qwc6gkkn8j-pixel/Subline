@@ -61,14 +61,14 @@ export default function ChatPage() {
   const items = tab === 'barber' ? conversations : tickets.map((t) => t.conversation!).filter(Boolean);
 
   return (
-    <div>
-      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="page-title">{t('common:nav.chat')}</h1>
         <div className="flex gap-2">
-          <button className="btn-outline" onClick={() => setNewTicket(true)}>
+          <button className="btn-ghost btn-sm" onClick={() => setNewTicket(true)}>
             <LifeBuoy size={16} /> Suporte
           </button>
-          <button className="btn-primary" onClick={() => void startBarberConv()}>
+          <button className="btn-brand" onClick={() => void startBarberConv()}>
             <Plus size={16} /> Falar com profissional
           </button>
         </div>
@@ -76,9 +76,9 @@ export default function ChatPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
         <div className="card !p-0 overflow-hidden">
-          <div className="grid grid-cols-2 border-b border-line">
+          <div className="grid grid-cols-2 border-b border-lineSoft">
             <button
-              className={`py-3 text-sm font-medium ${
+              className={`py-3 text-sm font-medium transition-colors ${
                 tab === 'barber' ? 'border-b-2 border-brand text-brand' : 'text-muted'
               }`}
               onClick={() => {
@@ -86,10 +86,10 @@ export default function ChatPage() {
                 setActive(null);
               }}
             >
-              Professionnel
+              Profissionais
             </button>
             <button
-              className={`py-3 text-sm font-medium ${
+              className={`py-3 text-sm font-medium transition-colors ${
                 tab === 'support' ? 'border-b-2 border-brand text-brand' : 'text-muted'
               }`}
               onClick={() => {
@@ -134,7 +134,7 @@ export default function ChatPage() {
               onBack={() => setActive(null)}
             />
           ) : (
-            <div className="card text-center py-12 text-muted">
+            <div className="bg-surface rounded-card p-[18px] text-center py-12 text-muted">
               <MessageSquare size={28} className="mx-auto mb-3 text-muted/60" />
               Seleciona uma conversa para começares.
             </div>
@@ -204,7 +204,7 @@ function NewTicketModal({
       <div className="space-y-3">
         <div>
           <label className="label">Assunto</label>
-          <input value={subject} onChange={(e) => setSubject(e.target.value)} required />
+          <input value={subject} onChange={(e) => setSubject(e.target.value)} required className="bg-surface border-transparent" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -236,7 +236,7 @@ function NewTicketModal({
         </div>
         <div>
           <label className="label">Mensagem</label>
-          <textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} required />
+          <textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} required className="bg-surface border-transparent" />
         </div>
       </div>
     </Modal>

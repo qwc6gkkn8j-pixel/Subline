@@ -64,10 +64,11 @@ export default function ChatPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
+        {/* Conversation list panel */}
         <div className="card !p-0 overflow-hidden">
-          <div className="grid grid-cols-2 border-b border-line">
+          <div className="grid grid-cols-2 border-b border-lineSoft">
             <button
-              className={`py-3 text-sm font-medium ${
+              className={`py-3 text-[13px] font-semibold ${
                 tab === 'clients' ? 'border-b-2 border-brand text-brand' : 'text-muted'
               }`}
               onClick={() => {
@@ -78,7 +79,7 @@ export default function ChatPage() {
               Clientes
             </button>
             <button
-              className={`py-3 text-sm font-medium ${
+              className={`py-3 text-[13px] font-semibold ${
                 tab === 'support' ? 'border-b-2 border-brand text-brand' : 'text-muted'
               }`}
               onClick={() => {
@@ -98,7 +99,9 @@ export default function ChatPage() {
               icon={MessageSquare}
               title={tab === 'clients' ? 'Sem conversas' : 'Sem tickets'}
               description={
-                tab === 'clients' ? 'Inicia uma conversa com um cliente.' : 'Abre um ticket de suporte se precisares.'
+                tab === 'clients'
+                  ? 'Inicia uma conversa com um cliente.'
+                  : 'Abre um ticket de suporte se precisares.'
               }
             />
           ) : (
@@ -111,6 +114,7 @@ export default function ChatPage() {
           )}
         </div>
 
+        {/* Chat window */}
         <div>
           {active ? (
             <ChatWindow
@@ -123,7 +127,7 @@ export default function ChatPage() {
           ) : (
             <div className="card text-center py-12 text-muted">
               <MessageSquare size={28} className="mx-auto mb-3 text-muted/60" />
-              Seleciona uma conversa para começares.
+              <p className="text-[13px] text-muted">Seleciona uma conversa para começares.</p>
             </div>
           )}
         </div>
@@ -162,18 +166,18 @@ function NewConversationModal({
   onCreated: (c: Conversation) => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation('common');
   const [clientId, setClientId] = useState(clients[0]?.id ?? '');
   const [busy, setBusy] = useState(false);
 
   const onCreate = async () => {
-    const { t } = useTranslation('pro');
     if (!clientId) return;
     setBusy(true);
     try {
       const { data } = await api.post<{ conversation: Conversation }>('/pro/conversations', {
         clientId,
       });
-      toast.success(t('common:notifications.created'));
+      toast.success(t('notifications.created'));
       onCreated(data.conversation);
       onClose();
     } catch (err) {
@@ -222,6 +226,7 @@ function NewTicketModal({
   onCreated: () => void;
 }) {
   const toast = useToast();
+  const { t } = useTranslation('client');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [category, setCategory] = useState<TicketCategory>('other');
@@ -229,12 +234,11 @@ function NewTicketModal({
   const [busy, setBusy] = useState(false);
 
   const onCreate = async () => {
-    const { t } = useTranslation('pro');
     if (!subject.trim() || !message.trim()) return;
     setBusy(true);
     try {
       await api.post('/pro/tickets', { subject, message, category, priority });
-      toast.success(t('client:support.ticket_created'));
+      toast.success(t('support.ticket_created'));
       onCreated();
       onClose();
     } catch (err) {

@@ -101,33 +101,36 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 flex-wrap">
         <h1 className="page-title mr-auto">{t('payments.title')}</h1>
         <button className="btn-ghost btn-sm" onClick={exportCsv}>
           <Download size={14} /> Exportar CSV
         </button>
       </div>
 
-      {/* KPI rápido */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="stat-card">
+      {/* KPI tiles */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-surface rounded-tile p-5 flex flex-col gap-3">
           <TrendingUp size={18} className="text-success" />
           <div>
-            <p className="page-title">{formatCurrency(totalRevenue)}</p>
-            <p className="text-xs text-muted">{t('payments.revenue_confirmed')}</p>
+            <p className="text-[30px] font-bold text-ink leading-tight">
+              {formatCurrency(totalRevenue)}
+            </p>
+            <p className="text-xs text-muted mt-1">{t('payments.revenue_confirmed')}</p>
           </div>
         </div>
-        <div className="stat-card">
+        <div className="bg-surface rounded-tile p-5 flex flex-col gap-3">
+          <div className="h-[18px]" />
           <div>
-            <p className="page-title">{total}</p>
-            <p className="text-xs text-muted">{t('payments.total_transactions')}</p>
+            <p className="text-[30px] font-bold text-ink leading-tight">{total}</p>
+            <p className="text-xs text-muted mt-1">{t('payments.total_transactions')}</p>
           </div>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="card mb-5">
+      {/* Filters */}
+      <div className="card border border-lineSoft">
         <div className="flex gap-3 flex-wrap items-end">
           <div>
             <label className="label">{t('payments.status_col')}</label>
@@ -151,45 +154,52 @@ export default function PaymentsPage() {
         </div>
       </div>
 
+      {/* Table / empty / loading */}
       {loading ? (
-        <div className="card text-center py-10"><Spinner /></div>
+        <div className="card border border-lineSoft text-center py-10">
+          <Spinner />
+        </div>
       ) : payments.length === 0 ? (
-        <div className="card">
-          <EmptyState icon={TrendingUp} title={t('payments.no_payments')} description="Nenhum pagamento encontrado para os filtros seleccionados." />
+        <div className="card border border-lineSoft">
+          <EmptyState
+            icon={TrendingUp}
+            title={t('payments.no_payments')}
+            description="Nenhum pagamento encontrado para os filtros seleccionados."
+          />
         </div>
       ) : (
-        <div className="card overflow-x-auto p-0">
+        <div className="card border border-lineSoft overflow-x-auto !p-0">
           <table className="w-full text-sm">
-            <thead className="border-b border-lineSoft">
+            <thead className="bg-surface border-b border-lineSoft">
               <tr className="text-left">
-                <th className="px-4 py-3 font-semibold text-muted">{t('payments.amount_col').replace('Montant','Data').replace('Amount','Date').replace('Betrag','Datum').replace('Montante','Data') === 'Data' ? t('payments.amount_col') : 'Data'}</th>
-                <th className="px-4 py-3 font-semibold text-muted">{t('payments.client_col')}</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden md:table-cell">{t('payments.professional_col')}</th>
-                <th className="px-4 py-3 font-semibold text-muted text-right">{t('payments.amount_col')}</th>
-                <th className="px-4 py-3 font-semibold text-muted">Estado</th>
-                <th className="px-4 py-3 font-semibold text-muted hidden lg:table-cell">{t('payments.method_col')}</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide">Data</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide">{t('payments.client_col')}</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide hidden md:table-cell">{t('payments.professional_col')}</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide text-right">{t('payments.amount_col')}</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide">Estado</th>
+                <th className="px-5 py-3 font-semibold text-muted text-xs uppercase tracking-wide hidden lg:table-cell">{t('payments.method_col')}</th>
               </tr>
             </thead>
             <tbody>
               {payments.map((p) => (
-                <tr key={p.id} className="table-row">
-                  <td className="px-4 py-3 text-muted text-xs">
+                <tr key={p.id} className="border-b border-lineSoft hover:bg-surface transition-colors">
+                  <td className="px-5 py-3 text-muted text-xs">
                     {new Date(p.createdAt).toLocaleDateString('pt-PT')}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <p className="font-medium text-ink">{p.subscription.client.name}</p>
                     <p className="text-xs text-muted">{p.subscription.client.email}</p>
                   </td>
-                  <td className="px-4 py-3 hidden md:table-cell text-muted">
+                  <td className="px-5 py-3 hidden md:table-cell text-muted">
                     {p.subscription.client.barber?.name ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold text-ink">
+                  <td className="px-5 py-3 text-right font-semibold text-ink">
                     {formatCurrency(p.amount)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3">
                     <span className={STATUS_BADGE[p.status]}>{STATUS_LABELS[p.status]}</span>
                   </td>
-                  <td className="px-4 py-3 hidden lg:table-cell text-muted capitalize">
+                  <td className="px-5 py-3 hidden lg:table-cell text-muted capitalize">
                     {p.method ?? '—'}
                   </td>
                 </tr>

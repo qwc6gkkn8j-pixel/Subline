@@ -76,14 +76,14 @@ export default function SubscriptionPage() {
           <div className="absolute inset-x-0 top-0 h-1 bg-brand-gradient" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted">Plano</p>
+              <p className="text-[13px] text-muted uppercase tracking-wide">Plano</p>
               <h2 className="page-title mt-1">
                 {subscription.plan?.name ?? PLAN_LABEL[subscription.planType]}
               </h2>
-              <p className="text-muted">{formatCurrency(subscription.price)} / mês</p>
+              <p className="text-[13px] text-muted">{formatCurrency(subscription.price)} / mês</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted">Estado</p>
+              <p className="text-[13px] text-muted uppercase tracking-wide">Estado</p>
               <p
                 className={
                   subscription.status === 'active' ? 'text-success font-semibold mt-1' : 'text-muted mt-1'
@@ -91,14 +91,14 @@ export default function SubscriptionPage() {
               >
                 {subscription.status}
               </p>
-              <p className="text-xs text-muted mt-1">
+              <p className="text-[13px] text-muted mt-1">
                 Renova {formatDate(subscription.renewalDate)}
               </p>
             </div>
             {total !== null && (
               <div className="sm:col-span-2 mt-2">
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-muted">Cortes utilizados</span>
+                  <span className="text-[13px] text-muted">Cortes utilizados</span>
                   <span className="text-ink font-medium">
                     {used}/{total}
                   </span>
@@ -135,17 +135,17 @@ export default function SubscriptionPage() {
 
       {plans.length > 0 && (
         <section>
-          <h2 className="text-lg font-semibold text-ink mb-3">Planos disponíveis</h2>
+          <h2 className="section-title mb-4">Planos disponíveis</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {plans.map((p) => (
-              <div key={p.id} className="card">
-                <h3 className="font-semibold text-ink">{p.name}</h3>
-                <p className="text-3xl font-bold text-ink mt-2">
+              <div key={p.id} className="bg-surface rounded-card p-[18px]">
+                <h3 className="card-title">{p.name}</h3>
+                <p className="text-[30px] font-bold text-ink mt-2">
                   {formatCurrency(p.price)}
                   <span className="text-sm font-normal text-muted">/mês</span>
                 </p>
-                {p.description && <p className="text-sm text-muted mt-2">{p.description}</p>}
-                <p className="text-xs text-muted mt-3">
+                {p.description && <p className="text-[13px] text-muted mt-2">{p.description}</p>}
+                <p className="text-[13px] text-muted mt-3">
                   {p.cutsPerMonth ? `${p.cutsPerMonth} cortes/mês` : 'Cortes ilimitados'}
                 </p>
               </div>
@@ -159,14 +159,14 @@ export default function SubscriptionPage() {
       )}
 
       <section className="card !p-0 overflow-hidden">
-        <div className="p-5 border-b border-line">
-          <h2 className="font-semibold text-ink">{t('subscription.payment_history')}</h2>
+        <div className="p-5 border-b border-lineSoft">
+          <h2 className="section-title mb-4">{t('subscription.payment_history')}</h2>
         </div>
         {payments.length === 0 ? (
-          <p className="p-5 text-sm text-muted">Sem pagamentos.</p>
+          <p className="p-5 text-[13px] text-muted">Sem pagamentos.</p>
         ) : (
-          <div className="divide-y divide-line">
-            <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-2 text-xs uppercase text-muted bg-surface">
+          <div>
+            <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-2 text-[13px] text-muted bg-surface">
               <span>Data</span>
               <span>Plano</span>
               <span>Valor</span>
@@ -175,10 +175,10 @@ export default function SubscriptionPage() {
             {payments.map((p) => (
               <div
                 key={p.id}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm"
+                className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 px-5 py-3 text-sm border-b border-lineSoft last:border-b-0"
               >
                 <span className="text-ink">{formatDate(p.paymentDate)}</span>
-                <span className="text-muted">
+                <span className="text-[13px] text-muted">
                   {p.subscription?.plan?.name ??
                     (p.subscription?.planType ? PLAN_LABEL[p.subscription.planType] : '—')}
                 </span>
@@ -189,7 +189,7 @@ export default function SubscriptionPage() {
           </div>
         )}
         {totalPages > 1 && (
-          <div className="px-5 py-3 border-t border-line flex items-center justify-end gap-2 text-sm">
+          <div className="px-5 py-3 border-t border-lineSoft flex items-center justify-end gap-2 text-sm">
             <button
               className="btn-outline btn-sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -197,7 +197,7 @@ export default function SubscriptionPage() {
             >
               Anterior
             </button>
-            <span className="text-muted">
+            <span className="text-[13px] text-muted">
               {page} / {totalPages}
             </span>
             <button

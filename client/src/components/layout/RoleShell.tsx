@@ -39,7 +39,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
   return (
     <div className="min-h-screen bg-bg flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 bg-surface border-r border-lineSoft sticky top-0 h-screen">
+      <aside className="hidden lg:flex lg:flex-col w-64 bg-card border-r border-lineSoft sticky top-0 h-screen">
         <div className="h-16 px-6 flex items-center gap-2 border-b border-lineSoft">
           <Logo size={32} />
           <span className="font-bold text-ink tracking-widest text-sm">SUBLINE</span>
@@ -52,16 +52,16 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-4 py-3 rounded-button text-[14px] font-medium transition-colors',
                   isActive
-                    ? 'bg-card text-ink font-semibold'
-                    : 'text-muted hover:bg-card hover:text-ink',
+                    ? 'bg-ink text-white'
+                    : 'text-muted hover:bg-surface hover:text-ink',
                 )
               }
             >
               {({ isActive }) => (
                 <>
-                  <Icon size={18} className={isActive ? 'text-brand' : ''} />
+                  <Icon size={18} className={isActive ? 'text-white' : ''} />
                   {label}
                 </>
               )}
@@ -82,7 +82,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
       {/* Main column */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 bg-bg border-b border-lineSoft">
+        <header className="sticky top-0 z-30 bg-card border-b border-lineSoft">
           <div className="px-4 sm:px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <button
@@ -150,7 +150,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
               aria-label="Close menu"
               onClick={() => setMobileNavOpen(false)}
             />
-            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface shadow-menu flex flex-col border-r border-lineSoft">
+            <aside className="absolute left-0 top-0 bottom-0 w-72 bg-card shadow-menu flex flex-col border-r border-lineSoft">
               <div className="h-16 px-4 flex items-center justify-between border-b border-lineSoft">
                 <div className="flex items-center gap-2">
                   <Logo size={28} />
@@ -159,7 +159,7 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(false)}
-                  className="p-2 rounded-button hover:bg-card text-muted"
+                  className="p-2 rounded-button hover:bg-surface text-muted"
                   aria-label="Close"
                 >
                   <X size={20} />
@@ -174,14 +174,14 @@ export function RoleShell({ title, navItems, bottomNav, children }: RoleShellPro
                     onClick={() => setMobileNavOpen(false)}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-button text-sm font-medium transition-colors',
-                        isActive ? 'bg-card text-ink font-semibold' : 'text-muted hover:bg-card hover:text-ink',
+                        'flex items-center gap-3 px-4 py-3 rounded-button text-[14px] font-medium transition-colors',
+                        isActive ? 'bg-ink text-white' : 'text-muted hover:bg-surface hover:text-ink',
                       )
                     }
                   >
                     {({ isActive }) => (
                       <>
-                        <Icon size={18} className={isActive ? 'text-brand' : ''} />
+                        <Icon size={18} className={isActive ? 'text-white' : ''} />
                         {label}
                       </>
                     )}

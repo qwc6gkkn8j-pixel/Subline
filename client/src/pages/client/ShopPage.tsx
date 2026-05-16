@@ -77,11 +77,8 @@ export default function ShopPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5">
-        <ShoppingBag size={24} className="text-brand" />
-        <h1 className="page-title">{t('shop.title')}</h1>
-      </div>
+    <div className="space-y-5">
+      <h1 className="page-title">{t('shop.title')}</h1>
 
       {loading ? (
         <div className="card text-center py-10">
@@ -98,24 +95,24 @@ export default function ShopPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((p) => (
-            <article key={p.id} className="card flex flex-col gap-3 hover:shadow-lg transition">
+            <article key={p.id} className="bg-surface rounded-card p-[18px] flex flex-col gap-3">
               {p.imageUrl && (
                 <img
                   src={p.imageUrl}
                   alt={p.name}
-                  className="w-full h-40 object-cover rounded-lg"
+                  className="w-full h-40 object-cover rounded-card"
                 />
               )}
 
               <div className="flex-1">
-                <h2 className="font-semibold text-ink">{p.name}</h2>
+                <h2 className="card-title">{p.name}</h2>
                 {p.description && (
-                  <p className="text-xs text-muted line-clamp-2 mt-1">{p.description}</p>
+                  <p className="text-[13px] text-muted line-clamp-2 mt-1">{p.description}</p>
                 )}
               </div>
 
               <div className="flex items-center justify-between">
-                <p className="text-xl font-bold text-brand">
+                <p className="text-[26px] font-bold text-ink">
                   {formatCurrency(Number(p.price))}
                 </p>
                 <span className="text-xs badge-muted">
@@ -158,30 +155,30 @@ export default function ShopPage() {
               <img
                 src={selectedProduct.imageUrl}
                 alt={selectedProduct.name}
-                className="w-full h-48 object-cover rounded-lg"
+                className="w-full h-48 object-cover rounded-card"
               />
             )}
 
             {selectedProduct.description && (
-              <p className="text-sm text-muted">{selectedProduct.description}</p>
+              <p className="text-[13px] text-muted">{selectedProduct.description}</p>
             )}
 
             <div className="flex items-center justify-between">
-              <span className="text-lg font-semibold">Preço:</span>
-              <span className="text-2xl font-bold text-brand">
+              <span className="text-sm font-semibold text-ink">Preço:</span>
+              <span className="text-[26px] font-bold text-ink">
                 {formatCurrency(Number(selectedProduct.price))}
               </span>
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">Tipo:</span>
+              <span className="text-[13px] text-muted">Tipo:</span>
               <span className="badge-muted">
                 {selectedProduct.type === 'physical' ? '📦 Físico' : '📱 Digital'}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-t border-line pt-4">
-              <span className="text-sm font-semibold">Quantidade:</span>
+            <div className="flex items-center justify-between border-t border-lineSoft pt-4">
+              <span className="text-sm font-semibold text-ink">Quantidade:</span>
               <div className="flex items-center gap-3">
                 <button
                   className="btn-sm btn-ghost"
@@ -189,7 +186,7 @@ export default function ShopPage() {
                 >
                   <Minus size={14} />
                 </button>
-                <span className="w-12 text-center font-semibold">{quantity}</span>
+                <span className="w-12 text-center font-semibold text-ink">{quantity}</span>
                 <button
                   className="btn-sm btn-ghost"
                   onClick={() => setQuantity(Math.min(100, quantity + 1))}
@@ -199,10 +196,10 @@ export default function ShopPage() {
               </div>
             </div>
 
-            <div className="bg-surface rounded-lg p-3 text-sm">
-              <div className="flex justify-between">
-                <span>{t('shop.total')}:</span>
-                <span className="font-bold text-brand">
+            <div className="bg-surface rounded-card p-[18px]">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted">{t('shop.total')}:</span>
+                <span className="font-bold text-ink">
                   {formatCurrency(Number(selectedProduct.price) * quantity)}
                 </span>
               </div>

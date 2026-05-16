@@ -77,11 +77,27 @@ export default function ProfilePage() {
     <div className="space-y-6 max-w-2xl">
       <h1 className="page-title">O meu perfil</h1>
 
+      {/* Avatar / identity strip */}
+      <div className="bg-surface rounded-tile p-5 flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-brand/10 flex items-center justify-center text-brand text-xl font-bold shrink-0">
+          {barber.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-ink text-[18px] truncate">{barber.name}</p>
+          <p className="text-[13px] text-muted truncate">{user?.email}</p>
+        </div>
+        <div className="flex items-center gap-1 text-[13px] font-semibold text-warning shrink-0">
+          <Star size={14} className="fill-warning" />
+          {Number(barber.rating ?? 0).toFixed(1)}
+        </div>
+      </div>
+
+      {/* Stripe Connect */}
       <section className="card">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-muted">Stripe Connect</p>
-            <h2 className="font-semibold text-ink">Pagamentos</h2>
+            <p className="text-[13px] text-muted uppercase tracking-wide">Stripe Connect</p>
+            <h2 className="section-title mb-4">Pagamentos</h2>
           </div>
           {stripe?.barberConnected ? (
             <span className="badge-success">Ligado</span>
@@ -105,35 +121,32 @@ export default function ProfilePage() {
         )}
       </section>
 
+      {/* Public details form */}
       <section className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-ink">Detalhes públicos</h2>
-          <span className="inline-flex items-center gap-1 text-sm text-warning">
-            <Star size={14} className="fill-warning" /> {Number(barber.rating ?? 0).toFixed(1)}
-          </span>
-        </div>
-        <form onSubmit={onSave} className="space-y-4">
-          <div>
+        <h2 className="section-title mb-4">Detalhes públicos</h2>
+        <form onSubmit={onSave} className="space-y-0">
+          {/* menu-item style rows */}
+          <div className="py-3 border-b border-lineSoft">
             <label className="label">Nome</label>
             <input value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
-          <div>
+          <div className="py-3 border-b border-lineSoft">
             <label className="label">Email</label>
             <input value={user?.email ?? ''} disabled />
           </div>
-          <div>
+          <div className="py-3 border-b border-lineSoft">
             <label className="label">Telefone</label>
             <input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <div>
+          <div className="py-3 border-b border-lineSoft">
             <label className="label">Morada</label>
             <input value={address} onChange={(e) => setAddress(e.target.value)} />
           </div>
-          <div>
+          <div className="py-3">
             <label className="label">Bio</label>
             <textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-2">
             <button type="submit" className="btn-primary" disabled={busy}>
               {busy ? <Spinner /> : <Save size={16} />} Guardar
             </button>
@@ -141,8 +154,9 @@ export default function ProfilePage() {
         </form>
       </section>
 
+      {/* Language */}
       <section className="card">
-        <h2 className="font-semibold text-ink mb-4">Langue / Language</h2>
+        <h2 className="section-title mb-4">Langue / Language</h2>
         <LanguageSelector variant="list" />
       </section>
     </div>

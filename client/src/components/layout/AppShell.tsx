@@ -24,7 +24,7 @@ export function AppShell({ title, children, bottomNav }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
-      <header className="sticky top-0 z-30 bg-card border-b border-line">
+      <header className="sticky top-0 z-30 bg-card border-b border-lineSoft">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <Logo size={36} />

@@ -71,10 +71,10 @@ export default function SupportPage() {
   };
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 flex-wrap">
         <h1 className="page-title mr-auto">{t('support.title')}</h1>
-        <button className="btn-primary text-sm" onClick={() => setCreating(true)}>
+        <button className="btn-brand text-sm" onClick={() => setCreating(true)}>
           <MessageSquare size={14} /> Novo ticket
         </button>
       </div>
@@ -92,19 +92,19 @@ export default function SupportPage() {
           />
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="card !p-0 overflow-hidden">
           {tickets.map((t) => (
             <button
               key={t.id}
               onClick={() => setActive(t)}
-              className="w-full card hover:shadow-lg transition text-left"
+              className="w-full text-left px-5 py-4 border-b border-lineSoft last:border-b-0 hover:bg-surface transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-ink truncate">{t.subject}</h3>
-                  <p className="text-xs text-muted">{TICKET_CATEGORY_LABEL[t.category]}</p>
+                  <h3 className="card-title truncate">{t.subject}</h3>
+                  <p className="text-[13px] text-muted mt-0.5">{TICKET_CATEGORY_LABEL[t.category]}</p>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex gap-2 shrink-0 items-center">
                   <span className={t.status === 'resolved' ? 'badge-success' : t.status === 'in_progress' ? 'badge-accent' : 'badge-muted'}>
                     {TICKET_STATUS_LABEL[t.status]}
                   </span>
@@ -140,6 +140,7 @@ export default function SupportPage() {
                 onChange={(e) => setNewForm({ ...newForm, subject: e.target.value })}
                 placeholder={t('support.subject_placeholder')}
                 required
+                className="bg-surface border-transparent"
               />
             </div>
             <div>
@@ -163,6 +164,7 @@ export default function SupportPage() {
                 onChange={(e) => setNewForm({ ...newForm, message: e.target.value })}
                 placeholder={t('support.message_placeholder')}
                 required
+                className="bg-surface border-transparent"
               />
             </div>
           </div>
@@ -177,18 +179,18 @@ export default function SupportPage() {
           size="lg"
         >
           <div className="space-y-4">
-            <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-3 gap-3 bg-surface rounded-card p-[18px]">
               <div>
-                <p className="text-muted">Categoria</p>
-                <p className="font-medium">{TICKET_CATEGORY_LABEL[active.category]}</p>
+                <p className="text-[13px] text-muted">Categoria</p>
+                <p className="text-sm font-medium text-ink mt-0.5">{TICKET_CATEGORY_LABEL[active.category]}</p>
               </div>
               <div>
-                <p className="text-muted">Status</p>
-                <p className="font-medium">{TICKET_STATUS_LABEL[active.status]}</p>
+                <p className="text-[13px] text-muted">Status</p>
+                <p className="text-sm font-medium text-ink mt-0.5">{TICKET_STATUS_LABEL[active.status]}</p>
               </div>
               <div>
-                <p className="text-muted">Prioridade</p>
-                <p className="font-medium">{TICKET_PRIORITY_LABEL[active.priority]}</p>
+                <p className="text-[13px] text-muted">Prioridade</p>
+                <p className="text-sm font-medium text-ink mt-0.5">{TICKET_PRIORITY_LABEL[active.priority]}</p>
               </div>
             </div>
             <ChatWindow

@@ -114,7 +114,7 @@ export default function CalendarPage() {
             {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-2 mb-2">
               {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'].map((day) => (
-                <div key={day} className="text-center text-xs font-semibold text-muted">
+                <div key={day} className="text-center text-[13px] font-semibold text-muted uppercase">
                   {day}
                 </div>
               ))}
@@ -137,17 +137,17 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={day}
-                    className="aspect-square rounded-button border border-line p-1 bg-card hover:shadow-md transition text-xs flex flex-col gap-0.5 overflow-hidden"
+                    className="aspect-square bg-surface rounded-button border border-lineSoft p-1 flex flex-col gap-0.5 overflow-hidden"
                   >
-                    <div className="font-semibold text-ink">{day}</div>
+                    <div className="text-[13px] font-semibold text-ink">{day}</div>
                     <div className="flex-1 overflow-y-auto space-y-0.5">
                       {dayAppointments.slice(0, 2).map((apt) => (
-                        <div key={apt.id} className="bg-brand/20 text-brand rounded px-1 py-0.5 text-[10px] font-medium truncate">
+                        <div key={apt.id} className="bg-brand text-white rounded-pill px-1 py-0.5 text-[10px] font-medium truncate">
                           {apt.startTime}
                         </div>
                       ))}
                       {dayAppointments.length > 2 && (
-                        <div className="text-muted text-[10px]">+{dayAppointments.length - 2}</div>
+                        <div className="text-[13px] text-muted">+{dayAppointments.length - 2}</div>
                       )}
                     </div>
                   </div>
@@ -159,30 +159,25 @@ export default function CalendarPage() {
           {/* Appointments list */}
           {appointments.length > 0 && (
             <div className="card">
-              <h3 className="font-semibold text-ink mb-3">{t('common:nav.calendar')}</h3>
-              <div className="space-y-2">
+              <h2 className="section-title mb-4">{t('common:nav.calendar')}</h2>
+              <div className="divide-y divide-lineSoft">
                 {appointments.map((apt) => (
-                  <div key={apt.id} className="flex items-start gap-3 p-2 rounded-button bg-surface">
+                  <div key={apt.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-ink">{apt.startTime}</span>
-                        <span className="text-xs text-muted">{apt.durationMinutes} min</span>
-                      </div>
-                      <p className="text-sm text-muted truncate">
-                        {apt.client?.name || 'Cliente'}
-                      </p>
-                      <p className="text-xs text-muted">{new Date(apt.date).toLocaleDateString('pt-PT')}</p>
+                      <p className="card-title truncate">{apt.client?.name || 'Cliente'}</p>
+                      <p className="text-[13px] text-muted">{new Date(apt.date).toLocaleDateString('pt-PT')} · {apt.durationMinutes} min</p>
                     </div>
+                    <span className="text-[22px] font-bold text-brand shrink-0">{apt.startTime}</span>
                     <span
-                      className={`text-xs font-medium px-2 py-1 rounded-button ${
+                      className={
                         apt.status === 'completed'
-                          ? 'bg-success/20 text-success'
+                          ? 'badge-success'
                           : apt.status === 'cancelled'
-                          ? 'bg-danger/20 text-danger'
+                          ? 'badge-danger'
                           : apt.status === 'confirmed'
-                          ? 'bg-brand/20 text-brand'
-                          : 'bg-warning/20 text-warning'
-                      }`}
+                          ? 'badge-success'
+                          : 'badge-warning'
+                      }
                     >
                       {apt.status}
                     </span>

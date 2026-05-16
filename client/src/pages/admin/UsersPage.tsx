@@ -74,7 +74,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="page-title">{t('users.title')}</h1>
         <button
           onClick={() => {
@@ -87,15 +87,16 @@ export default function UsersPage() {
         </button>
       </div>
 
-      <section className="card !p-0 overflow-hidden">
-        <div className="p-5 border-b border-line flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="card !p-0 overflow-hidden border border-lineSoft">
+        {/* Search + filters bar */}
+        <div className="px-5 py-4 border-b border-lineSoft flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Search size={16} className="text-muted shrink-0" />
             <input
               placeholder="Pesquisar por nome ou email…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              className="!border-0 !ring-0 !p-0 !h-auto bg-transparent flex-1"
+              className="!border-0 !ring-0 !p-0 !h-auto bg-transparent flex-1 text-sm"
             />
           </div>
           <div className="flex flex-wrap gap-2">
@@ -132,16 +133,17 @@ export default function UsersPage() {
           </div>
         </div>
 
+        {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-surface text-muted text-xs uppercase tracking-wide">
               <tr>
-                <th className="text-left px-5 py-3">Nome</th>
-                <th className="text-left px-5 py-3">Email</th>
-                <th className="text-left px-5 py-3">Papel</th>
-                <th className="text-left px-5 py-3">Estado</th>
-                <th className="text-left px-5 py-3">Criado</th>
-                <th className="text-right px-5 py-3">Ações</th>
+                <th className="text-left px-5 py-3 font-semibold">Nome</th>
+                <th className="text-left px-5 py-3 font-semibold">Email</th>
+                <th className="text-left px-5 py-3 font-semibold">Papel</th>
+                <th className="text-left px-5 py-3 font-semibold">Estado</th>
+                <th className="text-left px-5 py-3 font-semibold">Criado</th>
+                <th className="text-right px-5 py-3 font-semibold">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -153,13 +155,13 @@ export default function UsersPage() {
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-muted">
+                  <td colSpan={6} className="px-5 py-10 text-center text-muted text-sm">
                     Sem utilizadores
                   </td>
                 </tr>
               ) : (
                 users.map((u) => (
-                  <tr key={u.id} className="table-row hover:bg-surface/50">
+                  <tr key={u.id} className="border-b border-lineSoft hover:bg-surface transition-colors">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar name={u.fullName} size={32} />
@@ -180,14 +182,14 @@ export default function UsersPage() {
                       <div className="inline-flex gap-1">
                         <button
                           onClick={() => setEditing(u)}
-                          className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10"
+                          className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10 transition-colors"
                           aria-label={`Editar ${u.fullName}`}
                         >
                           <Pencil size={16} />
                         </button>
                         <button
                           onClick={() => setDeleting(u)}
-                          className="p-2 rounded-button text-muted hover:text-danger hover:bg-danger/10"
+                          className="p-2 rounded-button text-muted hover:text-danger hover:bg-danger/10 transition-colors"
                           aria-label={`Eliminar ${u.fullName}`}
                         >
                           <Trash2 size={16} />
@@ -201,16 +203,17 @@ export default function UsersPage() {
           </table>
         </div>
 
-        <div className="md:hidden divide-y divide-line">
+        {/* Mobile list */}
+        <div className="md:hidden divide-y divide-lineSoft">
           {loading ? (
             <div className="px-5 py-10 text-center">
               <Spinner />
             </div>
           ) : users.length === 0 ? (
-            <div className="px-5 py-10 text-center text-muted">Sem utilizadores</div>
+            <div className="px-5 py-10 text-center text-muted text-sm">Sem utilizadores</div>
           ) : (
             users.map((u) => (
-              <div key={u.id} className="p-4 flex items-center gap-3">
+              <div key={u.id} className="p-4 flex items-center gap-3 hover:bg-surface transition-colors">
                 <Avatar name={u.fullName} size={40} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-ink truncate">{u.fullName}</p>
@@ -221,10 +224,10 @@ export default function UsersPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <button onClick={() => setEditing(u)} className="p-2 text-muted hover:text-brand">
+                  <button onClick={() => setEditing(u)} className="p-2 text-muted hover:text-brand transition-colors">
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => setDeleting(u)} className="p-2 text-muted hover:text-danger">
+                  <button onClick={() => setDeleting(u)} className="p-2 text-muted hover:text-danger transition-colors">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -233,7 +236,8 @@ export default function UsersPage() {
           )}
         </div>
 
-        <div className="px-5 py-3 border-t border-line flex items-center justify-between text-sm">
+        {/* Pagination footer */}
+        <div className="px-5 py-3 border-t border-lineSoft flex items-center justify-between text-sm">
           <p className="text-muted">
             {users.length} de {total} · Página {page} de {totalPages}
           </p>
@@ -486,11 +490,11 @@ function DeleteUserModal({
   onClose: () => void;
   onDeleted: () => void;
 }) {
+  const { t } = useTranslation('admin');
   const toast = useToast();
   const [busy, setBusy] = useState(false);
 
   const onDelete = async () => {
-    const { t } = useTranslation('admin');
     if (!user) return;
     setBusy(true);
     try {

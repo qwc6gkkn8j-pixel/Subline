@@ -120,9 +120,9 @@ export default function StaffPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="page-title mr-auto">{t('staff.title')}</h1>
-        <label className="text-sm flex items-center gap-2">
+        <label className="text-[13px] text-muted flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
             checked={showInactive}
@@ -137,7 +137,7 @@ export default function StaffPage() {
       </div>
 
       {loading ? (
-        <div className="card text-center py-10">
+        <div className="bg-surface rounded-card p-[18px] text-center py-10">
           <Spinner />
         </div>
       ) : staff.length === 0 ? (
@@ -150,9 +150,15 @@ export default function StaffPage() {
         </div>
       ) : (
         <div className="card !p-0 overflow-hidden">
-          <ul className="divide-y divide-line">
+          <ul>
             {staff.map((s) => (
-              <li key={s.id} className="px-4 py-4 flex items-center gap-3">
+              <li key={s.id} className="border-b border-lineSoft last:border-0 py-3 px-5 flex items-center gap-3">
+                {/* Avatar placeholder */}
+                <div className="w-9 h-9 rounded-full bg-surface flex items-center justify-center shrink-0">
+                  <span className="text-[13px] font-bold text-muted">
+                    {s.name.slice(0, 1).toUpperCase()}
+                  </span>
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-ink truncate">{s.name}</p>
@@ -165,7 +171,7 @@ export default function StaffPage() {
                     {s.user && <span className="badge-brand">Tem conta</span>}
                   </div>
                   {s.user && (
-                    <p className="text-xs text-muted truncate mt-1">{s.user.email}</p>
+                    <p className="text-[13px] text-muted truncate mt-0.5">{s.user.email}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">

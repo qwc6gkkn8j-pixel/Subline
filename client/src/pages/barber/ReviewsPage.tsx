@@ -48,25 +48,21 @@ export default function ReviewsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skip]);
 
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            size={14}
-            className={star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}
-          />
-        ))}
-      </div>
-    );
-  };
+  const renderStars = (rating: number) => (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          size={14}
+          className={star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">{t('reviews.title')}</h1>
-      </div>
+      <h1 className="page-title">{t('reviews.title')}</h1>
 
       {loading ? (
         <div className="card text-center py-10">
@@ -82,36 +78,44 @@ export default function ReviewsPage() {
         </div>
       ) : (
         <>
-          {/* Stats Card */}
+          {/* Stats KPI tiles */}
           {data && (
-            <div className="card grid grid-cols-2 gap-4 text-center">
-              <div>
-                <p className="text-sm text-muted mb-1">Classificação média</p>
-                <p className="text-3xl font-bold text-ink">{data.stats.averageRating.toFixed(1)}</p>
-                {renderStars(Math.round(data.stats.averageRating))}
+            <section className="grid grid-cols-2 gap-4">
+              <div className="bg-surface rounded-tile p-5 flex flex-col gap-1">
+                <p className="text-[13px] text-muted">Classificação média</p>
+                <p className="text-[30px] font-bold text-ink leading-none">
+                  {data.stats.averageRating.toFixed(1)}
+                </p>
+                <div className="mt-1">{renderStars(Math.round(data.stats.averageRating))}</div>
               </div>
-              <div>
-                <p className="text-sm text-muted mb-1">Total de avaliações</p>
-                <p className="text-3xl font-bold text-ink">{data.stats.totalReviews}</p>
+              <div className="bg-surface rounded-tile p-5 flex flex-col gap-1">
+                <p className="text-[13px] text-muted">Total de avaliações</p>
+                <p className="text-[30px] font-bold text-ink leading-none">
+                  {data.stats.totalReviews}
+                </p>
               </div>
-            </div>
+            </section>
           )}
 
-          {/* Reviews List */}
-          <div className="space-y-3">
-            {data?.reviews.map((review) => (
-              <div key={review.id} className="card space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-ink">{review.client.name}</p>
-                    <p className="text-xs text-muted">{formatRelative(review.createdAt)}</p>
+          {/* Reviews list */}
+          <section className="card !p-0 overflow-hidden">
+            <ul>
+              {data?.reviews.map((review) => (
+                <li key={review.id} className="px-5 py-4 border-b border-lineSoft last:border-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-semibold text-ink">{review.client.name}</p>
+                      <p className="text-[13px] text-muted mt-0.5">{formatRelative(review.createdAt)}</p>
+                    </div>
+                    {renderStars(review.rating)}
                   </div>
-                  {renderStars(review.rating)}
-                </div>
-                {review.comment && <p className="text-sm text-ink">{review.comment}</p>}
-              </div>
-            ))}
-          </div>
+                  {review.comment && (
+                    <p className="text-[13px] text-ink mt-2">{review.comment}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
 
           {/* Pagination */}
           {data && data.pagination.total > take && (
@@ -123,7 +127,7 @@ export default function ReviewsPage() {
               >
                 Anterior
               </button>
-              <span className="text-sm text-muted py-2">
+              <span className="text-[13px] text-muted py-2">
                 {skip + 1}-{Math.min(skip + take, data.pagination.total)} de {data.pagination.total}
               </span>
               <button

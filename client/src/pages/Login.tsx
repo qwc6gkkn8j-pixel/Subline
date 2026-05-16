@@ -23,29 +23,32 @@ export default function Login() {
   const { t } = useTranslation('auth');
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-8">
-          <Logo size={84} showText />
-          <p className="text-xs text-muted mt-3 tracking-widest uppercase">{t('tagline')}</p>
+    <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-12">
+      <div className="w-full max-w-sm">
+        {/* Logo + wordmark */}
+        <div className="flex flex-col items-center mb-10">
+          <Logo size={72} showText={false} />
+          <p className="text-[22px] font-bold tracking-[0.2em] text-ink mt-4">SUBLINE</p>
+          <p className="text-micro text-muted mt-1 tracking-[0.2em] uppercase">{t('tagline')}</p>
         </div>
 
-        <div className="bg-card rounded-card p-6 sm:p-8">
-          <div className="grid grid-cols-2 bg-surface rounded-button border border-lineSoft p-1 mb-6">
-            <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
-              {t('sign_in')}
-            </TabButton>
-            <TabButton active={tab === 'register'} onClick={() => setTab('register')}>
-              {t('sign_up')}
-            </TabButton>
-          </div>
-
-          {tab === 'login' ? (
-            <SignInForm onSwitchTab={() => setTab('register')} />
-          ) : (
-            <SignUpForm onSwitchTab={() => setTab('login')} />
-          )}
+        {/* Tab switcher */}
+        <div className="flex gap-1 bg-surface rounded-pill p-1 mb-6">
+          <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
+            {t('sign_in')}
+          </TabButton>
+          <TabButton active={tab === 'register'} onClick={() => setTab('register')}>
+            {t('sign_up')}
+          </TabButton>
         </div>
+
+        {tab === 'login' ? (
+          <SignInForm onSwitchTab={() => setTab('register')} />
+        ) : (
+          <SignUpForm onSwitchTab={() => setTab('login')} />
+        )}
+
+        <p className="text-center text-micro text-faint mt-8">© 2026 SUBLINE</p>
       </div>
     </div>
   );
@@ -65,8 +68,8 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'h-10 rounded-button text-sm font-semibold transition-all',
-        active ? 'bg-card text-ink shadow-btn-ghost' : 'text-muted hover:text-ink',
+        'flex-1 h-10 rounded-pill text-sm font-semibold transition-all',
+        active ? 'bg-ink text-white' : 'text-muted hover:text-ink',
       )}
     >
       {children}

@@ -137,11 +137,11 @@ export default function ProfilePage() {
           />
         </div>
         <div>
-          <p className="font-semibold text-ink">{client.name}</p>
-          <p className="text-xs text-muted">{user?.email}</p>
+          <p className="card-title">{client.name}</p>
+          <p className="text-[13px] text-muted">{user?.email}</p>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="text-xs text-brand mt-1"
+            className="text-[13px] text-brand mt-1"
           >
             Alterar foto
           </button>
@@ -152,22 +152,22 @@ export default function ProfilePage() {
       <form onSubmit={onSubmit} className="card space-y-4">
         <div>
           <label className="label">Nome</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
+          <input value={name} onChange={(e) => setName(e.target.value)} required className="bg-surface border-transparent" />
         </div>
         <div>
           <label className="label">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-surface border-transparent" />
         </div>
         <div>
           <label className="label">Telefone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-surface border-transparent" />
         </div>
         <div className="border-t border-lineSoft pt-4">
-          <p className="text-xs font-semibold text-muted mb-3">Mudar password (opcional)</p>
+          <p className="text-[13px] text-muted mb-3">Mudar password (opcional)</p>
           <div className="space-y-3">
-            <input type="password" placeholder="Password atual" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" />
-            <input type="password" placeholder="Nova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" />
-            <input type="password" placeholder="Confirmar nova password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
+            <input type="password" placeholder="Password atual" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className="bg-surface border-transparent" />
+            <input type="password" placeholder="Nova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className="bg-surface border-transparent" />
+            <input type="password" placeholder="Confirmar nova password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" className="bg-surface border-transparent" />
           </div>
         </div>
         <div className="flex justify-end">
@@ -177,31 +177,34 @@ export default function ProfilePage() {
         </div>
       </form>
 
-      {/* Favoritos */}
       {/* Language */}
       <div className="card">
         <div className="flex items-center gap-2 mb-4">
           <Globe size={16} className="text-muted" />
-          <h2 className="font-semibold text-ink">Langue / Language</h2>
+          <h2 className="section-title">Langue / Language</h2>
         </div>
         <LanguageSelector variant="list" />
       </div>
 
+      {/* Favoritos */}
       {favorites.length > 0 && (
         <div className="card">
           <div className="flex items-center gap-2 mb-4">
             <Heart size={16} className="text-danger fill-danger" />
-            <h2 className="font-semibold text-ink">Os meus favoritos</h2>
+            <h2 className="section-title">Os meus favoritos</h2>
           </div>
-          <div className="space-y-3">
+          <div>
             {favorites.map((fav) => (
-              <div key={fav.id} className="flex items-center justify-between gap-3">
+              <div key={fav.id} className="flex items-center justify-between gap-3 py-3 border-b border-lineSoft last:border-b-0">
                 <div>
-                  <p className="font-medium text-ink text-sm">{fav.barber.name}</p>
-                  {fav.barber.city && <p className="text-xs text-muted">{fav.barber.city}</p>}
+                  <p className="card-title">{fav.barber.name}</p>
+                  {fav.barber.city && <p className="text-[13px] text-muted">{fav.barber.city}</p>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted">{Number(fav.barber.rating).toFixed(1)} ★</span>
+                  <span className="text-[13px] text-muted flex items-center gap-0.5">
+                    <span>{Number(fav.barber.rating).toFixed(1)}</span>
+                    <span className="text-ink">★</span>
+                  </span>
                   <Link to={`/client/calendar`} className="btn-ghost btn-sm text-xs">Marcar</Link>
                   <button
                     onClick={() => void removeFavorite(fav.barberId)}

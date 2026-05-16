@@ -80,26 +80,26 @@ export default function PlansPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {plans.map((p) => (
-            <div key={p.id} className="card flex flex-col gap-3">
+            <div key={p.id} className="bg-surface rounded-tile p-5 flex flex-col gap-3">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-muted">Plano</p>
-                  <h3 className="text-lg font-semibold text-ink">{p.name}</h3>
+                  <p className="text-[13px] text-muted uppercase tracking-wide">Plano</p>
+                  <h3 className="text-[15px] font-semibold text-ink mt-0.5">{p.name}</h3>
                 </div>
                 <span className={p.isActive ? 'badge-success' : 'badge-muted'}>
                   {p.isActive ? 'Ativo' : 'Inativo'}
                 </span>
               </div>
-              <p className="page-title">
+              <p className="text-[30px] font-bold text-ink leading-none">
                 {formatCurrency(p.price)}
                 <span className="text-sm font-normal text-muted">/mês</span>
               </p>
-              {p.description && <p className="text-sm text-muted">{p.description}</p>}
-              <div className="flex items-center justify-between text-xs text-muted">
+              {p.description && <p className="text-[13px] text-muted">{p.description}</p>}
+              <div className="flex items-center justify-between text-[13px] text-muted">
                 <span>{p.cutsPerMonth ? `${p.cutsPerMonth} cortes/mês` : 'Cortes ilimitados'}</span>
                 <span>{p._count?.subscriptions ?? 0} subscritos</span>
               </div>
-              <div className="flex items-center justify-end gap-1 pt-2 border-t border-line">
+              <div className="flex items-center justify-end gap-1 pt-2 border-t border-lineSoft">
                 <button
                   onClick={() => setEditing(p)}
                   className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10"

@@ -91,8 +91,8 @@ export default function ClientsPage() {
       </div>
 
       <section className="card !p-0 overflow-hidden">
-        <div className="p-4 border-b border-line flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-1 min-w-[200px] px-3 h-9 border border-line rounded-button bg-card">
+        <div className="p-4 border-b border-lineSoft flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-[200px] px-3 h-9 rounded-button bg-surface">
             <Search size={16} className="text-muted shrink-0" />
             <input
               placeholder={t('clients.search_placeholder')}
@@ -114,32 +114,32 @@ export default function ClientsPage() {
           </select>
         </div>
 
-        <div className="p-5">
-          {loading ? (
-            <div className="text-center py-10">
-              <Spinner />
-            </div>
-          ) : clients.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-10">
+            <Spinner />
+          </div>
+        ) : clients.length === 0 ? (
+          <div className="p-5">
             <EmptyState
               icon={UserPlus}
               title={t('clients.no_clients')}
               description={t('clients.no_clients_desc')}
             />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {clients.map((c) => (
-                <ClientCard
-                  key={c.id}
-                  client={c}
-                  onEdit={() => setEditing(c)}
-                  onDelete={() => setDeleting(c)}
-                  onRegisterCut={() => setRegistering(c)}
-                  onPaymentLink={() => setPaymentLink(c)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <ul>
+            {clients.map((c) => (
+              <ClientCard
+                key={c.id}
+                client={c}
+                onEdit={() => setEditing(c)}
+                onDelete={() => setDeleting(c)}
+                onRegisterCut={() => setRegistering(c)}
+                onPaymentLink={() => setPaymentLink(c)}
+              />
+            ))}
+          </ul>
+        )}
       </section>
 
       <ClientFormModal
@@ -186,84 +186,85 @@ function ClientCard({
   const remaining = total !== null && total !== undefined ? Math.max(0, total - used) : null;
 
   return (
-    <div className="border border-line rounded-card p-4 flex flex-col gap-3">
-      <div className="flex gap-3">
-        <Avatar name={client.name} size={44} />
-        <div className="flex-1 min-w-0">
+    <li className="px-4 py-3 border-b border-lineSoft last:border-0 flex items-center gap-3">
+      <Avatar name={client.name} size={40} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="font-semibold text-ink truncate">{client.name}</p>
-          <p className="text-xs text-muted truncate flex items-center gap-1">
-            <MailIcon size={12} /> {client.email}
-          </p>
-          {client.phone && (
-            <p className="text-xs text-muted truncate flex items-center gap-1">
-              <PhoneIcon size={12} /> {client.phone}
-            </p>
+          {client.segment && (
+            <span className={CLIENT_SEGMENT_BADGE[client.segment]}>
+              {CLIENT_SEGMENT_LABEL[client.segment]}
+            </span>
+          )}
+          {sub ? (
+            <>
+              <span className="badge-brand">{sub.plan?.name ?? sub.planType}</span>
+              <span
+                className={cn(
+                  'badge',
+                  sub.status === 'active'
+                    ? 'badge-success'
+                    : sub.status === 'cancelled'
+                      ? 'badge-danger'
+                      : 'badge-muted',
+                )}
+              >
+                {sub.status}
+              </span>
+            </>
+          ) : (
+            <span className="badge-muted">{t('clients.no_subscription')}</span>
           )}
         </div>
-        <div className="flex flex-col gap-1">
-          <button
-            onClick={onEdit}
-            className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10"
-            aria-label={t('common:edit')}
-          >
-            <Pencil size={16} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 rounded-button text-muted hover:text-danger hover:bg-danger/10"
-            aria-label={t('common:delete')}
-          >
-            <Trash2 size={16} />
-          </button>
+        <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+          <p className="text-[13px] text-muted flex items-center gap-1 truncate">
+            <MailIcon size={11} /> {client.email}
+          </p>
+          {client.phone && (
+            <p className="text-[13px] text-muted flex items-center gap-1">
+              <PhoneIcon size={11} /> {client.phone}
+            </p>
+          )}
+          {sub && remaining !== null && (
+            <p className="text-[13px] text-muted">{t('clients.cuts_this_month', { used, total })}</p>
+          )}
+          {sub && (
+            <p className="text-[13px] text-muted">{t('clients.renewal', { date: formatDate(sub.renewalDate) })}</p>
+          )}
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        {client.segment && (
-          <span className={CLIENT_SEGMENT_BADGE[client.segment]}>
-            {CLIENT_SEGMENT_LABEL[client.segment]}
-          </span>
-        )}
-        {sub ? (
-          <>
-            <span className="badge-brand">{sub.plan?.name ?? sub.planType}</span>
-            <span
-              className={cn(
-                'badge',
-                sub.status === 'active'
-                  ? 'badge-success'
-                  : sub.status === 'cancelled'
-                    ? 'badge-danger'
-                    : 'badge-muted',
-              )}
-            >
-              {sub.status}
-            </span>
-            {remaining !== null && (
-              <span className="text-muted">
-                {t('clients.cuts_this_month', { used, total })}
-              </span>
-            )}
-            <span className="text-muted">{t('clients.renewal', { date: formatDate(sub.renewalDate) })}</span>
-          </>
-        ) : (
-          <span className="badge-muted">{t('clients.no_subscription')}</span>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={onRegisterCut}
           className="btn-outline btn-sm"
           disabled={!sub || sub.status !== 'active'}
+          title={t('clients.register_cut')}
         >
-          <Scissors size={14} /> {t('clients.register_cut')}
+          <Scissors size={14} />
         </button>
-        <button onClick={onPaymentLink} className="btn-outline btn-sm">
-          <CreditCard size={14} /> {t('clients.payment_link')}
+        <button
+          onClick={onPaymentLink}
+          className="btn-outline btn-sm"
+          title={t('clients.payment_link')}
+        >
+          <CreditCard size={14} />
+        </button>
+        <button
+          onClick={onEdit}
+          className="p-2 rounded-button text-muted hover:text-brand hover:bg-brand/10"
+          aria-label={t('common:edit')}
+        >
+          <Pencil size={15} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="p-2 rounded-button text-muted hover:text-danger hover:bg-danger/10"
+          aria-label={t('common:delete')}
+        >
+          <Trash2 size={15} />
         </button>
       </div>
-    </div>
+    </li>
   );
 }
 

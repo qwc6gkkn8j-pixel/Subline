@@ -106,7 +106,7 @@ export default function ShopPage() {
                 </span>
               </div>
 
-              <p className="text-2xl font-bold text-brand mt-auto">
+              <p className="text-[26px] font-bold text-ink mt-auto">
                 {formatCurrency(Number(p.price))}
               </p>
 

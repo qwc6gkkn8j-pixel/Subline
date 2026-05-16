@@ -53,14 +53,35 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <StripeBanner variant="platform" />
 
+      {/* Primary KPI tiles — 2×2 grid */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard icon={<UsersIcon size={20} />} label={t('dashboard.total_users')} value={kpi?.totalUsers ?? '—'} delta="+12.5%" />
-        <KpiCard icon={<CheckCircle2 size={20} />} label={t('dashboard.active_subscriptions')} value={kpi?.activeSubscriptions ?? '—'} delta="+8.2%" />
-        <KpiCard icon={<DollarSign size={20} />} label={t('dashboard.monthly_revenue')} value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'} delta="+15.3%" />
-        <KpiCard icon={<TrendingUp size={20} />} label={t('dashboard.user_growth')} value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'} />
+        <KpiCard
+          icon={<UsersIcon size={20} />}
+          label={t('dashboard.total_users')}
+          value={kpi?.totalUsers ?? '—'}
+          delta="+12.5%"
+        />
+        <KpiCard
+          icon={<CheckCircle2 size={20} />}
+          label={t('dashboard.active_subscriptions')}
+          value={kpi?.activeSubscriptions ?? '—'}
+          delta="+8.2%"
+        />
+        <KpiCard
+          icon={<DollarSign size={20} />}
+          label={t('dashboard.monthly_revenue')}
+          value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'}
+          delta="+15.3%"
+        />
+        <KpiCard
+          icon={<TrendingUp size={20} />}
+          label={t('dashboard.user_growth')}
+          value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'}
+        />
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Secondary quick-nav tiles */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <QuickCard
           to="/admin/tickets"
           icon={<LifeBuoy size={18} />}
@@ -87,8 +108,9 @@ export default function DashboardPage() {
         />
       </section>
 
+      {/* Shortcuts card */}
       <section className="card">
-        <h2 className="text-lg font-semibold text-ink mb-4">{t('dashboard.shortcuts')}</h2>
+        <h2 className="section-title mb-4">{t('dashboard.shortcuts')}</h2>
         <div className="flex flex-wrap gap-3">
           <Link to="/admin/users" className="btn-primary">{t('dashboard.manage_users')}</Link>
           <Link to="/admin/plans" className="btn-outline">{t('dashboard.manage_plans')}</Link>
@@ -113,13 +135,15 @@ function KpiCard({
   delta?: string;
 }) {
   return (
-    <div className="stat-card">
+    <div className="bg-surface rounded-tile p-5 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-brand">{icon}</span>
-        {delta && <span className="text-xs font-semibold text-success">{delta}</span>}
+        {delta && (
+          <span className="text-[12px] font-semibold text-success">{delta}</span>
+        )}
       </div>
       <div>
-        <p className="text-3xl font-bold leading-tight text-ink">{value}</p>
+        <p className="text-[30px] font-bold leading-tight text-ink">{value}</p>
         <p className="text-xs text-muted mt-1">{label}</p>
       </div>
     </div>
@@ -138,13 +162,16 @@ function QuickCard({
   value: number | string;
 }) {
   return (
-    <Link to={to} className="stat-card flex-row items-center gap-3 hover:brightness-95 transition-all">
-      <span className="w-10 h-10 rounded-button bg-brand/10 text-brand flex items-center justify-center">
+    <Link
+      to={to}
+      className="bg-surface rounded-tile p-5 flex items-center gap-3 hover:brightness-95 transition-all border border-lineSoft"
+    >
+      <span className="w-10 h-10 rounded-button bg-brand/10 text-brand flex items-center justify-center shrink-0">
         {icon}
       </span>
-      <div>
-        <p className="page-title leading-tight">{value}</p>
-        <p className="text-xs text-muted">{label}</p>
+      <div className="min-w-0">
+        <p className="text-[22px] font-bold text-ink leading-tight">{value}</p>
+        <p className="text-xs text-muted truncate">{label}</p>
       </div>
     </Link>
   );

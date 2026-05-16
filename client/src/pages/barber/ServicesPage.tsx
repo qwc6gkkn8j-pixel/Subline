@@ -71,7 +71,7 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="page-title mr-auto">{t('services.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
           <Plus size={16} /> {t('services.new_service')}
@@ -79,7 +79,7 @@ export default function ServicesPage() {
       </div>
 
       {loading ? (
-        <div className="card text-center py-10">
+        <div className="bg-surface rounded-card p-[18px] text-center py-10">
           <Spinner />
         </div>
       ) : services.length === 0 ? (
@@ -95,15 +95,20 @@ export default function ServicesPage() {
           {services.map((s) => (
             <article
               key={s.id}
-              className={`card flex flex-col gap-3 ${
+              className={`bg-surface rounded-card p-[18px] flex flex-col gap-3 ${
                 s.isActive ? '' : 'opacity-60'
               }`}
             >
+              {/* Image placeholder */}
+              <div className="w-full h-28 bg-white rounded-tile flex items-center justify-center">
+                <Scissors size={32} className="text-faint" />
+              </div>
+
               <header className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-ink truncate">{s.name}</h2>
+                  <h2 className="card-title truncate">{s.name}</h2>
                   {s.description && (
-                    <p className="text-xs text-muted line-clamp-2 mt-1">{s.description}</p>
+                    <p className="text-[13px] text-muted line-clamp-2 mt-1">{s.description}</p>
                   )}
                 </div>
                 {s.isActive ? (
@@ -126,11 +131,11 @@ export default function ServicesPage() {
                 </span>
               </div>
 
-              <p className="text-2xl font-bold text-brand mt-auto">
+              <p className="text-[30px] font-bold text-ink mt-auto leading-none">
                 {formatCurrency(Number(s.price))}
               </p>
 
-              <div className="flex gap-2 pt-2 border-t border-line">
+              <div className="flex gap-2 pt-3 border-t border-lineSoft">
                 <button
                   className="btn-outline btn-sm flex-1"
                   onClick={() => setEditing(s)}

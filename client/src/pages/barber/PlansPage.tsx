@@ -58,7 +58,7 @@ export default function PlansPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
         <h1 className="page-title mr-auto">{t('plans.title')}</h1>
         <button className="btn-primary" onClick={() => setCreating(true)}>
           <Plus size={16} /> {t('plans.new_plan')}
@@ -66,7 +66,7 @@ export default function PlansPage() {
       </div>
 
       {loading ? (
-        <div className="card text-center py-10">
+        <div className="bg-surface rounded-card p-[18px] text-center py-10">
           <Spinner />
         </div>
       ) : plans.length === 0 ? (
@@ -82,15 +82,15 @@ export default function PlansPage() {
           {plans.map((p) => (
             <article
               key={p.id}
-              className={`card flex flex-col gap-3 ${
+              className={`bg-surface rounded-card p-[18px] flex flex-col gap-3 ${
                 p.isActive ? '' : 'opacity-60'
               }`}
             >
               <header className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-ink truncate">{p.name}</h2>
+                  <h2 className="card-title truncate">{p.name}</h2>
                   {p.description && (
-                    <p className="text-xs text-muted line-clamp-2 mt-1">{p.description}</p>
+                    <p className="text-[13px] text-muted line-clamp-2 mt-1">{p.description}</p>
                   )}
                 </div>
                 {p.isActive ? (
@@ -108,17 +108,20 @@ export default function PlansPage() {
                 )}
               </div>
 
-              <p className="text-2xl font-bold text-brand mt-auto">
-                {formatCurrency(Number(p.price))}{t('plans.per_month_short')}
-              </p>
+              <div className="mt-auto">
+                <p className="text-[30px] font-bold text-ink leading-none">
+                  {formatCurrency(Number(p.price))}
+                  <span className="text-[13px] font-normal text-muted ml-1">{t('plans.per_month_short')}</span>
+                </p>
+              </div>
 
               {p._count?.subscriptions !== undefined && (
-                <div className="text-xs text-muted">
+                <div className="flex items-center gap-1.5">
                   <span className="badge-accent">{t('plans.subscribers_count', { count: p._count.subscriptions })}</span>
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2 border-t border-line">
+              <div className="flex gap-2 pt-3 border-t border-lineSoft">
                 <button
                   className="btn-outline btn-sm flex-1"
                   onClick={() => setEditing(p)}

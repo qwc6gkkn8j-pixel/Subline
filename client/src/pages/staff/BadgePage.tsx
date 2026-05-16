@@ -87,9 +87,9 @@ export default function BadgePage() {
   if (!staff) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-        <div className="card max-w-sm w-full text-center">
-          <p className="text-ink mb-3">Conta sem staff associado.</p>
-          <button className="btn-outline" onClick={() => void logout()}>
+        <div className="bg-surface rounded-card border border-lineSoft p-6 max-w-sm w-full text-center">
+          <p className="text-ink mb-4">Conta sem staff associado.</p>
+          <button className="btn-outline w-full" onClick={() => void logout()}>
             Sair
           </button>
         </div>
@@ -107,7 +107,7 @@ export default function BadgePage() {
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-line px-4 py-3 flex items-center gap-3">
+      <header className="bg-white border-b border-lineSoft px-4 py-3 flex items-center gap-3">
         <Logo className="h-7 w-auto" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-ink truncate">
@@ -125,9 +125,9 @@ export default function BadgePage() {
         </button>
       </header>
 
-      <main className="flex-1 px-4 py-6 max-w-md w-full mx-auto space-y-6">
-        {/* Live clock + state */}
-        <section className="card text-center">
+      <main className="flex-1 px-4 py-6 max-w-md w-full mx-auto space-y-5">
+        {/* Live clock + state card */}
+        <section className="bg-surface rounded-card border border-lineSoft p-5 text-center">
           <p className="text-xs text-muted">{user?.email}</p>
           <p className="text-5xl font-bold text-ink mt-2 tabular-nums">
             {now.toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -144,16 +144,16 @@ export default function BadgePage() {
             <span className={stateLabel[state].cls}>{stateLabel[state].text}</span>
           </div>
           {summary && (
-            <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-              <div className="rounded-button bg-surface p-2">
-                <p className="text-muted">{t('badge.worked')}</p>
-                <p className="font-semibold text-ink mt-0.5">
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="bg-white rounded-tile border border-lineSoft p-3 text-left">
+                <p className="text-xs text-muted">{t('badge.worked')}</p>
+                <p className="text-[22px] font-bold text-ink mt-0.5">
                   {formatHM(summary.totalMinutesWorked)}
                 </p>
               </div>
-              <div className="rounded-button bg-surface p-2">
-                <p className="text-muted">{t('badge.breaks')}</p>
-                <p className="font-semibold text-ink mt-0.5">
+              <div className="bg-white rounded-tile border border-lineSoft p-3 text-left">
+                <p className="text-xs text-muted">{t('badge.breaks')}</p>
+                <p className="text-[22px] font-bold text-ink mt-0.5">
                   {formatHM(summary.totalMinutesOnBreak)}
                 </p>
               </div>
@@ -164,32 +164,74 @@ export default function BadgePage() {
         {/* Action buttons */}
         <section className="space-y-3">
           {state === 'out' && (
-            <BigButton icon={<Play size={22} />} label={t('badge.clock_in_btn')} variant="success" busy={busy} onClick={() => void onBadge('clock_in')} />
+            <BigButton
+              icon={<Play size={22} />}
+              label={t('badge.clock_in_btn')}
+              variant="success"
+              busy={busy}
+              onClick={() => void onBadge('clock_in')}
+            />
           )}
           {state === 'working' && (
             <>
-              <BigButton icon={<Pause size={22} />} label={t('badge.break_start_btn')} variant="warning" busy={busy} onClick={() => void onBadge('break_start')} />
-              <BigButton icon={<Square size={22} />} label={t('badge.clock_out_btn')} variant="danger" busy={busy} onClick={() => void onBadge('clock_out')} />
+              <BigButton
+                icon={<Pause size={22} />}
+                label={t('badge.break_start_btn')}
+                variant="warning"
+                busy={busy}
+                onClick={() => void onBadge('break_start')}
+              />
+              <BigButton
+                icon={<Square size={22} />}
+                label={t('badge.clock_out_btn')}
+                variant="danger"
+                busy={busy}
+                onClick={() => void onBadge('clock_out')}
+              />
             </>
           )}
           {state === 'on_break' && (
             <>
-              <BigButton icon={<Play size={22} />} label={t('badge.break_end_btn')} variant="success" busy={busy} onClick={() => void onBadge('break_end')} />
-              <BigButton icon={<Square size={22} />} label={t('badge.clock_out_btn')} variant="danger" busy={busy} onClick={() => void onBadge('clock_out')} />
+              <BigButton
+                icon={<Play size={22} />}
+                label={t('badge.break_end_btn')}
+                variant="success"
+                busy={busy}
+                onClick={() => void onBadge('break_end')}
+              />
+              <BigButton
+                icon={<Square size={22} />}
+                label={t('badge.clock_out_btn')}
+                variant="danger"
+                busy={busy}
+                onClick={() => void onBadge('clock_out')}
+              />
             </>
           )}
         </section>
 
         {/* Today's history */}
-        <section className="card">
+        <section className="bg-white rounded-card border border-lineSoft p-5">
           <h2 className="text-sm font-semibold text-ink flex items-center gap-2 mb-3">
             <Clock size={16} /> {t('badge.today_summary')}
           </h2>
           {summary && summary.entries.length > 0 ? (
-            <ul className="divide-y divide-line">
+            <ul className="divide-y divide-lineSoft">
               {summary.entries.map((e) => (
-                <li key={e.id} className="py-2 flex items-center justify-between text-sm">
-                  <span className="text-ink">{t(`badge.${e.type === 'clock_in' ? 'clock_in_btn' : e.type === 'break_start' ? 'break_start_btn' : e.type === 'break_end' ? 'break_end_btn' : 'clock_out_btn'}`)}</span>
+                <li key={e.id} className="py-2.5 flex items-center justify-between text-sm">
+                  <span className="text-ink">
+                    {t(
+                      `badge.${
+                        e.type === 'clock_in'
+                          ? 'clock_in_btn'
+                          : e.type === 'break_start'
+                          ? 'break_start_btn'
+                          : e.type === 'break_end'
+                          ? 'break_end_btn'
+                          : 'clock_out_btn'
+                      }`
+                    )}
+                  </span>
                   <span className="text-muted tabular-nums">{formatTime(e.timestamp)}</span>
                 </li>
               ))}
@@ -217,16 +259,16 @@ function BigButton({
   onClick: () => void;
 }) {
   const cls = {
-    success: 'bg-success text-white hover:bg-success/90',
-    warning: 'bg-warning text-white hover:bg-warning/90',
-    danger: 'bg-danger text-white hover:bg-danger/90',
+    success: 'bg-success text-white hover:bg-success/90 active:scale-[0.98]',
+    warning: 'bg-warning text-white hover:bg-warning/90 active:scale-[0.98]',
+    danger: 'bg-danger text-white hover:bg-danger/90 active:scale-[0.98]',
   }[variant];
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={busy}
-      className={`w-full rounded-card py-5 flex items-center justify-center gap-3 font-semibold text-lg shadow-card transition disabled:opacity-50 ${cls}`}
+      className={`w-full rounded-card py-5 flex items-center justify-center gap-3 font-semibold text-lg transition-all disabled:opacity-50 ${cls}`}
     >
       {busy ? <Spinner /> : icon}
       {label}
