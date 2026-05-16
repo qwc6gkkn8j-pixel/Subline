@@ -321,6 +321,11 @@ barberRouter.put(
         ...(data.address !== undefined ? { address: data.address } : {}),
         ...(data.bio !== undefined ? { bio: data.bio } : {}),
       },
+      select: {
+        id: true, userId: true, name: true, phone: true, address: true,
+        bio: true, rating: true, stripeConnected: true, stripeAccountId: true,
+        createdAt: true, updatedAt: true,
+      },
     });
     if (data.name) {
       await prisma.user.update({ where: { id: barber.userId }, data: { fullName: data.name } });

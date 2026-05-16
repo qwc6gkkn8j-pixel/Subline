@@ -327,7 +327,7 @@ adminRouter.post(
   '/plans',
   asyncHandler(async (req, res) => {
     const data = planSchema.parse(req.body);
-    const barber = await prisma.barber.findUnique({ where: { id: data.barberId } });
+    const barber = await prisma.barber.findUnique({ where: { id: data.barberId }, select: { id: true } });
     if (!barber) throw NotFound('Barber not found');
     const plan = await prisma.plan.create({
       data: {
@@ -698,7 +698,9 @@ adminRouter.get(
   asyncHandler(async (req, res) => {
     const pro = await prisma.barber.findUnique({
       where: { id: req.params.barberId },
-      include: {
+      select: {
+        id: true, userId: true, name: true, phone: true, address: true,
+        bio: true, rating: true, stripeConnected: true, stripeAccountId: true, createdAt: true,
         user: { select: { id: true, email: true, status: true, createdAt: true } },
         _count: { select: { clients: true, appointments: true, plans: true, reviews: true } },
         plans: { where: { isActive: true }, select: { id: true, name: true, price: true } },
@@ -714,11 +716,11 @@ adminRouter.get(
       phone: pro.phone,
       bio: pro.bio,
       address: pro.address,
-      city: pro.city,
-      country: pro.country,
-      categories: pro.categories,
+      city: null,
+      country: 'LU',
+      categories: [],
       rating: pro.rating,
-      proStatus: pro.proStatus,
+      proStatus: 'active',
       stripeConnected: pro.stripeConnected,
       stripeAccountId: pro.stripeAccountId,
       userStatus: pro.user.status,

@@ -135,7 +135,7 @@ clientRouter.put(
   asyncHandler(async (req, res) => {
     const clientId = ensureClientId(req);
     const data = updateProfileSchema.parse(req.body);
-    const client = await prisma.client.findUnique({ where: { id: clientId } });
+    const client = await prisma.client.findUnique({ where: { id: clientId }, select: { id: true, userId: true } });
     if (!client) throw NotFound();
 
     await prisma.$transaction(async (tx) => {
