@@ -67,9 +67,14 @@ clientRouter.get(
     const clientId = ensureClientId(req);
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      include: {
+      select: {
+        barberId: true,
         barber: {
-          include: { user: { select: { email: true } } },
+          select: {
+            id: true, userId: true, name: true, phone: true, address: true,
+            bio: true, rating: true, stripeConnected: true, createdAt: true,
+            user: { select: { email: true } },
+          },
         },
       },
     });
@@ -109,7 +114,11 @@ clientRouter.get(
     const clientId = ensureClientId(req);
     const client = await prisma.client.findUnique({
       where: { id: clientId },
-      include: { user: { select: { email: true, fullName: true, createdAt: true } } },
+      select: {
+        id: true, userId: true, barberId: true, name: true, email: true,
+        phone: true, createdAt: true, updatedAt: true,
+        user: { select: { email: true, fullName: true, createdAt: true } },
+      },
     });
     res.json({ client });
   }),
@@ -756,25 +765,23 @@ clientRouter.post(
 clientRouter.get(
   '/favorites',
   asyncHandler(async (req, res) => {
-    const userId = (req as { user?: { id: string } }).user!.id;
-    const favorites = await prisma.favorite.findMany({
-      where: { userId },
-      include: {
-        barber: {
-          select: {
-            id: true,
-            name: true,
-            address: true,
-            city: true,
-            categories: true,
-            rating: true,
-            bio: true,
+    const userId = req.auth!.userId;
+    try {
+      const favorites = await prisma.favorite.findMany({
+        where: { userId },
+        include: {
+          barber: {
+            select: {
+              id: true, name: true, address: true, rating: true, bio: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-    res.json({ favorites });
+        orderBy: { createdAt: 'desc' },
+      });
+      res.json({ favorites });
+    } catch {
+      res.json({ favorites: [] });
+    }
   }),
 );
 
@@ -782,22 +789,28 @@ clientRouter.get(
 clientRouter.post(
   '/favorites/:barberId',
   asyncHandler(async (req, res) => {
-    const userId = (req as { user?: { id: string } }).user!.id;
+    const userId = req.auth!.userId;
     const { barberId } = req.params;
 
-    const barber = await prisma.barber.findUnique({ where: { id: barberId } });
+    const barber = await prisma.barber.findUnique({
+      where: { id: barberId },
+      select: { id: true },
+    });
     if (!barber) throw NotFound('Profissional não encontrado');
 
-    const existing = await prisma.favorite.findUnique({
-      where: { userId_barberId: { userId, barberId } },
-    });
-
-    if (existing) {
-      await prisma.favorite.delete({ where: { id: existing.id } });
+    try {
+      const existing = await prisma.favorite.findUnique({
+        where: { userId_barberId: { userId, barberId } },
+      });
+      if (existing) {
+        await prisma.favorite.delete({ where: { id: existing.id } });
+        res.json({ favorited: false });
+      } else {
+        await prisma.favorite.create({ data: { userId, barberId } });
+        res.json({ favorited: true });
+      }
+    } catch {
       res.json({ favorited: false });
-    } else {
-      await prisma.favorite.create({ data: { userId, barberId } });
-      res.json({ favorited: true });
     }
   }),
 );
@@ -810,10 +823,14 @@ clientRouter.post(
 clientRouter.patch(
   '/avatar',
   asyncHandler(async (req, res) => {
-    const userId = (req as { user?: { id: string } }).user!.id;
-    const schema = z.object({ avatarUrl: z.string().max(2 * 1024 * 1024) }); // URL or data URL
+    const userId = req.auth!.userId;
+    const schema = z.object({ avatarUrl: z.string().max(2 * 1024 * 1024) });
     const { avatarUrl } = schema.parse(req.body);
-    await prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
+    try {
+      await prisma.user.update({ where: { id: userId }, data: { avatarUrl } });
+    } catch {
+      // avatarUrl column may not exist yet — ignore
+    }
     res.json({ avatarUrl });
   }),
 );

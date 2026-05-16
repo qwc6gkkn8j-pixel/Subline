@@ -49,7 +49,10 @@ barberRouter.get(
           subscriptions: { some: { status: 'active' } },
         },
       }),
-      prisma.barber.findUnique({ where: { id: barberId } }),
+      prisma.barber.findUnique({
+      where: { id: barberId },
+      select: { id: true, userId: true, name: true, rating: true, stripeConnected: true, stripeAccountId: true },
+    }),
       prisma.payment.aggregate({
         _sum: { amount: true },
         where: {
@@ -89,8 +92,14 @@ barberRouter.get(
             }
           : {}),
       },
-      include: {
-        subscriptions: { orderBy: { createdAt: 'desc' }, take: 1 },
+      select: {
+        id: true, userId: true, barberId: true, name: true, email: true,
+        phone: true, createdAt: true, updatedAt: true,
+        subscriptions: {
+          orderBy: { createdAt: 'desc' as const },
+          take: 1,
+          select: { id: true, status: true, planType: true, planId: true, price: true, renewalDate: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -120,7 +129,7 @@ barberRouter.post(
     const barberId = ensureBarberId(req);
     const data = createClientSchema.parse(req.body);
 
-    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() } });
+    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() }, select: { id: true } });
     if (existing) throw Conflict('A user with that email already exists');
 
     const passwordHash = await bcrypt.hash(data.password, env.BCRYPT_ROUNDS);
@@ -185,7 +194,10 @@ barberRouter.put(
     const barberId = ensureBarberId(req);
     const client = await prisma.client.findFirst({
       where: { id: req.params.clientId, barberId },
-      include: { subscriptions: { orderBy: { createdAt: 'desc' }, take: 1 } },
+      select: {
+        id: true, userId: true, barberId: true, name: true, email: true, phone: true,
+        subscriptions: { orderBy: { createdAt: 'desc' as const }, take: 1 },
+      },
     });
     if (!client) throw NotFound('Client not found or not yours');
 
@@ -255,6 +267,7 @@ barberRouter.delete(
     const barberId = ensureBarberId(req);
     const client = await prisma.client.findFirst({
       where: { id: req.params.clientId, barberId },
+      select: { id: true, userId: true },
     });
     if (!client) throw NotFound('Client not found or not yours');
     await prisma.user.delete({ where: { id: client.userId } });
@@ -277,7 +290,12 @@ barberRouter.get(
     const barberId = ensureBarberId(req);
     const barber = await prisma.barber.findUnique({
       where: { id: barberId },
-      include: { user: { select: { email: true, fullName: true } } },
+      select: {
+        id: true, userId: true, name: true, phone: true, address: true,
+        bio: true, rating: true, stripeConnected: true, stripeAccountId: true,
+        createdAt: true, updatedAt: true,
+        user: { select: { email: true, fullName: true } },
+      },
     });
     res.json({ barber });
   }),
@@ -372,10 +390,11 @@ barberRouter.post(
     const data = registerCutSchema.parse(req.body);
     const client = await prisma.client.findFirst({
       where: { id: req.params.clientId, barberId },
-      include: {
+      select: {
+        id: true, userId: true, barberId: true, name: true, email: true, phone: true,
         subscriptions: {
           where: { status: 'active' },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: 'desc' as const },
           take: 1,
         },
       },
@@ -429,7 +448,8 @@ barberRouter.get(
     const barberId = ensureBarberId(req);
     const client = await prisma.client.findFirst({
       where: { id: req.params.clientId, barberId },
-      include: {
+      select: {
+        id: true, userId: true, name: true, email: true,
         subscriptions: { select: { id: true } },
       },
     });
@@ -458,9 +478,12 @@ barberRouter.post(
     const barberId = ensureBarberId(req);
     const data = paymentLinkSchema.parse(req.body);
     const [client, plan, barber] = await Promise.all([
-      prisma.client.findFirst({ where: { id: req.params.clientId, barberId } }),
+      prisma.client.findFirst({ where: { id: req.params.clientId, barberId }, select: { id: true, name: true, email: true, userId: true } }),
       prisma.plan.findFirst({ where: { id: data.planId, barberId, isActive: true } }),
-      prisma.barber.findUnique({ where: { id: barberId } }),
+      prisma.barber.findUnique({
+      where: { id: barberId },
+      select: { id: true, userId: true, name: true, rating: true, stripeConnected: true, stripeAccountId: true },
+    }),
     ]);
     if (!client) throw NotFound('Client not found or not yours');
     if (!plan) throw NotFound('Plan not found or inactive');
@@ -563,7 +586,7 @@ barberRouter.post(
   asyncHandler(async (req, res) => {
     const barberId = ensureBarberId(req);
     const data = appointmentSchema.parse(req.body);
-    const client = await prisma.client.findFirst({ where: { id: data.clientId, barberId } });
+    const client = await prisma.client.findFirst({ where: { id: data.clientId, barberId }, select: { id: true, name: true, email: true, userId: true, barberId: true } });
     if (!client) throw NotFound('Client not found or not yours');
 
     // Resolve service catalog row (if any) and lock in its duration/price.
@@ -1030,6 +1053,7 @@ barberRouter.post(
     const data = startConversationSchema.parse(req.body);
     const client = await prisma.client.findFirst({
       where: { id: data.clientId, barberId },
+      select: { id: true, name: true, userId: true },
     });
     if (!client) throw NotFound('Client not found or not yours');
     const existing = await prisma.conversation.findFirst({
@@ -1093,7 +1117,10 @@ barberRouter.post(
     });
     // notify the other party
     if (conv.clientId) {
-      const client = await prisma.client.findUnique({ where: { id: conv.clientId } });
+      const client = await prisma.client.findUnique({
+      where: { id: conv.clientId },
+      select: { id: true, userId: true, name: true, email: true, phone: true, barberId: true },
+    });
       if (client) {
         await prisma.notification.create({
           data: {
@@ -1707,7 +1734,10 @@ barberRouter.post(
 
     const barber = await prisma.barber.findUnique({
       where: { id: barberId },
-      include: { user: { select: { email: true } } },
+      select: {
+        id: true, stripeAccountId: true, userId: true,
+        user: { select: { email: true } },
+      },
     });
     if (!barber) throw NotFound('Barber not found');
 

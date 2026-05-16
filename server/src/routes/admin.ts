@@ -131,7 +131,7 @@ adminRouter.post(
   '/users',
   asyncHandler(async (req, res) => {
     const data = createSchema.parse(req.body);
-    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() } });
+    const existing = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() }, select: { id: true } });
     if (existing) throw Conflict('Email already registered');
     const passwordHash = await bcrypt.hash(data.password, env.BCRYPT_ROUNDS);
     const user = await prisma.$transaction(async (tx) => {
@@ -193,11 +193,11 @@ adminRouter.put(
   '/users/:userId',
   asyncHandler(async (req, res) => {
     const data = updateSchema.parse(req.body);
-    const user = await prisma.user.findUnique({ where: { id: req.params.userId } });
+    const user = await prisma.user.findUnique({ where: { id: req.params.userId }, select: { id: true, email: true, role: true } });
     if (!user) throw NotFound('User not found');
 
     if (data.email && data.email.toLowerCase() !== user.email) {
-      const dup = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() } });
+      const dup = await prisma.user.findUnique({ where: { email: data.email.toLowerCase() }, select: { id: true } });
       if (dup) throw Conflict('Email already registered');
     }
 
@@ -239,7 +239,7 @@ adminRouter.delete(
   '/users/:userId',
   asyncHandler(async (req, res) => {
     if (req.params.userId === req.auth!.userId) throw BadRequest('Cannot delete your own account');
-    const user = await prisma.user.findUnique({ where: { id: req.params.userId } });
+    const user = await prisma.user.findUnique({ where: { id: req.params.userId }, select: { id: true, email: true, role: true } });
     if (!user) throw NotFound('User not found');
     await prisma.user.delete({ where: { id: req.params.userId } });
     await logAudit({

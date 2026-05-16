@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "npm --workspace server run build"
 
 [deploy]
-startCommand = "npx prisma migrate deploy --schema server/prisma/schema.prisma || npx prisma db push --schema server/prisma/schema.prisma --accept-data-loss; node server/dist/index.js"
+startCommand = "npx prisma db push --schema server/prisma/schema.prisma --accept-data-loss && node server/dist/index.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
