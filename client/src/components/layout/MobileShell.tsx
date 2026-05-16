@@ -17,11 +17,11 @@ interface MobileShellProps {
 }
 
 // Mobile-first shell. Renders the design-system Screen + TabBar.
-// Desktop = same look, centred with max-width 430 and outer surface.
 export function MobileShell({ tabs, children }: MobileShellProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const activeTab = tabs.find((t) => pathname === t.to || pathname.startsWith(t.to + '/')) || tabs[0];
+  const activeTab =
+    tabs.find((t) => pathname === t.to || pathname.startsWith(t.to + '/')) || tabs[0];
 
   return (
     <div
@@ -59,7 +59,7 @@ export function MobileShell({ tabs, children }: MobileShellProps) {
   );
 }
 
-// Standard tab sets for each role
+// ── Tabs (mobile bottom nav) ─────────────────────────────────────────────────
 export const CLIENT_TABS: MobileTab[] = [
   { id: 'home', label: 'Início', icon: I.home, to: '/client' },
   { id: 'cal', label: 'Marcações', icon: I.cal, to: '/client/calendar' },
@@ -82,4 +82,41 @@ export const ADMIN_TABS: MobileTab[] = [
   { id: 'users', label: 'Users', icon: I.users, to: '/admin/users' },
   { id: 'payments', label: 'Pagar', icon: I.card, to: '/admin/payments' },
   { id: 'profile', label: 'Conta', icon: I.cog, to: '/admin/settings' },
+];
+
+// ── Nav items (desktop sidebar, more comprehensive) ─────────────────────────
+export const CLIENT_NAV = [
+  { label: 'Início', icon: I.home, to: '/client', end: true },
+  { label: 'Descobrir', icon: I.search, to: '/client/discover' },
+  { label: 'Marcações', icon: I.cal, to: '/client/calendar' },
+  { label: 'Subscrição', icon: I.card, to: '/client/subscription' },
+  { label: 'Loja', icon: I.bag, to: '/client/shop' },
+  { label: 'Mensagens', icon: I.chat, to: '/client/chat' },
+  { label: 'Suporte', icon: I.help, to: '/client/support' },
+  { label: 'Conta', icon: I.user, to: '/client/profile' },
+];
+
+export const BARBER_NAV = [
+  { label: 'Painel', icon: I.home, to: '/barber', end: true },
+  { label: 'Clientes', icon: I.users, to: '/barber/clients' },
+  { label: 'Agenda', icon: I.cal, to: '/barber/calendar' },
+  { label: 'Serviços', icon: I.scissors, to: '/barber/services' },
+  { label: 'Staff', icon: I.user, to: '/barber/staff' },
+  { label: 'Planos', icon: I.card, to: '/barber/plans' },
+  { label: 'Avaliações', icon: I.star, to: '/barber/reviews' },
+  { label: 'Loja', icon: I.bag, to: '/barber/shop' },
+  { label: 'Mensagens', icon: I.chat, to: '/barber/chat' },
+  { label: 'Suporte', icon: I.help, to: '/barber/support' },
+  { label: 'Conta', icon: I.cog, to: '/barber/profile' },
+];
+
+export const ADMIN_NAV = [
+  { label: 'Visão geral', icon: I.home, to: '/admin', end: true },
+  { label: 'Profissionais', icon: I.scissors, to: '/admin/pros' },
+  { label: 'Utilizadores', icon: I.users, to: '/admin/users' },
+  { label: 'Pagamentos', icon: I.card, to: '/admin/payments' },
+  { label: 'Planos', icon: I.bag, to: '/admin/plans' },
+  { label: 'Tickets', icon: I.help, to: '/admin/tickets' },
+  { label: 'Auditoria', icon: I.shield, to: '/admin/logs' },
+  { label: 'Definições', icon: I.cog, to: '/admin/settings' },
 ];

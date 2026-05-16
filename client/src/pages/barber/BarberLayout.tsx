@@ -3,7 +3,8 @@ import { lazy, Suspense, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FullPageSpinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
-import { MobileShell, BARBER_TABS } from '@/components/layout/MobileShell';
+import { BARBER_TABS, BARBER_NAV } from '@/components/layout/MobileShell';
+import { ResponsiveShell } from '@/components/layout/ResponsiveShell';
 
 const DashboardPage = lazy(() => import('./DashboardPage'));
 const ClientsPage = lazy(() => import('./ClientsPage'));
@@ -42,7 +43,7 @@ function StripeConnectFeedback() {
 
 export default function BarberLayout() {
   return (
-    <MobileShell tabs={BARBER_TABS}>
+    <ResponsiveShell tabs={BARBER_TABS} navItems={BARBER_NAV}>
       <StripeConnectFeedback />
       <Suspense fallback={<FullPageSpinner />}>
         <Routes>
@@ -60,6 +61,6 @@ export default function BarberLayout() {
           <Route path="*" element={<Navigate to="/barber" replace />} />
         </Routes>
       </Suspense>
-    </MobileShell>
+    </ResponsiveShell>
   );
 }

@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { FullPageSpinner } from '@/components/ui/Spinner';
-import { MobileShell, CLIENT_TABS } from '@/components/layout/MobileShell';
+import { CLIENT_TABS, CLIENT_NAV } from '@/components/layout/MobileShell';
+import { ResponsiveShell } from '@/components/layout/ResponsiveShell';
 
 const HomePage = lazy(() => import('./HomePage'));
 const DiscoverPage = lazy(() => import('./DiscoverPage'));
@@ -14,7 +15,7 @@ const SupportPage = lazy(() => import('./SupportPage'));
 
 export default function ClientLayout() {
   return (
-    <MobileShell tabs={CLIENT_TABS}>
+    <ResponsiveShell tabs={CLIENT_TABS} navItems={CLIENT_NAV}>
       <Suspense fallback={<FullPageSpinner />}>
         <Routes>
           <Route index element={<HomePage />} />
@@ -28,6 +29,6 @@ export default function ClientLayout() {
           <Route path="*" element={<Navigate to="/client" replace />} />
         </Routes>
       </Suspense>
-    </MobileShell>
+    </ResponsiveShell>
   );
 }

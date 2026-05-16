@@ -1,7 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { FullPageSpinner } from '@/components/ui/Spinner';
-import { MobileShell, ADMIN_TABS } from '@/components/layout/MobileShell';
+import { ADMIN_TABS, ADMIN_NAV } from '@/components/layout/MobileShell';
+import { ResponsiveShell } from '@/components/layout/ResponsiveShell';
 
 const DashboardPage = lazy(() => import('./DashboardPage'));
 const UsersPage = lazy(() => import('./UsersPage'));
@@ -14,7 +15,7 @@ const SettingsPage = lazy(() => import('./SettingsPage'));
 
 export default function AdminLayout() {
   return (
-    <MobileShell tabs={ADMIN_TABS}>
+    <ResponsiveShell tabs={ADMIN_TABS} navItems={ADMIN_NAV}>
       <Suspense fallback={<FullPageSpinner />}>
         <Routes>
           <Route index element={<DashboardPage />} />
@@ -28,6 +29,6 @@ export default function AdminLayout() {
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </Suspense>
-    </MobileShell>
+    </ResponsiveShell>
   );
 }

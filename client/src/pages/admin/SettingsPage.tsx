@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, ExternalLink, Globe, ChevronRight } from 'lucide-react';
-import { Banner } from '@/components/ui/Banner';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
+import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import type { StripeStatus } from '@/lib/types';
-import { useTranslation } from 'react-i18next';
+import { C, FONT, I, Icon, Avatar, ScrollBody, CTA } from '@/design-system';
 
 export default function SettingsPage() {
-    const { t } = useTranslation('admin');
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [status, setStatus] = useState<StripeStatus | null>(null);
 
   useEffect(() => {
@@ -17,114 +17,143 @@ export default function SettingsPage() {
       .catch(() => setStatus(null));
   }, []);
 
+  const onLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  const fullName = user?.fullName ?? '';
+  const initials = (fullName.split(' ')[0]?.[0] ?? 'A').toUpperCase();
+
+  const quick = [
+    { icon: I.users, label: 'Profissionais', onClick: () => navigate('/admin/pros') },
+    { icon: I.user, label: 'Utilizadores', onClick: () => navigate('/admin/users') },
+    { icon: I.card, label: 'Pagamentos', onClick: () => navigate('/admin/payments') },
+    { icon: I.help, label: 'Tickets', onClick: () => navigate('/admin/tickets') },
+  ];
+
   return (
-    <div className="space-y-6 max-w-3xl">
-      <h1 className="page-title">{t('settings.title')}</h1>
-
-      {/* Stripe Connect section */}
-      <section className="card border border-lineSoft !p-0 overflow-hidden">
-        {/* Section header row */}
-        <div className="px-5 py-4 border-b border-lineSoft flex items-center gap-3">
-          <span className="w-9 h-9 rounded-button bg-brand/10 text-brand flex items-center justify-center shrink-0">
-            <SettingsIcon size={17} />
-          </span>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-ink text-sm">Stripe Connect</h2>
-            <p className="text-xs text-muted">Pagamentos e onboarding de profissionais</p>
-          </div>
-          <ChevronRight size={16} className="text-muted shrink-0" />
-        </div>
-
-        {/* Status content */}
-        <div className="px-5 py-4 space-y-4">
-          {status === null ? (
-            <p className="text-sm text-muted">A carregar…</p>
-          ) : status.configured ? (
-            <Banner tone="success" title="Stripe configurado">
-              A plataforma está pronta para receber pagamentos.{' '}
-              {status.connectConfigured ? 'Connect (OAuth) ativo.' : 'Connect (OAuth) ainda não configurado.'}
-            </Banner>
-          ) : (
-            <Banner tone="warning" title="Stripe ainda não configurado">
-              Para ativar pagamentos reais, define no servidor:
-              <ul className="list-disc pl-5 mt-2 space-y-0.5 text-sm">
-                <li>
-                  <code>STRIPE_SECRET_KEY</code> — chave secreta da plataforma
-                </li>
-                <li>
-                  <code>STRIPE_PUBLISHABLE_KEY</code> — chave pública (frontend)
-                </li>
-                <li>
-                  <code>STRIPE_CLIENT_ID</code> — necessário para Connect OAuth
-                </li>
-                <li>
-                  <code>STRIPE_WEBHOOK_SECRET</code> — necessário para receber eventos
-                </li>
-              </ul>
-              <a
-                href="https://dashboard.stripe.com/connect/settings"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-brand mt-3 hover:underline text-sm"
-              >
-                Abrir dashboard Stripe <ExternalLink size={12} />
-              </a>
-            </Banner>
-          )}
-
-          {/* Menu-row style detail items */}
-          <div className="divide-y divide-lineSoft rounded-tile border border-lineSoft overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm text-muted">Configurado</span>
-              <span className="text-sm font-medium text-ink">
-                {status?.configured ? 'Sim' : 'Não'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm text-muted">Connect (OAuth)</span>
-              <span className="text-sm font-medium text-ink">
-                {status?.connectConfigured ? 'Sim' : 'Não'}
-              </span>
-            </div>
-            {status?.publishableKey && (
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm text-muted">Publishable key</span>
-                <code className="text-xs text-ink">{status.publishableKey.slice(0, 16)}…</code>
-              </div>
-            )}
+    <ScrollBody style={{ padding: '50px 20px 24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4, margin: 0 }}>Definições</h1>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{user?.email}</div>
+          <div
+            style={{
+              fontSize: 11,
+              color: C.danger,
+              fontWeight: 700,
+              letterSpacing: 0.4,
+              textTransform: 'uppercase',
+              marginTop: 8,
+            }}
+          >
+            Administrador
           </div>
         </div>
-      </section>
+        <Avatar initials={initials} size={56} bg={C.surface} />
+      </div>
 
-      {/* Language section */}
-      <section className="card border border-lineSoft !p-0 overflow-hidden">
-        <div className="px-5 py-4 border-b border-lineSoft flex items-center gap-3">
-          <span className="w-9 h-9 rounded-button bg-surface text-ink flex items-center justify-center shrink-0 border border-lineSoft">
-            <Globe size={17} />
-          </span>
-          <div className="flex-1 min-w-0">
-            <h2 className="font-semibold text-ink text-sm">Langue / Language</h2>
-            <p className="text-xs text-muted">Interface language preference</p>
-          </div>
+      {status && (
+        <div
+          style={{
+            background: status.configured ? 'rgba(43,200,160,0.10)' : 'rgba(240,184,43,0.10)',
+            color: status.configured ? C.success : C.warning,
+            borderRadius: 14,
+            padding: '14px 18px',
+            fontSize: 13,
+            marginBottom: 18,
+            fontWeight: 600,
+          }}
+        >
+          {status.configured
+            ? `Stripe configurado · Connect ${status.connectConfigured ? 'ativo' : 'inativo'}`
+            : 'Stripe ainda não configurado'}
         </div>
-        <div className="px-5 py-4">
-          <LanguageSelector variant="list" />
-        </div>
-      </section>
+      )}
 
-      {/* About section */}
-      <section className="card border border-lineSoft !p-0 overflow-hidden">
-        <div className="px-5 py-4 border-b border-lineSoft">
-          <h2 className="font-semibold text-ink text-sm">Sobre</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+        {quick.map((q, i) => (
+          <button
+            key={i}
+            onClick={q.onClick}
+            style={{
+              background: C.surface,
+              borderRadius: 14,
+              padding: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: FONT,
+            }}
+          >
+            <Icon d={q.icon} size={20} color={C.text} stroke={2} />
+            <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{q.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() => navigate('/admin/logs')}
+        style={{
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          padding: 18,
+          background: C.surface,
+          borderRadius: 16,
+          marginBottom: 12,
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          width: '100%',
+          fontFamily: FONT,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>Auditoria</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Logs de atividade na plataforma</div>
         </div>
-        <div className="px-5 py-4">
-          <p className="text-sm text-muted">
-            SUBLINE — sistema de gestão de negócios. Versão de pré-visualização (v3) com Stripe Connect
-            em modo stub. As mensagens de erro Stripe (HTTP 503) são esperadas até preencheres as variáveis
-            de ambiente.
-          </p>
+        <Icon d={I.chev} size={18} color={C.faint} stroke={2} />
+      </button>
+
+      <button
+        onClick={() => navigate('/admin/plans')}
+        style={{
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          padding: 18,
+          background: C.surface,
+          borderRadius: 16,
+          marginBottom: 24,
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          width: '100%',
+          fontFamily: FONT,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>Planos</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Gestão de planos das profissionais</div>
         </div>
-      </section>
-    </div>
+        <Icon d={I.chev} size={18} color={C.faint} stroke={2} />
+      </button>
+
+      <CTA variant="ghost" icon={<Icon d={I.logout} size={16} stroke={2} />} onClick={onLogout}>
+        Sair / Mudar conta
+      </CTA>
+    </ScrollBody>
   );
 }

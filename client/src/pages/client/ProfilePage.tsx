@@ -1,70 +1,63 @@
-import { useEffect, useRef, useState } from 'react';
-import { Save, Camera, Heart, Globe } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
-import { Avatar } from '@/components/ui/Avatar';
-import { LanguageSelector } from '@/components/ui/LanguageSelector';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import type { Client } from '@/lib/types';
-
-interface FavoriteEntry {
-  id: string;
-  barberId: string;
-  barber: { id: string; name: string; city?: string; rating: number };
-}
+import type { Client, Subscription } from '@/lib/types';
+import {
+  C,
+  FONT,
+  I,
+  Icon,
+  Avatar,
+  ScrollBody,
+  CTA,
+  PlanBadge,
+} from '@/design-system';
 
 export default function ProfilePage() {
   const toast = useToast();
-  const { user, refresh } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [client, setClient] = useState<Client | null>(null);
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [client, setClient] = useState<(Client & { user: { email: string } }) | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [editing, setEditing] = useState<'profile' | 'password' | null>(null);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
-  const [avatarUploading, setAvatarUploading] = useState(false);
-  const [favorites, setFavorites] = useState<FavoriteEntry[]>([]);
 
-  const load = async () => {
-    try {
-      const [{ data: pd }, { data: fd }] = await Promise.all([
-        api.get<{ client: Client & { user: { email: string; createdAt: string } } }>('/client/profile'),
-        api.get<{ favorites: FavoriteEntry[] }>('/client/favorites'),
-      ]);
-      setClient(pd.client);
-      setName(pd.client.name);
-      setEmail(pd.client.email);
-      setPhone(pd.client.phone ?? '');
-      setFavorites(fd.favorites);
-    } catch (err) {
-      toast.error(apiErrorMessage(err));
-    }
-  };
+  useEffect(() => {
+    Promise.all([
+      api
+        .get<{ client: Client & { user: { email: string; createdAt: string } } }>('/client/profile')
+        .catch(() => ({ data: { client: null as unknown as Client & { user: { email: string; createdAt: string } } } })),
+      api
+        .get<{ subscription: Subscription | null }>('/client/subscription')
+        .catch(() => ({ data: { subscription: null } })),
+    ])
+      .then(([p, s]) => {
+        if (p.data.client) {
+          setClient(p.data.client);
+          setName(p.data.client.name);
+          setPhone(p.data.client.phone ?? '');
+        }
+        setSubscription(s.data.subscription);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-  useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSaveProfile = async () => {
     setBusy(true);
     try {
-      await api.put('/client/profile', { name, email, phone: phone || null });
-      if (newPassword) {
-        if (newPassword !== confirm) throw new Error('Passwords não coincidem');
-        if (!currentPassword) throw new Error('Password atual obrigatória');
-        await api.put('/client/password', { currentPassword, newPassword, confirmPassword: confirm });
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirm('');
-      }
+      await api.put('/client/profile', { name, phone: phone || null });
       toast.success('Perfil atualizado');
-      await refresh();
-      await load();
+      setEditing(null);
+      setClient((c) => (c ? { ...c, name, phone } : c));
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
@@ -72,153 +65,330 @@ export default function ProfilePage() {
     }
   };
 
-  const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Ficheiro demasiado grande (máx. 2 MB)');
+  const onChangePassword = async () => {
+    if (newPassword !== confirm) {
+      toast.error('Passwords não coincidem');
       return;
     }
-    setAvatarUploading(true);
+    setBusy(true);
     try {
-      // Encode as data URL — in production this should go to S3/Cloudinary
-      const reader = new FileReader();
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+      await api.put('/client/password', {
+        currentPassword,
+        newPassword,
+        confirmPassword: confirm,
       });
-      await api.patch('/client/avatar', { avatarUrl: dataUrl });
-      toast.success('Foto actualizada');
-      await refresh();
+      toast.success('Password alterada');
+      setEditing(null);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirm('');
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
-      setAvatarUploading(false);
-      e.target.value = '';
+      setBusy(false);
     }
   };
 
-  const removeFavorite = async (barberId: string) => {
-    try {
-      await api.post(`/client/favorites/${barberId}`);
-      setFavorites((prev) => prev.filter((f) => f.barberId !== barberId));
-    } catch (err) {
-      toast.error(apiErrorMessage(err));
-    }
+  const onLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
   };
 
-  if (!client) {
-    return <div className="card text-center py-10"><Spinner /></div>;
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 0' }}>
+        <Spinner />
+      </div>
+    );
   }
 
+  const fullName = client?.name ?? user?.fullName ?? '';
+  const initials = fullName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase() || 'U';
+
+  const quick = [
+    { icon: I.cog, label: 'Editar perfil', onClick: () => setEditing('profile') },
+    { icon: I.lock, label: 'Password', onClick: () => setEditing('password') },
+    { icon: I.heart, label: 'Favoritos', onClick: () => navigate('/client/discover') },
+    { icon: I.chat, label: 'Mensagens', onClick: () => navigate('/client/chat') },
+  ];
+
   return (
-    <div className="max-w-xl space-y-6">
-      <h1 className="page-title">O meu perfil</h1>
-
-      {/* Avatar */}
-      <div className="card flex items-center gap-4">
-        <div className="relative">
-          <Avatar name={client.name} size={64} imageUrl={user?.avatarUrl} />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={avatarUploading}
-            className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-ink text-white flex items-center justify-center shadow-btn"
-            aria-label="Alterar foto"
-          >
-            {avatarUploading ? <Spinner className="w-3 h-3" /> : <Camera size={13} />}
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={onAvatarChange}
-          />
+    <ScrollBody style={{ padding: '50px 20px 24px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4, margin: 0 }}>
+            {fullName || 'Conta'}
+          </h1>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{client?.user.email ?? user?.email}</div>
+          {subscription && (
+            <div style={{ marginTop: 10 }}>
+              <PlanBadge>{(subscription.plan?.name ?? 'Premium') + ' · Ativo'}</PlanBadge>
+            </div>
+          )}
         </div>
-        <div>
-          <p className="card-title">{client.name}</p>
-          <p className="text-[13px] text-muted">{user?.email}</p>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="text-[13px] text-brand mt-1"
-          >
-            Alterar foto
-          </button>
-        </div>
+        <Avatar initials={initials} size={56} bg={C.surface} />
       </div>
 
-      {/* Formulário */}
-      <form onSubmit={onSubmit} className="card space-y-4">
-        <div>
-          <label className="label">Nome</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} required className="bg-surface border-transparent" />
-        </div>
-        <div>
-          <label className="label">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-surface border-transparent" />
-        </div>
-        <div>
-          <label className="label">Telefone</label>
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-surface border-transparent" />
-        </div>
-        <div className="border-t border-lineSoft pt-4">
-          <p className="text-[13px] text-muted mb-3">Mudar password (opcional)</p>
-          <div className="space-y-3">
-            <input type="password" placeholder="Password atual" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} autoComplete="current-password" className="bg-surface border-transparent" />
-            <input type="password" placeholder="Nova password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} autoComplete="new-password" className="bg-surface border-transparent" />
-            <input type="password" placeholder="Confirmar nova password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" className="bg-surface border-transparent" />
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? <Spinner /> : <Save size={16} />} Guardar
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 10,
+          marginBottom: 24,
+        }}
+      >
+        {quick.map((q, i) => (
+          <button
+            key={i}
+            onClick={q.onClick}
+            style={{
+              background: C.surface,
+              borderRadius: 14,
+              padding: '18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              border: 'none',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: FONT,
+            }}
+          >
+            <Icon d={q.icon} size={20} color={C.text} stroke={2} />
+            <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{q.label}</span>
           </button>
-        </div>
-      </form>
-
-      {/* Language */}
-      <div className="card">
-        <div className="flex items-center gap-2 mb-4">
-          <Globe size={16} className="text-muted" />
-          <h2 className="section-title">Langue / Language</h2>
-        </div>
-        <LanguageSelector variant="list" />
+        ))}
       </div>
 
-      {/* Favoritos */}
-      {favorites.length > 0 && (
-        <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <Heart size={16} className="text-danger fill-danger" />
-            <h2 className="section-title">Os meus favoritos</h2>
+      {subscription && (
+        <button
+          onClick={() => navigate('/client/subscription')}
+          style={{
+            display: 'flex',
+            gap: 14,
+            alignItems: 'center',
+            padding: 18,
+            background: C.surface,
+            borderRadius: 16,
+            marginBottom: 12,
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+            width: '100%',
+            fontFamily: FONT,
+          }}
+        >
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>A tua subscrição</div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 4, lineHeight: 1.4 }}>
+              {subscription.cutsTotal
+                ? `${subscription.cutsUsed} de ${subscription.cutsTotal} cortes este mês`
+                : 'Subscrição activa'}
+            </div>
           </div>
-          <div>
-            {favorites.map((fav) => (
-              <div key={fav.id} className="flex items-center justify-between gap-3 py-3 border-b border-lineSoft last:border-b-0">
-                <div>
-                  <p className="card-title">{fav.barber.name}</p>
-                  {fav.barber.city && <p className="text-[13px] text-muted">{fav.barber.city}</p>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[13px] text-muted flex items-center gap-0.5">
-                    <span>{Number(fav.barber.rating).toFixed(1)}</span>
-                    <span className="text-ink">★</span>
-                  </span>
-                  <Link to={`/client/calendar`} className="btn-ghost btn-sm text-xs">Marcar</Link>
-                  <button
-                    onClick={() => void removeFavorite(fav.barberId)}
-                    className="p-1 text-faint hover:text-danger"
-                    aria-label="Remover favorito"
-                  >
-                    <Heart size={14} className="fill-danger text-danger" />
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 14,
+              background: C.bg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Icon d={I.scissors} size={26} color={C.text} stroke={1.6} />
           </div>
-        </div>
+        </button>
       )}
+
+      <button
+        onClick={() => navigate('/client/support')}
+        style={{
+          display: 'flex',
+          gap: 14,
+          alignItems: 'center',
+          padding: 18,
+          background: C.surface,
+          borderRadius: 16,
+          marginBottom: 24,
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+          width: '100%',
+          fontFamily: FONT,
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>Ajuda &amp; Suporte</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+            Tickets, FAQ, contacto
+          </div>
+        </div>
+        <div
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: 14,
+            background: C.bg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Icon d={I.help} size={26} color={C.text} stroke={1.6} />
+        </div>
+      </button>
+
+      <CTA variant="ghost" icon={<Icon d={I.logout} size={16} stroke={2} />} onClick={onLogout}>
+        Sair / Mudar conta
+      </CTA>
+
+      {editing === 'profile' && (
+        <EditDialog title="Editar perfil" onClose={() => setEditing(null)}>
+          <FormField label="Nome">
+            <FormInput value={name} onChange={(e) => setName(e.target.value)} />
+          </FormField>
+          <FormField label="Telefone">
+            <FormInput value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </FormField>
+          <CTA variant="brand" onClick={onSaveProfile} disabled={busy}>
+            {busy ? 'A guardar…' : 'Guardar'}
+          </CTA>
+        </EditDialog>
+      )}
+
+      {editing === 'password' && (
+        <EditDialog title="Alterar password" onClose={() => setEditing(null)}>
+          <FormField label="Password atual">
+            <FormInput
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Nova password">
+            <FormInput
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </FormField>
+          <FormField label="Confirmar">
+            <FormInput
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+          </FormField>
+          <CTA variant="brand" onClick={onChangePassword} disabled={busy}>
+            {busy ? 'A guardar…' : 'Alterar password'}
+          </CTA>
+        </EditDialog>
+      )}
+    </ScrollBody>
+  );
+}
+
+function EditDialog({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: 12,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: C.bg,
+          borderRadius: 20,
+          padding: 24,
+          width: '100%',
+          maxWidth: 430,
+          fontFamily: FONT,
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>{title}</div>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 22,
+              color: C.muted,
+              padding: 0,
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>
+        {children}
+      </div>
     </div>
+  );
+}
+
+function FormField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 8, color: C.text }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      style={{
+        width: '100%',
+        background: C.surface,
+        borderRadius: 12,
+        padding: '14px 18px',
+        fontSize: 15,
+        border: 'none',
+        outline: 'none',
+        fontFamily: FONT,
+        color: C.text,
+        ...(props.style || {}),
+      }}
+    />
   );
 }
