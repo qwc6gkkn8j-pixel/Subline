@@ -1,186 +1,393 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Scissors,
-  CalendarDays,
-  CreditCard,
-  MessageSquare,
-  Star,
-  MapPin,
-  ChevronRight,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { Spinner } from '@/components/ui/Spinner';
-import { Avatar } from '@/components/ui/Avatar';
-import { formatDate } from '@/lib/utils';
-import type { Appointment, Barber, Cut, Subscription } from '@/lib/types';
-import { PLAN_LABEL, SERVICE_LABEL } from '@/lib/types';
+import type { Appointment, Barber, Subscription } from '@/lib/types';
+import { SERVICE_LABEL } from '@/lib/types';
+import {
+  C,
+  I,
+  Icon,
+  ScrollBody,
+  PageHeader,
+  SectionHeader,
+  SearchBar,
+  Chip,
+  ChipRow,
+  Card,
+  PlanBadge,
+  ImagePlaceholder,
+} from '@/design-system';
+
+interface DiscoverBarber {
+  id: string;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  address?: string | null;
+}
+
+const CATEGORIES = ['Tudo', 'Premium', 'Perto de ti', 'Promoções', 'Barba', 'Corte'];
 
 export default function HomePage() {
   const toast = useToast();
-  const { t } = useTranslation('client');
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [barber, setBarber] = useState<Barber | null>(null);
+  const [myBarber, setMyBarber] = useState<Barber | null>(null);
   const [upcoming, setUpcoming] = useState<Appointment[]>([]);
-  const [cuts, setCuts] = useState<Cut[]>([]);
+  const [pros, setPros] = useState<DiscoverBarber[]>([]);
+  const [cat, setCat] = useState('Tudo');
 
   useEffect(() => {
     Promise.all([
-      api.get<{ subscription: Subscription | null }>('/client/subscription'),
-      api.get<{ barber: Barber | null }>('/client/barber'),
-      api.get<{ appointments: Appointment[] }>('/client/appointments', {
-        params: { from: new Date().toISOString().slice(0, 10) },
-      }),
-      api.get<{ cuts: Cut[] }>('/client/cuts'),
+      api.get<{ subscription: Subscription | null }>('/client/subscription').catch(() => ({ data: { subscription: null } })),
+      api.get<{ barber: Barber | null }>('/client/barber').catch(() => ({ data: { barber: null } })),
+      api
+        .get<{ appointments: Appointment[] }>('/client/appointments', {
+          params: { from: new Date().toISOString().slice(0, 10) },
+        })
+        .catch(() => ({ data: { appointments: [] } })),
+      api
+        .get<{ pros: DiscoverBarber[] }>('/public/discover', { params: { limit: 5 } })
+        .catch(() => ({ data: { pros: [] } })),
     ])
-      .then(([s, b, a, c]) => {
+      .then(([s, b, a, d]) => {
         setSubscription(s.data.subscription);
-        setBarber(b.data.barber);
+        setMyBarber(b.data.barber);
         setUpcoming(a.data.appointments.slice(0, 3));
-        setCuts(c.data.cuts);
+        setPros(d.data.pros);
       })
       .catch((err) => toast.error(apiErrorMessage(err)))
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
-  const firstName = user?.fullName?.split(' ')[0] ?? 'Olá';
-  const used  = subscription?.cutsUsed ?? 0;
+  const firstName = user?.fullName?.split(' ')[0] ?? '';
+  const used = subscription?.cutsUsed ?? 0;
   const total = subscription?.cutsTotal ?? subscription?.plan?.cutsPerMonth ?? null;
-  const pct   = total ? Math.min(100, (used / total) * 100) : 0;
+  const pct = total ? Math.min(100, (used / total) * 100) : 0;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '120px 0' }}>
         <Spinner />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-4">
-      {/* Greeting */}
-      <div>
-        <h1 className="page-title">{t('home.greeting', { name: firstName })}</h1>
-        <p className="text-[13px] text-muted mt-1">
-          {new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: '2-digit', month: 'long' })}
-        </p>
-      </div>
-
-      {/* Subscription card */}
-      {subscription ? (
-        <div className="bg-surface rounded-card p-[18px]">
-          <span className="pill-premium">
-            {subscription.plan?.name ?? PLAN_LABEL[subscription.planType]}
-          </span>
-          <p className="section-title mt-3">
-            {total !== null
-              ? t('home.cuts_used', { used, total })
-              : t('home.subscription_card')}
-          </p>
-          {subscription.renewalDate && (
-            <p className="text-[13px] text-muted mt-1">
-              {t('home.renews_on', { date: formatDate(subscription.renewalDate) })}
-            </p>
-          )}
-          {total !== null && (
-            <div className="sub-track mt-4">
-              <div className="sub-fill" style={{ width: `${pct}%` }} />
-            </div>
-          )}
-          <div className="flex gap-3 mt-5 flex-wrap">
-            <Link to="/client/calendar" className="btn-primary btn-sm">
-              <CalendarDays size={14} /> {t('home.book_btn')}
-            </Link>
-            <Link to="/client/subscription" className="btn-ghost btn-sm">
-              <CreditCard size={14} /> {t('home.details_btn')}
-            </Link>
+    <>
+      <PageHeader
+        actions={
+          <>
+            <button
+              onClick={() => navigate('/client/discover')}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
+            >
+              <Icon d={I.heart} size={22} color={C.text} stroke={2} />
+            </button>
+            <button
+              onClick={() => navigate('/client/chat')}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}
+            >
+              <Icon d={I.bell} size={22} color={C.text} stroke={2} />
+            </button>
+          </>
+        }
+      />
+      <ScrollBody>
+        <div style={{ padding: '0 20px 14px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4 }}>
+            Olá{firstName ? `, ${firstName}` : ''}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              marginTop: 6,
+              color: C.muted,
+            }}
+          >
+            <Icon d={I.pin} size={14} stroke={2} />
+            <span style={{ fontSize: 13 }}>
+              {new Date().toLocaleDateString('pt-PT', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+              })}
+            </span>
+            <Icon d={I.chev} size={14} stroke={2} />
           </div>
         </div>
-      ) : (
-        <div className="bg-surface rounded-card p-[18px]">
-          <p className="section-title">{t('home.no_subscription')}</p>
-          <p className="text-[13px] text-muted mt-1">{t('home.no_subscription_desc')}</p>
-          <Link to="/client/subscription" className="btn-primary btn-sm mt-4 inline-flex">
-            {t('subscription.subscribe_btn')}
-          </Link>
-        </div>
-      )}
 
-      {/* Upcoming appointments */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">{t('home.upcoming')}</h2>
-          <Link to="/client/calendar" className="text-[13px] font-semibold text-brand flex items-center gap-0.5">
-            {t('home.view_all')} <ChevronRight size={14} />
-          </Link>
+        <div style={{ marginBottom: 14 }}>
+          <SearchBar
+            placeholder="Pesquisar barbeiros, serviços"
+            onClick={() => navigate('/client/discover')}
+          />
         </div>
-        {upcoming.length === 0 ? (
-          <p className="text-[13px] text-muted">{t('home.no_upcoming')}</p>
-        ) : (
-          <ul className="space-y-2">
-            {upcoming.map((a) => (
-              <li key={a.id} className="bg-surface rounded-card p-4 flex items-center gap-4">
-                <div className="text-center shrink-0 w-14">
-                  <p className="text-[22px] font-bold text-brand leading-none">{a.startTime}</p>
-                  <p className="text-[11px] text-muted mt-0.5 uppercase">{formatDate(a.date).split(',')[0]}</p>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="card-title truncate">{SERVICE_LABEL[a.service]}</p>
-                  <p className="text-[13px] text-muted mt-0.5">{a.durationMinutes} min</p>
-                </div>
-                <ChevronRight size={16} className="text-faint shrink-0" />
-              </li>
-            ))}
-          </ul>
+
+        <ChipRow>
+          {CATEGORIES.map((c) => (
+            <Chip key={c} label={c} active={c === cat} onClick={() => setCat(c)} />
+          ))}
+        </ChipRow>
+
+        <div style={{ height: 22 }} />
+
+        {pros.length > 0 && (
+          <>
+            <SectionHeader title="Para ti" action="Ver tudo" onAction={() => navigate('/client/discover')} />
+            <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {pros.slice(0, 3).map((p) => (
+                <BarberCard
+                  key={p.id}
+                  barber={p}
+                  onClick={() => navigate('/client/discover')}
+                />
+              ))}
+            </div>
+            <div style={{ height: 28 }} />
+          </>
         )}
-      </section>
 
-      {/* Recent cuts */}
-      {cuts.length > 0 && (
-        <section>
-          <h2 className="section-title mb-4">{t('home.recent_cuts')}</h2>
-          <ul className="space-y-2">
-            {cuts.slice(0, 4).map((c) => (
-              <li key={c.id} className="flex items-center gap-3 py-3 border-b border-lineSoft last:border-0">
-                <Scissors size={16} className="text-faint shrink-0" />
-                <span className="text-[14px] text-ink flex-1">{formatDate(c.date)}</span>
-                {c.notes && <span className="text-[13px] text-muted truncate max-w-[120px]">{c.notes}</span>}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {/* My professional */}
-      {barber && (
-        <section>
-          <h2 className="section-title mb-4">{t('home.my_professional')}</h2>
-          <div className="bg-surface rounded-card p-4 flex items-center gap-4">
-            <Avatar name={barber.name} size={56} />
-            <div className="flex-1 min-w-0">
-              <p className="card-title">{barber.name}</p>
-              <div className="flex items-center gap-1 mt-1">
-                <Star size={13} className="fill-ink text-ink" />
-                <span className="text-[13px] font-bold">{Number(barber.rating ?? 0).toFixed(1)}</span>
-              </div>
-              {barber.address && (
-                <p className="flex items-center gap-1 text-[13px] text-muted mt-0.5">
-                  <MapPin size={12} /> {barber.address}
-                </p>
-              )}
+        {subscription ? (
+          <>
+            <SectionHeader title="A tua subscrição" />
+            <div style={{ padding: '0 20px' }}>
+              <SubscriptionCard
+                planName={subscription.plan?.name ?? 'Premium'}
+                used={used}
+                total={total}
+                pct={pct}
+                renewal={subscription.renewalDate}
+              />
             </div>
-            <Link to="/client/chat" className="btn-ghost btn-sm shrink-0">
-              <MessageSquare size={14} /> {t('home.chat_btn')}
-            </Link>
+            <div style={{ height: 28 }} />
+          </>
+        ) : null}
+
+        {upcoming.length > 0 && (
+          <>
+            <SectionHeader
+              title="Próximas marcações"
+              action="Ver tudo"
+              onAction={() => navigate('/client/calendar')}
+            />
+            <div style={{ padding: '0 20px' }}>
+              {upcoming.map((a, i) => (
+                <div
+                  key={a.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    padding: '14px 0',
+                    borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+                  }}
+                >
+                  <div style={{ minWidth: 56 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: C.blue }}>{a.startTime}</div>
+                    <div style={{ fontSize: 11, color: C.faint, fontWeight: 600, marginTop: 2 }}>
+                      {new Date(a.date)
+                        .toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })
+                        .toUpperCase()}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700 }}>{SERVICE_LABEL[a.service]}</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+                      {a.durationMinutes} min
+                    </div>
+                  </div>
+                  <Icon d={I.chev} size={16} color={C.faint} stroke={2} />
+                </div>
+              ))}
+            </div>
+            <div style={{ height: 28 }} />
+          </>
+        )}
+
+        {myBarber && (
+          <>
+            <SectionHeader title="O meu profissional" />
+            <div style={{ padding: '0 20px 28px' }}>
+              <Card soft style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 16 }}>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 999,
+                    background: C.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    fontSize: 20,
+                    flexShrink: 0,
+                  }}
+                >
+                  {myBarber.name?.[0]?.toUpperCase() ?? '?'}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>{myBarber.name}</div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      marginTop: 2,
+                      fontSize: 13,
+                    }}
+                  >
+                    <Icon d={I.star} size={12} fill="currentColor" color={C.text} stroke={0} />
+                    <span style={{ fontWeight: 700 }}>{Number(myBarber.rating ?? 0).toFixed(1)}</span>
+                  </div>
+                  {myBarber.address && (
+                    <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{myBarber.address}</div>
+                  )}
+                </div>
+                <button
+                  onClick={() => navigate('/client/chat')}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 999,
+                    background: C.bg,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon d={I.chat} size={18} stroke={2} />
+                </button>
+              </Card>
+            </div>
+          </>
+        )}
+      </ScrollBody>
+    </>
+  );
+}
+
+function BarberCard({ barber, onClick }: { barber: DiscoverBarber; onClick: () => void }) {
+  return (
+    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div
+        style={{
+          position: 'relative',
+          borderRadius: 16,
+          overflow: 'hidden',
+          aspectRatio: '16/9',
+        }}
+      >
+        <ImagePlaceholder ratio="16/9" />
+        <button
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.92)',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#000',
+          }}
+        >
+          <Icon d={I.heart} size={16} stroke={2} />
+        </button>
+      </div>
+      <div style={{ paddingTop: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2 }}>{barber.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 13 }}>
+            <Icon d={I.star} size={12} fill="currentColor" color={C.text} stroke={0} />
+            <span style={{ fontWeight: 700 }}>{Number(barber.rating ?? 0).toFixed(1)}</span>
+            <span style={{ color: C.muted }}>({barber.reviewCount ?? 0})</span>
           </div>
-        </section>
-      )}
+        </div>
+        {barber.address && (
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{barber.address}</div>
+        )}
+      </div>
     </div>
+  );
+}
+
+function SubscriptionCard({
+  planName,
+  used,
+  total,
+  pct,
+  renewal,
+}: {
+  planName: string;
+  used: number;
+  total: number | null;
+  pct: number;
+  renewal?: string | null;
+}) {
+  return (
+    <Card soft style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <style>{`
+        @keyframes subline-shimmer {
+          0%   { background-position: 220% 0; }
+          100% { background-position: -220% 0; }
+        }
+      `}</style>
+      <div style={{ flex: 1 }}>
+        <PlanBadge>{planName}</PlanBadge>
+        <div style={{ fontSize: 17, fontWeight: 700, marginTop: 10 }}>
+          {total ? `${used} de ${total} cortes este mês` : 'Subscrição activa'}
+        </div>
+        {renewal && (
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+            Renova a {new Date(renewal).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long' })}
+          </div>
+        )}
+        {total && (
+          <div
+            style={{
+              height: 8,
+              background: '#F0F0F0',
+              borderRadius: 999,
+              marginTop: 12,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: `${pct}%`,
+                height: '100%',
+                borderRadius: 999,
+                background:
+                  'linear-gradient(90deg, #1A5FA8 0%, #2B8EF0 25%, #5BAEF7 50%, #2B8EF0 75%, #1A5FA8 100%)',
+                backgroundSize: '220% 100%',
+                animation: 'subline-shimmer 2.4s linear infinite',
+                boxShadow: '0 0 14px rgba(43, 142, 240, 0.45)',
+              }}
+            />
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }

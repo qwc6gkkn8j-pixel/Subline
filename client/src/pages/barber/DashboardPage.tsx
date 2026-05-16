@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Users as UsersIcon,
-  DollarSign,
-  Star,
-  CalendarDays,
-  Scissors,
-  MessageSquare,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
-import { StripeBanner } from '@/components/ui/StripeBanner';
+import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, isoDate } from '@/lib/utils';
-import { formatToday } from '@/lib/dateUtils';
 import type { Appointment } from '@/lib/types';
 import { SERVICE_LABEL } from '@/lib/types';
+import {
+  C,
+  I,
+  Icon,
+  Avatar,
+  PageHeader,
+  ScrollBody,
+  SectionHeader,
+  PlanBadge,
+} from '@/design-system';
 
 interface Stats {
   activeClients: number;
@@ -25,130 +25,187 @@ interface Stats {
 
 export default function DashboardPage() {
   const toast = useToast();
-  const { t } = useTranslation(['pro', 'common']);
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [today, setToday] = useState<Appointment[]>([]);
 
   useEffect(() => {
     const todayStr = isoDate(new Date());
     Promise.all([
-      api.get<Stats>('/pro/statistics'),
-      api.get<{ appointments: Appointment[] }>('/pro/appointments', {
-        params: { from: todayStr, to: todayStr },
-      }),
+      api.get<Stats>('/pro/statistics').catch(() => ({
+        data: { activeClients: 0, monthlyRevenue: 0, rating: 0 } as Stats,
+      })),
+      api
+        .get<{ appointments: Appointment[] }>('/pro/appointments', {
+          params: { from: todayStr, to: todayStr },
+        })
+        .catch(() => ({ data: { appointments: [] } })),
     ])
       .then(([s, a]) => {
         setStats(s.data);
         setToday(a.data.appointments);
       })
       .catch((err) => toast.error(apiErrorMessage(err)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
+
+  const firstName = user?.fullName?.split(' ')[0] ?? '';
+  const initials = (firstName[0] ?? 'P').toUpperCase();
+  const apptCount = today.length;
+
+  const kpis = [
+    {
+      v: stats ? formatCurrency(stats.monthlyRevenue) : '—',
+      l: 'Receita do mês',
+      d: '',
+    },
+    { v: stats?.activeClients ?? 0, l: 'Clientes ativos', d: '' },
+    { v: apptCount, l: 'Marcações hoje', d: '' },
+    {
+      v: stats?.rating ? Number(stats.rating).toFixed(1) : '0.0',
+      l: 'Avaliação',
+      d: '',
+    },
+  ];
 
   return (
-    <div className="space-y-6">
-      <StripeBanner variant="barber" />
-
-      {/* KPI tiles */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface rounded-tile p-5 flex flex-col gap-2">
-          <UsersIcon size={18} className="text-brand" />
-          <p className="text-[30px] font-bold text-ink leading-none">
-            {stats?.activeClients ?? '—'}
-          </p>
-          <p className="text-[13px] text-muted mt-1">{t('dashboard.active_clients')}</p>
+    <>
+      <PageHeader actions={<Avatar initials={initials} size={36} bg={C.surface} />} />
+      <ScrollBody>
+        <div style={{ padding: '0 20px 8px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4 }}>
+            Olá{firstName ? `, ${firstName}` : ''}
+          </div>
+          <div style={{ fontSize: 15, color: C.muted, marginTop: 6 }}>
+            {apptCount === 0
+              ? 'Não tens marcações hoje'
+              : `Tens ${apptCount} marcação${apptCount > 1 ? 'ões' : ''} hoje`}
+          </div>
         </div>
 
-        <div className="bg-surface rounded-tile p-5 flex flex-col gap-2">
-          <DollarSign size={18} className="text-success" />
-          <p className="text-[30px] font-bold text-ink leading-none">
-            {stats ? formatCurrency(stats.monthlyRevenue) : '—'}
-          </p>
-          <p className="text-[13px] text-muted mt-1">{t('dashboard.monthly_revenue')}</p>
+        <div style={{ height: 22 }} />
+
+        <div
+          style={{
+            padding: '0 20px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 10,
+          }}
+        >
+          {kpis.map((k, i) => (
+            <div key={i} style={{ background: C.surface, borderRadius: 16, padding: 18 }}>
+              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.3 }}>{k.v}</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{k.l}</div>
+            </div>
+          ))}
         </div>
 
-        <div className="bg-surface rounded-tile p-5 flex flex-col gap-2">
-          <Star size={18} className="text-warning fill-warning" />
-          <p className="text-[30px] font-bold text-ink leading-none">
-            {stats?.rating ? Number(stats.rating).toFixed(1) : '0.0'}
-            <span className="text-[16px] font-normal text-muted">/5</span>
-          </p>
-          <p className="text-[13px] text-muted mt-1">{t('dashboard.rating')}</p>
-        </div>
-      </section>
+        <div style={{ height: 28 }} />
 
-      {/* Today's appointments */}
-      <section className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title mb-4 flex items-center gap-2">
-            <CalendarDays size={18} className="text-brand" /> {formatToday()}
-          </h2>
-          <Link to="/barber/calendar" className="text-[13px] font-semibold text-brand">
-            {t('dashboard.view_calendar')} →
-          </Link>
-        </div>
-        {today.length === 0 ? (
-          <p className="text-[13px] text-muted text-center py-6">{t('dashboard.no_appointments')}</p>
-        ) : (
-          <ul>
-            {today.map((a) => (
-              <li key={a.id} className="py-3 flex items-center gap-3 border-b border-lineSoft last:border-0">
-                <div className="w-14 text-center shrink-0">
-                  <p className="text-[22px] font-bold text-ink leading-none">{a.startTime}</p>
-                  <p className="text-[13px] text-muted mt-0.5">{a.durationMinutes}m</p>
+        <SectionHeader
+          title="Próximos clientes"
+          action="Agenda"
+          onAction={() => navigate('/barber/calendar')}
+        />
+        <div style={{ padding: '0 20px' }}>
+          {today.length === 0 ? (
+            <div style={{ fontSize: 13, color: C.muted, padding: '20px 0' }}>
+              Sem marcações para hoje
+            </div>
+          ) : (
+            today.map((a, i) => (
+              <div
+                key={a.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  padding: '16px 0',
+                  borderTop: i === 0 ? 'none' : `1px solid ${C.border}`,
+                }}
+              >
+                <div style={{ minWidth: 52 }}>
+                  <div style={{ fontSize: 18, fontWeight: 700 }}>{a.startTime}</div>
+                  <div style={{ fontSize: 11, color: C.faint, fontWeight: 600 }}>HOJE</div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-ink truncate">{a.client?.name ?? t('common:nav.clients')}</p>
-                  <p className="text-[13px] text-muted">{SERVICE_LABEL[a.service]}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>
+                    {a.client?.name ?? '—'}
+                  </div>
+                  <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>
+                    {SERVICE_LABEL[a.service]} · {a.durationMinutes} min
+                  </div>
                 </div>
-                <span
-                  className={
-                    a.status === 'confirmed'
-                      ? 'badge-success'
-                      : a.status === 'pending'
-                        ? 'badge-warning'
-                        : 'badge-muted'
-                  }
-                >
-                  {a.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+                {a.status === 'confirmed' ? (
+                  <PlanBadge>Confirmado</PlanBadge>
+                ) : a.status === 'pending' ? (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: C.warning,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Pendente
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>
+                    {a.status}
+                  </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
 
-      {/* Quick nav */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Link
-          to="/barber/clients"
-          className="bg-surface rounded-card p-[18px] hover:shadow-card-lg flex flex-col items-start gap-2"
+        <div style={{ height: 28 }} />
+
+        <SectionHeader title="Atalhos" />
+        <div
+          style={{
+            padding: '0 20px 28px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 10,
+          }}
         >
-          <UsersIcon className="text-brand" size={20} />
-          <p className="font-medium text-ink">{t('common:nav.clients')}</p>
-        </Link>
-        <Link
-          to="/barber/calendar"
-          className="bg-surface rounded-card p-[18px] hover:shadow-card-lg flex flex-col items-start gap-2"
-        >
-          <CalendarDays className="text-brand" size={20} />
-          <p className="font-medium text-ink">{t('common:nav.calendar')}</p>
-        </Link>
-        <Link
-          to="/barber/plans"
-          className="bg-surface rounded-card p-[18px] hover:shadow-card-lg flex flex-col items-start gap-2"
-        >
-          <Scissors className="text-brand" size={20} />
-          <p className="font-medium text-ink">{t('common:nav.plans')}</p>
-        </Link>
-        <Link
-          to="/barber/chat"
-          className="bg-surface rounded-card p-[18px] hover:shadow-card-lg flex flex-col items-start gap-2"
-        >
-          <MessageSquare className="text-brand" size={20} />
-          <p className="font-medium text-ink">{t('common:nav.chat')}</p>
-        </Link>
-      </section>
-    </div>
+          <QuickAction icon={I.users} label="Clientes" onClick={() => navigate('/barber/clients')} />
+          <QuickAction icon={I.cal} label="Agenda" onClick={() => navigate('/barber/calendar')} />
+          <QuickAction icon={I.scissors} label="Serviços" onClick={() => navigate('/barber/services')} />
+          <QuickAction icon={I.chat} label="Mensagens" onClick={() => navigate('/barber/chat')} />
+        </div>
+      </ScrollBody>
+    </>
+  );
+}
+
+function QuickAction({
+  icon,
+  label,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: C.surface,
+        borderRadius: 14,
+        padding: '18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+      }}
+    >
+      <Icon d={icon} size={20} color={C.text} stroke={2} />
+      <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{label}</span>
+    </button>
   );
 }

@@ -1,14 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Logo } from '@/components/ui/Logo';
-import { Spinner } from '@/components/ui/Spinner';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
-import { cn } from '@/lib/utils';
 import type { Role } from '@/lib/types';
+import { C, FONT, I, Icon, Screen, ScrollBody, SublineMark, CTA } from '@/design-system';
 
 type Tab = 'login' | 'register';
 
@@ -20,25 +17,37 @@ interface BarberOption {
 
 export default function Login() {
   const [tab, setTab] = useState<Tab>('login');
-  const { t } = useTranslation('auth');
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-5 py-12">
-      <div className="w-full max-w-sm">
-        {/* Logo + wordmark */}
-        <div className="flex flex-col items-center mb-10">
-          <Logo size={72} showText={false} />
-          <p className="text-[22px] font-bold tracking-[0.2em] text-ink mt-4">SUBLINE</p>
-          <p className="text-micro text-muted mt-1 tracking-[0.2em] uppercase">{t('tagline')}</p>
+    <Screen>
+      <ScrollBody style={{ padding: '90px 28px 28px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <SublineMark size={96} />
+          </div>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4, marginTop: 18 }}>
+            {tab === 'login' ? 'Bem-vindo' : 'Criar conta'}
+          </div>
+          <div style={{ fontSize: 15, color: C.muted, marginTop: 6 }}>
+            O teu barbeiro, à distância de um toque.
+          </div>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex gap-1 bg-surface rounded-pill p-1 mb-6">
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            background: C.surface,
+            borderRadius: 999,
+            padding: 4,
+            marginBottom: 24,
+          }}
+        >
           <TabButton active={tab === 'login'} onClick={() => setTab('login')}>
-            {t('sign_in')}
+            Entrar
           </TabButton>
           <TabButton active={tab === 'register'} onClick={() => setTab('register')}>
-            {t('sign_up')}
+            Criar conta
           </TabButton>
         </div>
 
@@ -48,9 +57,11 @@ export default function Login() {
           <SignUpForm onSwitchTab={() => setTab('login')} />
         )}
 
-        <p className="text-center text-micro text-faint mt-8">© 2026 SUBLINE</p>
-      </div>
-    </div>
+        <div style={{ marginTop: 28, textAlign: 'center', fontSize: 13, color: C.muted }}>
+          © 2026 SUBLINE
+        </div>
+      </ScrollBody>
+    </Screen>
   );
 }
 
@@ -67,19 +78,53 @@ function TabButton({
     <button
       type="button"
       onClick={onClick}
-      className={cn(
-        'flex-1 h-10 rounded-pill text-sm font-semibold transition-all',
-        active ? 'bg-ink text-white' : 'text-muted hover:text-ink',
-      )}
+      style={{
+        flex: 1,
+        height: 40,
+        borderRadius: 999,
+        border: 'none',
+        fontSize: 14,
+        fontWeight: 600,
+        fontFamily: FONT,
+        background: active ? C.ctaSurface : 'transparent',
+        color: active ? C.ctaInk : C.muted,
+        cursor: 'pointer',
+        transition: 'all .15s',
+      }}
     >
       {children}
     </button>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Sign In
-// ────────────────────────────────────────────────────────────────────────────
+function FormLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 8, color: C.text }}>
+      {children}
+    </label>
+  );
+}
+
+function FormInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      style={{
+        width: '100%',
+        background: C.surface,
+        borderRadius: 12,
+        padding: '14px 18px',
+        fontSize: 15,
+        border: 'none',
+        outline: 'none',
+        fontFamily: FONT,
+        color: C.text,
+        ...(props.style || {}),
+      }}
+    />
+  );
+}
+
 function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const { login } = useAuth();
   const toast = useToast();
@@ -94,8 +139,8 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!isEmail(email)) return setError(t('errors.email_invalid'));
-    if (!password) return setError(t('errors.password_required'));
+    if (!isEmail(email)) return setError('Email inválido');
+    if (!password) return setError('Password obrigatória');
     setBusy(true);
     try {
       const user = await login(email, password);
@@ -109,75 +154,102 @@ function SignInForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field icon={<Mail size={16} />} label="Email">
-        <input
+    <form onSubmit={onSubmit} noValidate>
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Email</FormLabel>
+        <FormInput
           type="email"
           autoComplete="email"
-          placeholder={t('email_placeholder')}
+          placeholder="jean.dupont@subline.fr"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-      </Field>
+      </div>
 
-      <Field icon={<Lock size={16} />} label="Password">
-        <div className="relative">
-          <input
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Password</FormLabel>
+        <div style={{ position: 'relative' }}>
+          <FormInput
             type={show ? 'text' : 'password'}
             autoComplete="current-password"
-            placeholder={t('password_placeholder')}
+            placeholder="••••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            style={{ paddingRight: 48 }}
             required
           />
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-ink"
-            aria-label={show ? t('hide_password') : t('show_password')}
+            style={{
+              position: 'absolute',
+              right: 14,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 4,
+              color: C.muted,
+            }}
+            aria-label={show ? 'Ocultar password' : 'Mostrar password'}
           >
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            <Icon d={I.lock} size={18} />
           </button>
         </div>
-      </Field>
+      </div>
 
-      <div className="flex justify-end">
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 18 }}>
         <button
           type="button"
-          onClick={() => toast.show(t('password_reset_soon'), 'info')}
-          className="text-xs text-muted hover:text-ink"
+          onClick={() => toast.show('Recuperação em breve.', 'info')}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: 13,
+            color: C.muted,
+            fontFamily: FONT,
+            padding: 0,
+          }}
         >
-          {t('forgot_password')}
+          Esqueceste-te da password?
         </button>
       </div>
 
       {error && (
-        <div className="bg-danger/10 text-danger text-sm rounded-button px-3 py-2">{error}</div>
+        <div
+          style={{
+            background: 'rgba(226,75,74,0.10)',
+            color: C.danger,
+            fontSize: 13,
+            borderRadius: 12,
+            padding: '10px 14px',
+            marginBottom: 14,
+          }}
+        >
+          {error}
+        </div>
       )}
 
-      <button type="submit" className="btn-brand w-full" disabled={busy}>
-        {busy ? <Spinner /> : t('sign_in')}
-      </button>
+      <CTA variant="brand" type="submit" disabled={busy}>
+        {busy ? 'A entrar…' : 'Entrar'}
+      </CTA>
 
-      <p className="text-center text-sm text-muted">
-        {t('no_account')}{' '}
-        <button type="button" onClick={onSwitchTab} className="text-brand font-medium">
-          {t('create_one')}
-        </button>
-      </p>
+      <div style={{ marginTop: 12 }}>
+        <CTA variant="ghost" onClick={onSwitchTab}>
+          Criar conta
+        </CTA>
+      </div>
     </form>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Sign Up
-// ────────────────────────────────────────────────────────────────────────────
 function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const { register } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
-  const { t } = useTranslation('auth');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -185,7 +257,6 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   const [confirm, setConfirm] = useState('');
   const [role, setRole] = useState<Role>('client');
   const [accepted, setAccepted] = useState(false);
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [barbers, setBarbers] = useState<BarberOption[]>([]);
@@ -199,17 +270,14 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
       .catch(() => setBarbers([]));
   }, [role]);
 
-  const strength = useMemo(() => passwordStrength(password), [password]);
-  const passwordsMatch = !confirm || confirm === password;
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (fullName.trim().length < 2) return setError(t('errors.full_name_required'));
-    if (!isEmail(email)) return setError(t('errors.email_invalid'));
-    if (password.length < 8) return setError(t('errors.password_min'));
-    if (password !== confirm) return setError(t('errors.passwords_mismatch'));
-    if (!accepted) return setError(t('errors.accept_terms'));
+    if (fullName.trim().length < 2) return setError('Nome obrigatório');
+    if (!isEmail(email)) return setError('Email inválido');
+    if (password.length < 8) return setError('Password com pelo menos 8 caracteres');
+    if (password !== confirm) return setError('Passwords não coincidem');
+    if (!accepted) return setError('Aceita os termos');
 
     setBusy(true);
     try {
@@ -222,7 +290,7 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         phone: phone.trim() || undefined,
         barberId: role === 'client' && barberId ? barberId : undefined,
       });
-      toast.success(t('account_created', { name: user.fullName }));
+      toast.success(`Bem-vindo, ${user.fullName}`);
       navigate(rolePath(user.role), { replace: true });
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -232,86 +300,93 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4" noValidate>
-      <Field icon={<User size={16} />} label={t('full_name')}>
-        <input
+    <form onSubmit={onSubmit} noValidate>
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Nome completo</FormLabel>
+        <FormInput
           type="text"
           autoComplete="name"
-          placeholder={t('full_name_placeholder')}
+          placeholder="Jean Dupont"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           required
         />
-      </Field>
+      </div>
 
-      <Field icon={<Mail size={16} />} label="Email">
-        <input
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Email</FormLabel>
+        <FormInput
           type="email"
           autoComplete="email"
-          placeholder={t('email_placeholder')}
+          placeholder="jean.dupont@subline.fr"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-      </Field>
+      </div>
 
-      <Field icon={<Phone size={16} />} label={t('phone_optional')}>
-        <input
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Telefone (opcional)</FormLabel>
+        <FormInput
           type="tel"
           autoComplete="tel"
-          placeholder={t('phone_placeholder')}
+          placeholder="+33 6 12 34 56 78"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-      </Field>
+      </div>
 
-      <Field icon={<Lock size={16} />} label="Password">
-        <div className="relative">
-          <input
-            type={show ? 'text' : 'password'}
-            autoComplete="new-password"
-            placeholder={t('password_placeholder')}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button
-            type="button"
-            onClick={() => setShow((s) => !s)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-ink"
-            aria-label={show ? t('hide_password') : t('show_password')}
-          >
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </div>
-        {password && <PasswordStrength score={strength} />}
-      </Field>
-
-      <Field icon={<Lock size={16} />} label={t('confirm_password_label')}>
-        <input
-          type={show ? 'text' : 'password'}
+      <div style={{ marginBottom: 14 }}>
+        <FormLabel>Password</FormLabel>
+        <FormInput
+          type="password"
           autoComplete="new-password"
-          placeholder={t('password_placeholder')}
+          placeholder="••••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+
+      <div style={{ marginBottom: 18 }}>
+        <FormLabel>Confirmar password</FormLabel>
+        <FormInput
+          type="password"
+          autoComplete="new-password"
+          placeholder="••••••••••"
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
         />
-        {!passwordsMatch && <p className="input-error">{t('errors.passwords_mismatch')}</p>}
-      </Field>
+      </div>
 
-      <div>
-        <label className="label">{t('i_am')}</label>
-        <div className="grid grid-cols-2 gap-2">
-          <RoleRadio value="client" current={role} onChange={setRole} label={t('role_client')} />
-          <RoleRadio value="barber" current={role} onChange={setRole} label={t('role_pro')} />
+      <div style={{ marginBottom: 18 }}>
+        <FormLabel>Sou…</FormLabel>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <RoleRadio value="client" current={role} onChange={setRole} label="Cliente" />
+          <RoleRadio value="barber" current={role} onChange={setRole} label="Profissional" />
         </div>
       </div>
 
       {role === 'client' && barbers.length > 0 && (
-        <div>
-          <label className="label">{t('choose_professional')}</label>
-          <select value={barberId} onChange={(e) => setBarberId(e.target.value)}>
-            <option value="">{t('pick_later')}</option>
+        <div style={{ marginBottom: 18 }}>
+          <FormLabel>Escolhe o profissional</FormLabel>
+          <select
+            value={barberId}
+            onChange={(e) => setBarberId(e.target.value)}
+            style={{
+              width: '100%',
+              background: C.surface,
+              borderRadius: 12,
+              padding: '14px 18px',
+              fontSize: 15,
+              border: 'none',
+              outline: 'none',
+              fontFamily: FONT,
+              color: C.text,
+            }}
+          >
+            <option value="">Escolher mais tarde</option>
             {barbers.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -322,55 +397,65 @@ function SignUpForm({ onSwitchTab }: { onSwitchTab: () => void }) {
         </div>
       )}
 
-      <label className="flex items-start gap-3 cursor-pointer">
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10,
+          marginBottom: 18,
+          cursor: 'pointer',
+        }}
+      >
         <input
           type="checkbox"
           checked={accepted}
           onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded border-line text-brand focus:ring-brand"
+          style={{ marginTop: 3, width: 16, height: 16, accentColor: C.blue }}
         />
-        <span className="text-sm text-muted">
-          {t('terms_agree')}<span className="text-brand">{t('terms_link')}</span>
+        <span style={{ fontSize: 13, color: C.muted, lineHeight: 1.4 }}>
+          Aceito os <span style={{ color: C.blue, fontWeight: 600 }}>termos de uso</span> e a política de privacidade.
         </span>
       </label>
 
       {error && (
-        <div className="bg-danger/10 text-danger text-sm rounded-button px-3 py-2">{error}</div>
+        <div
+          style={{
+            background: 'rgba(226,75,74,0.10)',
+            color: C.danger,
+            fontSize: 13,
+            borderRadius: 12,
+            padding: '10px 14px',
+            marginBottom: 14,
+          }}
+        >
+          {error}
+        </div>
       )}
 
-      <button type="submit" className="btn-brand w-full" disabled={busy}>
-        {busy ? <Spinner /> : t('sign_up')}
-      </button>
+      <CTA variant="brand" type="submit" disabled={busy}>
+        {busy ? 'A criar conta…' : 'Criar conta'}
+      </CTA>
 
-      <p className="text-center text-sm text-muted">
-        {t('have_account')}{' '}
-        <button type="button" onClick={onSwitchTab} className="text-brand font-medium">
-          {t('sign_in_link')}
+      <div style={{ marginTop: 16, textAlign: 'center', fontSize: 13, color: C.muted }}>
+        Já tens conta?{' '}
+        <button
+          type="button"
+          onClick={onSwitchTab}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: C.blue,
+            fontWeight: 600,
+            cursor: 'pointer',
+            padding: 0,
+            fontFamily: FONT,
+            fontSize: 13,
+          }}
+        >
+          Entrar
         </button>
-      </p>
+      </div>
     </form>
-  );
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ────────────────────────────────────────────────────────────────────────────
-function Field({
-  label,
-  icon,
-  children,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="label flex items-center gap-2">
-        {icon && <span className="text-muted">{icon}</span>} {label}
-      </label>
-      {children}
-    </div>
   );
 }
 
@@ -390,53 +475,23 @@ function RoleRadio({
     <button
       type="button"
       onClick={() => onChange(value)}
-      className={cn(
-        'h-12 rounded-button border text-sm font-medium transition-all',
-        active
-          ? 'border-brand bg-brand/15 text-brand'
-          : 'border-line bg-card text-muted hover:text-ink',
-      )}
+      style={{
+        height: 48,
+        borderRadius: 12,
+        border: active ? `2px solid ${C.blue}` : `1px solid ${C.border}`,
+        background: active ? C.blueDim : C.bg,
+        color: active ? C.blue : C.text,
+        fontSize: 14,
+        fontWeight: 600,
+        fontFamily: FONT,
+        cursor: 'pointer',
+        transition: 'all .15s',
+      }}
       aria-pressed={active}
     >
       {label}
     </button>
   );
-}
-
-function PasswordStrength({ score }: { score: 0 | 1 | 2 | 3 }) {
-  const { t } = useTranslation('auth');
-  const labels: Record<number, string> = {
-    0: t('password_strength.too_weak'),
-    1: t('password_strength.weak'),
-    2: t('password_strength.medium'),
-    3: t('password_strength.strong'),
-  };
-  const colors: Record<number, string> = {
-    0: 'bg-danger',
-    1: 'bg-warning',
-    2: 'bg-brand',
-    3: 'bg-success',
-  };
-  return (
-    <div className="mt-2">
-      <div className="h-1.5 bg-line rounded-full overflow-hidden">
-        <div
-          className={cn('h-full transition-all', colors[score])}
-          style={{ width: `${((score + 1) / 4) * 100}%` }}
-        />
-      </div>
-      <p className="text-xs text-muted mt-1">{labels[score]}</p>
-    </div>
-  );
-}
-
-function passwordStrength(pw: string): 0 | 1 | 2 | 3 {
-  let score = 0;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-  if (/\d/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw) && pw.length >= 12) score++;
-  return Math.min(3, score) as 0 | 1 | 2 | 3;
 }
 
 function isEmail(s: string): boolean {

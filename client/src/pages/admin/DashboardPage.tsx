@@ -1,20 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Users as UsersIcon,
-  CheckCircle2,
-  DollarSign,
-  TrendingUp,
-  LifeBuoy,
-  Tag,
-  Scissors,
-  CalendarDays,
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
-import { StripeBanner } from '@/components/ui/StripeBanner';
+import { useAuth } from '@/context/AuthContext';
 import { formatCurrency } from '@/lib/utils';
+import { C, Avatar, PageHeader, ScrollBody, SectionHeader } from '@/design-system';
 
 interface KpiData {
   totalUsers: number;
@@ -32,147 +22,183 @@ interface ExtrasData {
 
 export default function DashboardPage() {
   const toast = useToast();
-  const { t } = useTranslation('admin');
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [extras, setExtras] = useState<ExtrasData | null>(null);
 
   useEffect(() => {
     Promise.all([
-      api.get<KpiData>('/admin/dashboard'),
-      api.get<ExtrasData>('/admin/dashboard/extras'),
+      api.get<KpiData>('/admin/dashboard').catch(() => ({
+        data: { totalUsers: 0, activeSubscriptions: 0, monthlyRevenue: 0, growthPercent: 0 },
+      })),
+      api.get<ExtrasData>('/admin/dashboard/extras').catch(() => ({
+        data: { openTickets: 0, plansCount: 0, barbersCount: 0, appointmentsToday: 0 },
+      })),
     ])
       .then(([k, x]) => {
         setKpi(k.data);
         setExtras(x.data);
       })
       .catch((err) => toast.error(apiErrorMessage(err)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
+
+  const initials = (user?.fullName?.[0] ?? 'A').toUpperCase();
+
+  const tiles = [
+    {
+      v: kpi?.activeSubscriptions ?? '—',
+      l: 'Subs ativas',
+      d: '',
+    },
+    { v: extras?.barbersCount ?? '—', l: 'Profissionais', d: '' },
+    { v: kpi?.totalUsers ?? '—', l: 'Utilizadores', d: '' },
+    {
+      v: kpi ? formatCurrency(kpi.monthlyRevenue) : '—',
+      l: 'MRR',
+      d: '',
+    },
+  ];
 
   return (
-    <div className="space-y-8">
-      <StripeBanner variant="platform" />
-
-      {/* Primary KPI tiles — 2×2 grid */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard
-          icon={<UsersIcon size={20} />}
-          label={t('dashboard.total_users')}
-          value={kpi?.totalUsers ?? '—'}
-          delta="+12.5%"
-        />
-        <KpiCard
-          icon={<CheckCircle2 size={20} />}
-          label={t('dashboard.active_subscriptions')}
-          value={kpi?.activeSubscriptions ?? '—'}
-          delta="+8.2%"
-        />
-        <KpiCard
-          icon={<DollarSign size={20} />}
-          label={t('dashboard.monthly_revenue')}
-          value={kpi ? formatCurrency(kpi.monthlyRevenue) : '—'}
-          delta="+15.3%"
-        />
-        <KpiCard
-          icon={<TrendingUp size={20} />}
-          label={t('dashboard.user_growth')}
-          value={kpi ? `${kpi.growthPercent >= 0 ? '+' : ''}${kpi.growthPercent}%` : '—'}
-        />
-      </section>
-
-      {/* Secondary quick-nav tiles */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <QuickCard
-          to="/admin/tickets"
-          icon={<LifeBuoy size={18} />}
-          label="Tickets em aberto"
-          value={extras?.openTickets ?? '—'}
-        />
-        <QuickCard
-          to="/admin/plans"
-          icon={<Tag size={18} />}
-          label="Planos ativos"
-          value={extras?.plansCount ?? '—'}
-        />
-        <QuickCard
-          to="/admin/users?role=barber"
-          icon={<Scissors size={18} />}
-          label="Profissionais"
-          value={extras?.barbersCount ?? '—'}
-        />
-        <QuickCard
-          to="/admin/logs"
-          icon={<CalendarDays size={18} />}
-          label={t('dashboard_ext.appointments_today')}
-          value={extras?.appointmentsToday ?? '—'}
-        />
-      </section>
-
-      {/* Shortcuts card */}
-      <section className="card">
-        <h2 className="section-title mb-4">{t('dashboard.shortcuts')}</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link to="/admin/users" className="btn-primary">{t('dashboard.manage_users')}</Link>
-          <Link to="/admin/plans" className="btn-outline">{t('dashboard.manage_plans')}</Link>
-          <Link to="/admin/tickets" className="btn-outline">{t('dashboard.view_tickets')}</Link>
-          <Link to="/admin/logs" className="btn-outline">{t('dashboard.audit')}</Link>
+    <>
+      <PageHeader actions={<Avatar initials={initials} size={36} bg={C.surface} />} />
+      <ScrollBody>
+        <div style={{ padding: '0 20px 12px' }}>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.4 }}>Visão geral</div>
         </div>
-      </section>
-    </div>
+
+        <div style={{ padding: '0 20px' }}>
+          <div style={{ background: C.surface, borderRadius: 20, padding: 22 }}>
+            <div style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Receita este mês</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 6 }}>
+              <div style={{ fontSize: 36, fontWeight: 700, letterSpacing: -0.5 }}>
+                {kpi ? formatCurrency(kpi.monthlyRevenue) : '—'}
+              </div>
+              {kpi && (
+                <div
+                  style={{
+                    fontSize: 14,
+                    color: kpi.growthPercent >= 0 ? C.success : C.danger,
+                    fontWeight: 700,
+                  }}
+                >
+                  {kpi.growthPercent >= 0 ? '+' : ''}
+                  {kpi.growthPercent.toFixed(1)}%
+                </div>
+              )}
+            </div>
+            <svg width="100%" height="48" viewBox="0 0 280 48" style={{ marginTop: 12 }}>
+              <defs>
+                <linearGradient id="spkUE" x1="0" y1="0" x2="0" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stopColor="#2B8EF0" stopOpacity="0.20" />
+                  <stop offset="1" stopColor="#2B8EF0" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M0 38 L20 32 L40 35 L60 28 L80 30 L100 22 L120 25 L140 18 L160 20 L180 12 L200 16 L220 8 L240 12 L260 6 L280 10 L280 48 L0 48 Z"
+                fill="url(#spkUE)"
+              />
+              <path
+                d="M0 38 L20 32 L40 35 L60 28 L80 30 L100 22 L120 25 L140 18 L160 20 L180 12 L200 16 L220 8 L240 12 L260 6 L280 10"
+                stroke="#2B8EF0"
+                strokeWidth={2}
+                fill="none"
+              />
+            </svg>
+          </div>
+        </div>
+
+        <div style={{ height: 16 }} />
+
+        <div
+          style={{
+            padding: '0 20px',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 10,
+          }}
+        >
+          {tiles.map((t, i) => (
+            <div key={i} style={{ background: C.surface, borderRadius: 16, padding: 18 }}>
+              <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>{t.v}</div>
+              <div style={{ fontSize: 13, color: C.text, marginTop: 4, fontWeight: 600 }}>{t.l}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ height: 28 }} />
+
+        <SectionHeader title="Acessos rápidos" />
+        <div
+          style={{
+            padding: '0 20px 28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+          }}
+        >
+          <ActionRow
+            label="Profissionais"
+            sub={`${extras?.barbersCount ?? 0} ativos`}
+            onClick={() => navigate('/admin/pros')}
+          />
+          <ActionRow
+            label="Utilizadores"
+            sub={`${kpi?.totalUsers ?? 0} contas`}
+            onClick={() => navigate('/admin/users')}
+          />
+          <ActionRow
+            label="Pagamentos"
+            sub={`${kpi ? formatCurrency(kpi.monthlyRevenue) : '—'} este mês`}
+            onClick={() => navigate('/admin/payments')}
+          />
+          <ActionRow
+            label="Tickets de suporte"
+            sub={`${extras?.openTickets ?? 0} abertos`}
+            onClick={() => navigate('/admin/tickets')}
+          />
+          <ActionRow
+            label="Auditoria"
+            sub="Logs de atividade"
+            onClick={() => navigate('/admin/logs')}
+          />
+        </div>
+      </ScrollBody>
+    </>
   );
 }
 
-function KpiCard({
-  icon,
+function ActionRow({
   label,
-  value,
-  delta,
+  sub,
+  onClick,
 }: {
-  icon: React.ReactNode;
-  color?: string;
   label: string;
-  value: number | string;
-  delta?: string;
+  sub: string;
+  onClick: () => void;
 }) {
   return (
-    <div className="bg-surface rounded-tile p-5 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <span className="text-brand">{icon}</span>
-        {delta && (
-          <span className="text-[12px] font-semibold text-success">{delta}</span>
-        )}
-      </div>
-      <div>
-        <p className="text-[30px] font-bold leading-tight text-ink">{value}</p>
-        <p className="text-xs text-muted mt-1">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-function QuickCard({
-  to,
-  icon,
-  label,
-  value,
-}: {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  value: number | string;
-}) {
-  return (
-    <Link
-      to={to}
-      className="bg-surface rounded-tile p-5 flex items-center gap-3 hover:brightness-95 transition-all border border-lineSoft"
+    <button
+      onClick={onClick}
+      style={{
+        background: C.surface,
+        borderRadius: 16,
+        padding: 18,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        fontFamily: 'inherit',
+      }}
     >
-      <span className="w-10 h-10 rounded-button bg-brand/10 text-brand flex items-center justify-center shrink-0">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <p className="text-[22px] font-bold text-ink leading-tight">{value}</p>
-        <p className="text-xs text-muted truncate">{label}</p>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: C.text }}>{label}</div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{sub}</div>
       </div>
-    </Link>
+      <div style={{ color: C.faint, fontSize: 20 }}>›</div>
+    </button>
   );
 }
