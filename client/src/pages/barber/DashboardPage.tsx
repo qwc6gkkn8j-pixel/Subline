@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { formatCurrency, isoDate } from '@/lib/utils';
 import type { Appointment } from '@/lib/types';
 import { SERVICE_LABEL } from '@/lib/types';
@@ -27,6 +28,7 @@ export default function DashboardPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isDesktop = useIsDesktop();
   const [stats, setStats] = useState<Stats | null>(null);
   const [today, setToday] = useState<Appointment[]>([]);
 
@@ -89,13 +91,15 @@ export default function DashboardPage() {
           style={{
             padding: '0 20px',
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 10,
+            gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+            gap: isDesktop ? 14 : 10,
           }}
         >
           {kpis.map((k, i) => (
             <div key={i} style={{ background: C.surface, borderRadius: 16, padding: 18 }}>
-              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.3 }}>{k.v}</div>
+              <div style={{ fontSize: isDesktop ? 30 : 26, fontWeight: 700, letterSpacing: -0.3 }}>
+                {k.v}
+              </div>
               <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{k.l}</div>
             </div>
           ))}
@@ -166,8 +170,8 @@ export default function DashboardPage() {
           style={{
             padding: '0 20px 28px',
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 10,
+            gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+            gap: isDesktop ? 14 : 10,
           }}
         >
           <QuickAction icon={I.users} label="Clientes" onClick={() => navigate('/barber/clients')} />

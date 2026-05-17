@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { Client, Subscription } from '@/lib/types';
 import {
   C,
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const isDesktop = useIsDesktop();
   const [loading, setLoading] = useState(true);
   const [client, setClient] = useState<(Client & { user: { email: string } }) | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -145,7 +147,7 @@ export default function ProfilePage() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
           gap: 10,
           marginBottom: 24,
         }}

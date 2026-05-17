@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { StripeStatus } from '@/lib/types';
 import { C, FONT, I, Icon, Avatar, ScrollBody, CTA } from '@/design-system';
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [status, setStatus] = useState<StripeStatus | null>(null);
 
   useEffect(() => {
@@ -79,7 +81,14 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+          gap: 10,
+          marginBottom: 24,
+        }}
+      >
         {quick.map((q, i) => (
           <button
             key={i}

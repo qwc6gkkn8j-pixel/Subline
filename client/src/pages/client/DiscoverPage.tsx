@@ -1,22 +1,29 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Search, Star, MapPin, Heart, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Spinner } from '@/components/ui/Spinner';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
-import { useTranslation } from 'react-i18next';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
+import {
+  C,
+  FONT,
+  I,
+  Icon,
+  PageHeader,
+  ScrollBody,
+  ImagePlaceholder,
+  Chip,
+  ChipRow,
+} from '@/design-system';
 
 interface Pro {
   id: string;
   name: string;
-  bio?: string;
-  address?: string;
-  city?: string;
-  categories: string[];
-  rating: number;
+  bio?: string | null;
+  address?: string | null;
+  rating: number | string;
   reviewCount: number;
-  services: { id: string; name: string; price: number; durationMinutes: number }[];
+  services?: { id: string; name: string; price: number | string; durationMinutes: number }[];
 }
 
 interface DiscoverResp {
@@ -28,46 +35,51 @@ interface FavoriteState {
   [barberId: string]: boolean;
 }
 
+const CATEGORIES = ['Tudo', 'Premium', 'Perto de ti', 'Promoções', 'Barba', 'Corte'];
+
 export default function DiscoverPage() {
-    const { t } = useTranslation('client');
   const toast = useToast();
+  const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [pros, setPros] = useState<Pro[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
-  const [activeCategory, setActiveCategory] = useState('');
+  const [cat, setCat] = useState('Tudo');
   const [favorites, setFavorites] = useState<FavoriteState>({});
   const [favLoading, setFavLoading] = useState<string | null>(null);
 
-  const search = useCallback(async (query = q, cat = activeCategory) => {
-    setLoading(true);
-    try {
-      const params: Record<string, string> = { sortBy: 'rating' };
-      if (query) params.q = query;
-      if (cat) params.category = cat;
-      const { data } = await api.get<DiscoverResp>('/public/discover', { params });
-      setPros(data.pros);
-    } catch (err) {
-      toast.error(apiErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const search = useCallback(
+    async (query = '', category = 'Tudo') => {
+      setLoading(true);
+      try {
+        const params: Record<string, string> = { sortBy: 'rating', limit: '24' };
+        if (query) params.q = query;
+        if (category && category !== 'Tudo') params.category = category;
+        const { data } = await api.get<DiscoverResp>('/public/discover', { params });
+        setPros(data.pros);
+      } catch (err) {
+        toast.error(apiErrorMessage(err));
+        setPros([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [toast],
+  );
 
   useEffect(() => {
     void search();
-    api.get<{ categories: string[] }>('/public/categories')
-      .then((r) => setCategories(r.data.categories))
-      .catch(() => {});
-    // Load existing favorites
-    api.get<{ favorites: { barberId: string }[] }>('/client/favorites')
+    api
+      .get<{ favorites: { barberId: string }[] }>('/client/favorites')
       .then((r) => {
         const map: FavoriteState = {};
-        r.data.favorites.forEach((f) => { map[f.barberId] = true; });
+        r.data.favorites.forEach((f) => {
+          map[f.barberId] = true;
+        });
         setFavorites(map);
       })
       .catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search]);
 
   const toggleFavorite = async (barberId: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -83,145 +95,246 @@ export default function DiscoverPage() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
+  const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    void search();
+    void search(q, cat);
   };
 
-  const selectCategory = (cat: string) => {
-    const newCat = cat === activeCategory ? '' : cat;
-    setActiveCategory(newCat);
+  const onCategoryChange = (newCat: string) => {
+    setCat(newCat);
     void search(q, newCat);
   };
 
   return (
-    <div className="space-y-5">
-      <h1 className="page-title">{t('discover.title')}</h1>
-
-      {/* Barra de pesquisa */}
-      <form onSubmit={handleSearch} className="relative">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-faint" strokeWidth={2} />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder={t('discover.search_placeholder')}
-          className="!pl-12 !rounded-pill bg-surface border-transparent"
-        />
-      </form>
-
-      {/* Categorias */}
-      {categories.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-          <button
-            onClick={() => selectCategory('')}
-            className={`shrink-0 h-9 px-4 rounded-pill text-sm font-medium transition-all ${
-              !activeCategory
-                ? 'bg-ink text-white'
-                : 'bg-card border border-line text-ink'
-            }`}
-          >
-            Todos
-          </button>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => selectCategory(cat)}
-              className={`shrink-0 h-9 px-4 rounded-pill text-sm font-medium transition-all ${
-                activeCategory === cat
-                  ? 'bg-ink text-white'
-                  : 'bg-card border border-line text-ink'
-              }`}
+    <>
+      <PageHeader title="Descobrir" />
+      <ScrollBody>
+        <div style={{ padding: '0 20px 14px' }}>
+          <form onSubmit={onSearchSubmit}>
+            <div
+              style={{
+                height: 48,
+                borderRadius: 999,
+                background: C.surface,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '0 18px',
+              }}
             >
-              {cat}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Resultados */}
-      {loading ? (
-        <div className="py-12 text-center"><Spinner /></div>
-      ) : pros.length === 0 ? (
-        <EmptyState
-          icon={Search}
-          title={t('discover.no_results')}
-          description={t('discover.no_results_desc')}
-        />
-      ) : (
-        <div className="space-y-3">
-          {pros.map((pro) => (
-            <div key={pro.id} className="card relative">
-              {/* Botão favorito */}
-              <button
-                onClick={(e) => void toggleFavorite(pro.id, e)}
-                disabled={favLoading === pro.id}
-                className="absolute top-4 right-4 p-1 text-faint hover:text-danger transition-colors"
-                aria-label={favorites[pro.id] ? t('discover.remove_favorite') : t('discover.add_favorite')}
-              >
-                <Heart
-                  size={20}
-                  className={favorites[pro.id] ? 'fill-danger text-danger' : ''}
-                />
-              </button>
-
-              <div className="flex items-start gap-3 pr-8">
-                {/* Avatar placeholder */}
-                <div className="w-14 h-14 rounded-card bg-surface flex items-center justify-center shrink-0 text-lg font-bold text-muted">
-                  {pro.name.charAt(0)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="card-title">{pro.name}</h3>
-
-                  <div className="flex items-center gap-3 mt-0.5">
-                    {Number(pro.rating) > 0 && (
-                      <span className="flex items-center gap-1 text-[13px] font-semibold text-ink">
-                        <Star size={13} className="fill-ink text-ink" />
-                        {Number(pro.rating).toFixed(1)}
-                        <span className="text-faint font-normal">({pro.reviewCount})</span>
-                      </span>
-                    )}
-                    {pro.city && (
-                      <span className="flex items-center gap-1 text-[13px] text-muted">
-                        <MapPin size={12} /> {pro.city}
-                      </span>
-                    )}
-                  </div>
-
-                  {pro.categories.length > 0 && (
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {pro.categories.map((c) => (
-                        <span key={c} className="badge-muted text-[10px]">{c}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {pro.bio && (
-                    <p className="text-[13px] text-muted mt-2 line-clamp-2">{pro.bio}</p>
-                  )}
-
-                  {pro.services.length > 0 && (
-                    <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                      {pro.services.map((s) => (
-                        <div key={s.id} className="shrink-0 bg-surface rounded-input px-3 py-1.5 text-xs">
-                          <p className="font-semibold text-ink">{s.name}</p>
-                          <p className="text-[13px] text-muted">{s.price}€ · {s.durationMinutes}min</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Link
-                to={`/client/book/${pro.id}`}
-                className="mt-4 btn-primary w-full text-sm flex items-center justify-center gap-2"
-              >
-                Marcar <ChevronRight size={16} />
-              </Link>
+              <Icon d={I.search} size={20} color={C.muted} stroke={2} />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onBlur={() => void search(q, cat)}
+                placeholder="Pesquisar barbeiros, serviços"
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  background: 'transparent',
+                  outline: 'none',
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: C.text,
+                  fontFamily: FONT,
+                }}
+              />
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQ('');
+                    void search('', cat);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: C.muted,
+                    fontSize: 18,
+                    padding: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  ×
+                </button>
+              )}
             </div>
-          ))}
+          </form>
         </div>
-      )}
+
+        <ChipRow>
+          {CATEGORIES.map((c) => (
+            <Chip key={c} label={c} active={c === cat} onClick={() => onCategoryChange(c)} />
+          ))}
+        </ChipRow>
+
+        <div style={{ height: 16 }} />
+
+        {loading ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '60px 0',
+            }}
+          >
+            <Spinner />
+          </div>
+        ) : pros.length === 0 ? (
+          <div
+            style={{
+              padding: '60px 20px',
+              textAlign: 'center',
+              color: C.muted,
+              fontSize: 14,
+            }}
+          >
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.text, marginBottom: 8 }}>
+              Sem resultados
+            </div>
+            <div>Tenta outra pesquisa ou categoria.</div>
+          </div>
+        ) : (
+          <div
+            style={{
+              padding: '0 20px 28px',
+              display: 'grid',
+              gridTemplateColumns: isDesktop ? 'repeat(3, 1fr)' : '1fr',
+              gap: isDesktop ? 20 : 22,
+            }}
+          >
+            {pros.map((pro) => (
+              <ProCard
+                key={pro.id}
+                pro={pro}
+                favorited={!!favorites[pro.id]}
+                onToggleFav={(e) => void toggleFavorite(pro.id, e)}
+                favBusy={favLoading === pro.id}
+                onClick={() => navigate(`/client/book/${pro.id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </ScrollBody>
+    </>
+  );
+}
+
+function ProCard({
+  pro,
+  favorited,
+  onToggleFav,
+  favBusy,
+  onClick,
+}: {
+  pro: Pro;
+  favorited: boolean;
+  onToggleFav: (e: React.MouseEvent) => void;
+  favBusy: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <div onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}>
+        <ImagePlaceholder ratio="16/9" />
+        <button
+          onClick={onToggleFav}
+          disabled={favBusy}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.92)',
+            border: 'none',
+            cursor: favBusy ? 'wait' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: favorited ? C.danger : '#000',
+            opacity: favBusy ? 0.6 : 1,
+          }}
+          aria-label={favorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        >
+          <Icon
+            d={I.heart}
+            size={16}
+            stroke={2}
+            fill={favorited ? 'currentColor' : 'none'}
+            color={favorited ? C.danger : '#000'}
+          />
+        </button>
+      </div>
+      <div style={{ paddingTop: 10 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            gap: 8,
+          }}
+        >
+          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: -0.2 }}>{pro.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 13 }}>
+            <Icon d={I.star} size={12} fill="currentColor" color={C.text} stroke={0} />
+            <span style={{ fontWeight: 700 }}>{Number(pro.rating).toFixed(1)}</span>
+            <span style={{ color: C.muted }}>({pro.reviewCount ?? 0})</span>
+          </div>
+        </div>
+        {pro.address && (
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>{pro.address}</div>
+        )}
+        {pro.bio && (
+          <div
+            style={{
+              fontSize: 13,
+              color: C.muted,
+              marginTop: 6,
+              lineHeight: 1.4,
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+            }}
+          >
+            {pro.bio}
+          </div>
+        )}
+        {pro.services && pro.services.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 6,
+              marginTop: 8,
+              overflowX: 'auto',
+              paddingBottom: 2,
+              scrollbarWidth: 'none',
+            }}
+          >
+            {pro.services.map((s) => (
+              <div
+                key={s.id}
+                style={{
+                  flexShrink: 0,
+                  background: C.surface,
+                  borderRadius: 8,
+                  padding: '6px 10px',
+                  fontSize: 12,
+                }}
+              >
+                <span style={{ fontWeight: 700 }}>{s.name}</span>
+                <span style={{ color: C.muted, marginLeft: 6 }}>
+                  {Number(s.price)}€ · {s.durationMinutes}m
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/context/AuthContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import { formatCurrency } from '@/lib/utils';
 import { C, Avatar, PageHeader, ScrollBody, SectionHeader } from '@/design-system';
 
@@ -24,6 +25,7 @@ export default function DashboardPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isDesktop = useIsDesktop();
   const [kpi, setKpi] = useState<KpiData | null>(null);
   const [extras, setExtras] = useState<ExtrasData | null>(null);
 
@@ -115,13 +117,13 @@ export default function DashboardPage() {
           style={{
             padding: '0 20px',
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 10,
+            gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+            gap: isDesktop ? 14 : 10,
           }}
         >
           {tiles.map((t, i) => (
             <div key={i} style={{ background: C.surface, borderRadius: 16, padding: 18 }}>
-              <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.3 }}>{t.v}</div>
+              <div style={{ fontSize: isDesktop ? 28 : 24, fontWeight: 700, letterSpacing: -0.3 }}>{t.v}</div>
               <div style={{ fontSize: 13, color: C.text, marginTop: 4, fontWeight: 600 }}>{t.l}</div>
             </div>
           ))}
@@ -133,8 +135,8 @@ export default function DashboardPage() {
         <div
           style={{
             padding: '0 20px 28px',
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr',
             gap: 10,
           }}
         >

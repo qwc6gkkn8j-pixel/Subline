@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { Barber, StripeStatus } from '@/lib/types';
 import { C, FONT, I, Icon, Avatar, ScrollBody, CTA } from '@/design-system';
 
@@ -11,6 +12,7 @@ export default function ProfilePage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const isDesktop = useIsDesktop();
   const [loading, setLoading] = useState(true);
   const [barber, setBarber] = useState<Barber | null>(null);
   const [stripe, setStripe] = useState<StripeStatus | null>(null);
@@ -149,7 +151,14 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isDesktop ? 'repeat(4, 1fr)' : '1fr 1fr',
+          gap: 10,
+          marginBottom: 24,
+        }}
+      >
         {quick.map((q, i) => (
           <button
             key={i}

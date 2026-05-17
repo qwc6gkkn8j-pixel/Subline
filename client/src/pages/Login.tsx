@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/Toast';
 import { api, apiErrorMessage } from '@/lib/api';
 import type { Role } from '@/lib/types';
-import { C, FONT, I, Icon, Screen, ScrollBody, SublineMark, CTA } from '@/design-system';
+import { C, FONT, I, Icon, ScrollBody, SublineMark, CTA } from '@/design-system';
 
 type Tab = 'login' | 'register';
 
@@ -19,7 +19,29 @@ export default function Login() {
   const [tab, setTab] = useState<Tab>('login');
 
   return (
-    <Screen>
+    <div
+      style={{
+        minHeight: '100vh',
+        width: '100%',
+        background: C.surface,
+        color: C.text,
+        fontFamily: FONT,
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 460,
+          background: C.bg,
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 0 40px rgba(0,0,0,0.05)',
+        }}
+      >
       <ScrollBody style={{ padding: '90px 28px 28px' }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -61,7 +83,8 @@ export default function Login() {
           © 2026 SUBLINE
         </div>
       </ScrollBody>
-    </Screen>
+      </div>
+    </div>
   );
 }
 

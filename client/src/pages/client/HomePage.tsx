@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { Spinner } from '@/components/ui/Spinner';
+import { useIsDesktop } from '@/lib/hooks/useIsDesktop';
 import type { Appointment, Barber, Subscription } from '@/lib/types';
 import { SERVICE_LABEL } from '@/lib/types';
 import {
@@ -35,6 +36,7 @@ export default function HomePage() {
   const toast = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isDesktop = useIsDesktop();
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [myBarber, setMyBarber] = useState<Barber | null>(null);
@@ -142,8 +144,15 @@ export default function HomePage() {
         {pros.length > 0 && (
           <>
             <SectionHeader title="Para ti" action="Ver tudo" onAction={() => navigate('/client/discover')} />
-            <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 22 }}>
-              {pros.slice(0, 3).map((p) => (
+            <div
+              style={{
+                padding: '0 20px',
+                display: 'grid',
+                gridTemplateColumns: isDesktop ? 'repeat(3, 1fr)' : '1fr',
+                gap: isDesktop ? 20 : 22,
+              }}
+            >
+              {pros.slice(0, isDesktop ? 6 : 3).map((p) => (
                 <BarberCard
                   key={p.id}
                   barber={p}
